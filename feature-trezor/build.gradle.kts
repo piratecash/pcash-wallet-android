@@ -60,5 +60,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
 }

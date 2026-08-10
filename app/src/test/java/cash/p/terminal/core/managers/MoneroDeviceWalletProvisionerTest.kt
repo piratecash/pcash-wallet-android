@@ -78,6 +78,12 @@ class MoneroDeviceWalletProvisionerTest {
 
         assertEquals(walletPublicKey, result)
         assertEquals(HEIGHT, restoreSettings.birthdayHeight)
+        verify(exactly = 1) {
+            restoreSettingsManager.saveMoneroSpentReconciliationState(
+                account,
+                MoneroSpentReconciliationState.LiveRefreshPending,
+            )
+        }
         coVerify(exactly = 1) {
             dao.insert(
                 match {

@@ -133,8 +133,8 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         return dao.getDeletedIds()
     }
 
-    override fun clearDeleted() {
-        return dao.clearDeleted()
+    override fun clearDeleted(accountIds: List<String>) {
+        return dao.clearDeleted(accountIds)
     }
 
     override fun save(account: Account) {

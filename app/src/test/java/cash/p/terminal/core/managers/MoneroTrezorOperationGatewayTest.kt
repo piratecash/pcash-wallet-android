@@ -166,6 +166,34 @@ class MoneroTrezorOperationGatewayTest {
     }
 
     @Test
+    fun execute_featuresBeforeWalletPublicKey_usesNewestSessionAndBindsWallet() = runTest {
+        val sessionId = TrezorSessionId(NEWEST_SESSION_ID)
+        val readiness = readiness(sessionId)
+        every { readiness.requireSession(any()) } throws IllegalStateException("Expected newest features")
+        every {
+            readiness.requireSession(
+                match { it.sessionId?.toByteArray()?.contentEquals(NEWEST_SESSION_ID) == true },
+            )
+        } returns sessionId
+        val dispatcher = UnconfinedTestDispatcher(testScheduler)
+        val gateway = MoneroTrezorOperationGateway(
+            coordinator(scriptedChannel(LIVE_WALLET_KEY, NEWEST_SESSION_ID)),
+            readiness,
+            TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
+        )
+
+        val result = gateway.execute(legacyAccount()) { it }
+
+        assertEquals(LIVE_WALLET_KEY, result)
+        coVerify(exactly = 1) {
+            readiness.requireWallet(
+                match { it.id == ACCOUNT_ID },
+                LIVE_WALLET_KEY,
+            )
+        }
+    }
+
+    @Test
     fun execute_boundAccountWrongWallet_rejectsBinding() = runTest {
         val channel = scriptedChannel(LIVE_WALLET_KEY)
         val coordinator = coordinator(channel)
@@ -371,15 +399,12 @@ class MoneroTrezorOperationGatewayTest {
         coEvery { requireWallet(any(), any()) } just Runs
     }
 
-    private fun scriptedChannel(walletKey: String): TrezorRawUsbChannel {
-        val features = Features.newBuilder()
-            .setDeviceId("device-id")
-            .setInternalModel("T3T1")
-            .setMajorVersion(2)
-            .setMinorVersion(8)
-            .setPatchVersion(10)
-            .setSessionId(ByteString.copyFrom(SESSION_ID))
-            .build()
+    private fun scriptedChannel(
+        walletKey: String,
+        extraFeaturesSessionId: ByteArray? = null,
+    ): TrezorRawUsbChannel {
+        val responses = featuresResponse(SESSION_ID)
+        extraFeaturesSessionId?.let { responses += featuresResponse(it) }
         val publicKey = PublicKey.newBuilder()
             .setXpub(walletKey)
             .setNode(
@@ -392,10 +417,20 @@ class MoneroTrezorOperationGatewayTest {
                     .build(),
             )
             .build()
-        val responses =
-            FramingCodec.encode(MessageType.MessageType_Features_VALUE, features.toByteArray()) +
-                FramingCodec.encode(MessageType.MessageType_PublicKey_VALUE, publicKey.toByteArray())
+        responses += FramingCodec.encode(MessageType.MessageType_PublicKey_VALUE, publicKey.toByteArray())
         return ScriptedRawChannel(responses)
+    }
+
+    private fun featuresResponse(sessionId: ByteArray): MutableList<ByteArray> {
+        val features = Features.newBuilder()
+            .setDeviceId("device-id")
+            .setInternalModel("T3T1")
+            .setMajorVersion(2)
+            .setMinorVersion(8)
+            .setPatchVersion(10)
+            .setSessionId(ByteString.copyFrom(sessionId))
+            .build()
+        return FramingCodec.encode(MessageType.MessageType_Features_VALUE, features.toByteArray()).toMutableList()
     }
 
     private fun legacyAccount() = Account(
@@ -450,5 +485,6 @@ class MoneroTrezorOperationGatewayTest {
         const val ACCOUNT_ID = "account-id"
         const val LIVE_WALLET_KEY = "zpub-live-wallet"
         val SESSION_ID = byteArrayOf(1, 2, 3, 4)
+        val NEWEST_SESSION_ID = byteArrayOf(5, 6, 7, 8)
     }
 }

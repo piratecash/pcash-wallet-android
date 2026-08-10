@@ -362,11 +362,15 @@
     <string name="receive_address_badge_used">Kullanıldı</string>
     <string name="receive_address_badge_unused">Kullanılmadı</string>
     <string name="receive_create_new_address">Yeni adres oluştur</string>
-    <string name="monero_key_images_required">Göndermeden önce Monero anahtar görüntülerini Trezor ile eşitleyin.</string>
+    <string name="monero_key_images_required">Göndermeden önce Monero’yu Trezor ile güncelleyin.</string>
     <string name="monero_sync_key_images">Anahtar görüntülerini eşitle</string>
     <string name="monero_prepare_trezor_title">Trezor’u Monero göndermeye hazırlayın</string>
-    <string name="monero_prepare_trezor_description">Monero göndermek için Trezor’unuzu bağlayıp kilidini açın, ardından cüzdanı eşitleyin. Bu adımda hiçbir fon gönderilmez.</string>
+    <string name="monero_prepare_trezor_description">Monero göndermek için Trezor’unuzu bağlayıp kilidini açın. Bağlı tutun ve güncellemeyi cihazda onaylayın. Bu adımda hiçbir fon gönderilmez.</string>
     <string name="monero_sync_and_continue">Eşitle ve devam et</string>
+    <string name="monero_update_with_trezor">Trezor ile güncelle</string>
+    <string name="monero_updating_with_trezor">Monero, Trezor ile güncelleniyor</string>
+    <string name="monero_full_wallet_recovery">Tam cüzdan kurtarma</string>
+    <string name="monero_full_wallet_recovery_warning">Bu kurtarma uzun sürebilir.</string>
     <string name="monero_show_address_on_trezor">Adresi Trezor’da göster</string>
     <string name="receive_create_another_address_title">Başka bir adres oluşturulsun mu?</string>
     <string name="receive_create_another_address_warning">Henüz fon almamış yeni bir adresiniz zaten var. Yeni bir adres oluşturmak gerekli değil. Devam etmek istiyor musunuz?</string>

@@ -7,6 +7,7 @@ import cash.p.terminal.core.IMoneroReceiveAdapter
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.managers.MoneroSubaddressInfo
+import cash.p.terminal.core.requiresTrezorPreparation
 import cash.p.terminal.modules.receive.ReceiveModule
 import cash.p.terminal.modules.send.hardwareWalletUserMessageRes
 import cash.p.terminal.modules.send.isHardwareWalletCancelled
@@ -146,8 +147,8 @@ class ReceiveMoneroViewModel(
         }
     }
 
-    fun syncKeyImages() {
-        runHardwareOperation { it.syncKeyImages() }
+    fun refreshWithTrezor() {
+        runHardwareOperation { it.refreshHardwareKeyImages() }
     }
 
     fun displayAddressOnDevice() {
@@ -232,7 +233,10 @@ data class ReceiveMoneroUiState(
     val spendReadiness: MoneroSpendReadiness = MoneroSpendReadiness.Ready,
     val isHardwareOperationInProgress: Boolean = false,
     @StringRes val hardwareOperationError: Int? = null,
-) : ReceiveModule.AbstractUiState()
+) : ReceiveModule.AbstractUiState() {
+    val showTrezorUpdateAction: Boolean
+        get() = spendReadiness.requiresTrezorPreparation()
+}
 
 enum class AddressBadge { NEW, UNUSED, USED }
 

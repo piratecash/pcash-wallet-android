@@ -226,7 +226,7 @@ class AccountManager(
     }
 
     override fun getDeletedAccountIds() = storage.getDeletedAccountIds()
-    override fun clearDeleted() = storage.clearDeleted()
+    override fun clearDeleted(accountIds: List<String>) = storage.clearDeleted(accountIds)
 
     override fun accountsAtLevel(level: Int): List<Account> {
         return storage.allAccounts(level)

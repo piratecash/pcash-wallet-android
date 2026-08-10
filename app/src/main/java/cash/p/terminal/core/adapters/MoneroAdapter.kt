@@ -50,6 +50,7 @@ class MoneroAdapter(
     private val walletStateUpdatedFlow = merge(
         moneroKitWrapper.syncState.map { },
         moneroKitWrapper.spendReadiness.map { },
+        moneroKitWrapper.transactionsStateUpdatedFlow,
     )
 
     private val unlockedBalance: BigDecimal
@@ -77,7 +78,11 @@ class MoneroAdapter(
     override suspend fun createNewSubaddress(): String =
         moneroKitWrapper.createNewSubaddress()
 
-    override suspend fun syncKeyImages() {
+    override suspend fun refreshHardwareKeyImages() {
+        moneroKitWrapper.refreshHardwareKeyImages()
+    }
+
+    override suspend fun fullWalletRecovery() {
         moneroKitWrapper.syncKeyImages()
     }
 

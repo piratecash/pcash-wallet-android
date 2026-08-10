@@ -6,6 +6,7 @@ import cash.p.terminal.core.IRestoreSettingsStorage
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.BlockchainType
 
@@ -42,7 +43,56 @@ class RestoreSettingsManager(
             RestoreSettingRecord(account.id, blockchainType.uid, type.name, value)
         }
 
-        storage.save(records)
+        storage.save(
+            records + stableTrezorMoneroHeightRecord(
+                account = account,
+                blockchainType = blockchainType,
+                height = settings.birthdayHeight,
+            ),
+        )
+    }
+
+    internal fun trezorMoneroRestoreHeight(walletPublicKey: String): Long? {
+        if (walletPublicKey.isBlank()) return null
+
+        return storage.restoreSettings(
+            stableTrezorMoneroAccountId(walletPublicKey),
+            BlockchainType.Monero.uid,
+        )
+            .firstOrNull { it.key == RestoreSettingType.BirthdayHeight.name }
+            ?.value
+            ?.toLongOrNull()
+            ?.takeIf { it >= 0 }
+    }
+
+    internal fun backfillTrezorMoneroRestoreHeights(accounts: List<Account>) {
+        accounts.asSequence()
+            .mapNotNull { account ->
+                val walletPublicKey = (account.type as? AccountType.TrezorDevice)
+                    ?.walletPublicKey
+                    .orEmpty()
+                if (walletPublicKey.isBlank()) return@mapNotNull null
+
+                settings(account, BlockchainType.Monero).birthdayHeight
+                    ?.takeIf { it >= 0 }
+                    ?.let { height -> walletPublicKey to height }
+            }
+            .groupBy(
+                keySelector = { it.first },
+                valueTransform = { it.second },
+            )
+            .forEach { (walletPublicKey, heights) ->
+                if (trezorMoneroRestoreHeight(walletPublicKey) == null) {
+                    storage.save(
+                        listOf(
+                            stableTrezorMoneroHeightRecord(
+                                walletPublicKey = walletPublicKey,
+                                height = heights.min(),
+                            ),
+                        ),
+                    )
+                }
+            }
     }
 
     internal fun savePendingMoneroRescan(account: Account, height: Long) {
@@ -61,6 +111,10 @@ class RestoreSettingsManager(
                     PENDING_MONERO_RESCAN_HEIGHT,
                     height.toString(),
                 ),
+            ) + stableTrezorMoneroHeightRecord(
+                account = account,
+                blockchainType = BlockchainType.Monero,
+                height = height,
             ),
         )
     }
@@ -79,6 +133,31 @@ class RestoreSettingsManager(
                     BlockchainType.Monero.uid,
                     PENDING_MONERO_RESCAN_HEIGHT,
                     "",
+                ),
+            ),
+        )
+    }
+
+    // Missing and legacy values stay pending until hardware-wallet spent status is verified.
+    internal fun moneroSpentReconciliationState(account: Account): MoneroSpentReconciliationState {
+        val value = storage.restoreSettings(account.id, BlockchainType.Monero.uid)
+            .firstOrNull { it.key == MONERO_SPENT_RECONCILIATION_STATE }
+            ?.value
+        return MoneroSpentReconciliationState.fromPersistedValue(value)
+    }
+
+    internal fun saveMoneroSpentReconciliationState(
+        account: Account,
+        state: MoneroSpentReconciliationState,
+    ) {
+        require(state.isDurable) { "Migration replay state cannot be persisted" }
+        storage.save(
+            listOf(
+                RestoreSettingRecord(
+                    account.id,
+                    BlockchainType.Monero.uid,
+                    MONERO_SPENT_RECONCILIATION_STATE,
+                    checkNotNull(state.persistedValue),
                 ),
             ),
         )
@@ -104,7 +183,61 @@ class RestoreSettingsManager(
     }
 
     private companion object {
+        const val TREZOR_MONERO_ACCOUNT_PREFIX = "trezor-monero:"
         const val PENDING_MONERO_RESCAN_HEIGHT = "monero_hardware_rescan_pending_height"
+        const val MONERO_SPENT_RECONCILIATION_STATE = "monero_spent_reconciliation_state"
+    }
+
+    private fun stableTrezorMoneroHeightRecord(
+        account: Account,
+        blockchainType: BlockchainType,
+        height: Long?,
+    ): List<RestoreSettingRecord> {
+        if (blockchainType != BlockchainType.Monero || height == null || height < 0) {
+            return emptyList()
+        }
+        val walletPublicKey = (account.type as? AccountType.TrezorDevice)
+            ?.walletPublicKey
+            .orEmpty()
+        if (walletPublicKey.isBlank()) return emptyList()
+
+        return listOf(
+            stableTrezorMoneroHeightRecord(walletPublicKey, height),
+        )
+    }
+
+    private fun stableTrezorMoneroHeightRecord(
+        walletPublicKey: String,
+        height: Long,
+    ) = RestoreSettingRecord(
+        stableTrezorMoneroAccountId(walletPublicKey),
+        BlockchainType.Monero.uid,
+        RestoreSettingType.BirthdayHeight.name,
+        height.toString(),
+    )
+
+    private fun stableTrezorMoneroAccountId(walletPublicKey: String): String =
+        TREZOR_MONERO_ACCOUNT_PREFIX + walletPublicKey
+}
+
+internal enum class MoneroSpentReconciliationState(
+    val persistedValue: String?,
+) {
+    Ready("READY:v2"),
+    LiveRefreshPending("LIVE_REFRESH_PENDING:v2"),
+    MigrationReplayPending("MIGRATION_REPLAY_PENDING:v2"),
+    ExplicitColdRecoveryPending("EXPLICIT_COLD_RECOVERY_PENDING:v2"),
+    MigrationReplayRequired(null),
+    ;
+
+    val isDurable: Boolean
+        get() = persistedValue != null
+
+    companion object {
+        fun fromPersistedValue(value: String?): MoneroSpentReconciliationState =
+            if (value == "EXPLICIT_COLD_RECOVERY_PENDING:v1") ExplicitColdRecoveryPending
+            else entries.firstOrNull { it.persistedValue == value && it.isDurable }
+                ?: MigrationReplayRequired
     }
 }
 

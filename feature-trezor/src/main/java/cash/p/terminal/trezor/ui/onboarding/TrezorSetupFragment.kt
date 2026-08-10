@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.trezor.R
@@ -32,6 +33,7 @@ class TrezorSetupFragment : BaseComposeFragment() {
         )
         val context = LocalContext.current
         val view = LocalView.current
+        val connectFailedMessage = stringResource(R.string.trezor_connect_failed)
 
         LaunchedEffect(viewModel.uiState.success) {
             if (viewModel.uiState.success) {
@@ -40,13 +42,13 @@ class TrezorSetupFragment : BaseComposeFragment() {
             }
         }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(connectFailedMessage) {
             viewModel.sideEffects.collect { effect ->
                 when (effect) {
                     is TrezorSideEffect.OpenIntent -> context.startActivity(effect.intent)
                     is TrezorSideEffect.ShowError -> HudHelper.showErrorMessage(
                         view,
-                        effect.message ?: context.getString(R.string.trezor_connect_failed)
+                        effect.message ?: connectFailedMessage,
                     )
                 }
             }
@@ -56,7 +58,10 @@ class TrezorSetupFragment : BaseComposeFragment() {
             uiState = viewModel.uiState,
             onConnect = viewModel::connectTrezor,
             onOpenSetupGuide = viewModel::openSetupGuide,
-            onDismissNotInitialized = viewModel::dismissNotInitialized,
+            onDismissSetupPrompt = viewModel::dismissNotInitialized,
+            onSelectMoneroRestoreMode = viewModel::selectMoneroRestoreMode,
+            onMoneroRestoreHeightChange = viewModel::setMoneroRestoreHeight,
+            onSubmitMoneroRestore = viewModel::submitMoneroRestore,
             onBack = navController::navigateUp
         )
     }

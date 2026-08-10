@@ -4,9 +4,11 @@ import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.MoneroDeviceWalletProvisioner
 import cash.p.terminal.core.managers.MoneroTrezorReadiness
+import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.trezor.domain.model.TrezorModel
+import cash.p.terminal.trezor.domain.usecase.TrezorMoneroRestoreHeightProvider
 import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.trezorkit.client.TrezorClientSession
 import cash.p.terminal.trezorkit.client.TrezorFeatures
@@ -17,6 +19,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IAccountsStorage
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hdwalletkit.HDExtendedKey
@@ -40,6 +43,7 @@ import kotlin.test.assertFailsWith
 class CreateTrezorWalletUseCaseTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val accountManager = mockk<IAccountManager>(relaxed = true)
+    private val accountsStorage = mockk<IAccountsStorage>(relaxed = true)
     private val hardwarePublicKeyStorage = mockk<IHardwarePublicKeyStorage>(relaxed = true)
     private val accountFactory = mockk<IAccountFactory>()
     private val walletActivator = mockk<WalletActivator>(relaxed = true)
@@ -47,8 +51,11 @@ class CreateTrezorWalletUseCaseTest {
         every { requireSupported(any()) } just Runs
     }
     private val provisioner = mockk<MoneroDeviceWalletProvisioner>()
-    private val heightUseCase = mockk<ValidateMoneroHeightUseCase> {
-        every { getTodayHeight() } returns RESTORE_HEIGHT
+    private val restoreSettingsManager = mockk<RestoreSettingsManager> {
+        every { trezorMoneroRestoreHeight(any()) } returns null
+    }
+    private val heightProvider = mockk<TrezorMoneroRestoreHeightProvider> {
+        coEvery { getRestoreHeight() } returns RESTORE_HEIGHT
     }
 
     @Test
@@ -62,7 +69,7 @@ class CreateTrezorWalletUseCaseTest {
             "public-key"
         }
 
-        val type = useCase(features(TrezorModel.Safe5))("Trezor")
+        val type = useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
 
         assertEquals(TrezorModel.Safe5.ids.single(), type.model)
         verify(exactly = 1) { readiness.requireSupported(any()) }
@@ -77,7 +84,86 @@ class CreateTrezorWalletUseCaseTest {
             )
         }
         verify(exactly = 1) { accountManager.setActiveAccountId(account.id) }
+        coVerify(exactly = 1) { heightProvider.getRestoreHeight() }
     }
+
+    @Test
+    fun invoke_safe5WithSavedHeight_skipsPromptAndUsesSavedHeight() = runTest(dispatcher) {
+        val account = account(TrezorModel.Safe5)
+        every { accountFactory.account(any(), any(), any(), any(), any()) } returns account
+        every {
+            restoreSettingsManager.trezorMoneroRestoreHeight("public-key")
+        } returns SAVED_RESTORE_HEIGHT
+        coEvery {
+            provisioner.provision(account, SAVED_RESTORE_HEIGHT, any())
+        } coAnswers {
+            thirdArg<() -> Unit>().invoke()
+            "public-key"
+        }
+
+        useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
+
+        coVerify(exactly = 0) { heightProvider.getRestoreHeight() }
+        coVerify(exactly = 1) {
+            provisioner.provision(account, SAVED_RESTORE_HEIGHT, any())
+        }
+    }
+
+    @Test
+    fun invoke_safe5WithLegacyDeletedAccount_reusesItsHeightWithoutPrompt() =
+        runTest(dispatcher) {
+            val account = account(TrezorModel.Safe5)
+            val deletedAccount = account.copy(id = "deleted-account-id")
+            every { accountFactory.account(any(), any(), any(), any(), any()) } returns account
+            every { accountManager.getDeletedAccountIds() } returns listOf(deletedAccount.id)
+            every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
+            every {
+                restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
+            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+                birthdayHeight = SAVED_RESTORE_HEIGHT
+            }
+            coEvery {
+                provisioner.provision(account, SAVED_RESTORE_HEIGHT, any())
+            } coAnswers {
+                thirdArg<() -> Unit>().invoke()
+                "public-key"
+            }
+
+            useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
+
+            coVerify(exactly = 0) { heightProvider.getRestoreHeight() }
+            coVerify(exactly = 1) {
+                provisioner.provision(account, SAVED_RESTORE_HEIGHT, any())
+            }
+        }
+
+    @Test
+    fun invoke_safe5WithInvalidLegacyHeight_asksForRestoreHeight() =
+        runTest(dispatcher) {
+            val account = account(TrezorModel.Safe5)
+            val deletedAccount = account.copy(id = "deleted-account-id")
+            every { accountFactory.account(any(), any(), any(), any(), any()) } returns account
+            every { accountManager.getDeletedAccountIds() } returns listOf(deletedAccount.id)
+            every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
+            every {
+                restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
+            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+                birthdayHeight = -1
+            }
+            coEvery {
+                provisioner.provision(account, RESTORE_HEIGHT, any())
+            } coAnswers {
+                thirdArg<() -> Unit>().invoke()
+                "public-key"
+            }
+
+            useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
+
+            coVerify(exactly = 1) { heightProvider.getRestoreHeight() }
+            coVerify(exactly = 1) {
+                provisioner.provision(account, RESTORE_HEIGHT, any())
+            }
+        }
 
     @Test
     fun invoke_safe5FailsBeforeAccountSave_leavesNoPersistedAccount() = runTest(dispatcher) {
@@ -88,7 +174,7 @@ class CreateTrezorWalletUseCaseTest {
         } throws TrezorCancelledException()
 
         assertFailsWith<TrezorCancelledException> {
-            useCase(features(TrezorModel.Safe5))("Trezor")
+            useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
         }
 
         verify(exactly = 0) { accountManager.save(account, false) }
@@ -108,7 +194,7 @@ class CreateTrezorWalletUseCaseTest {
         }
 
         assertFailsWith<IllegalStateException> {
-            useCase(features(TrezorModel.Safe5))("Trezor")
+            useCase(features(TrezorModel.Safe5))("Trezor", heightProvider)
         }
 
         verify(exactly = 1) { accountManager.save(account, false) }
@@ -120,13 +206,14 @@ class CreateTrezorWalletUseCaseTest {
         val account = account(TrezorModel.ModelT)
         every { accountFactory.account(any(), any(), any(), any(), any()) } returns account
 
-        useCase(features(TrezorModel.ModelT))("Trezor")
+        useCase(features(TrezorModel.ModelT))("Trezor", heightProvider)
 
         verify(exactly = 0) { readiness.requireSupported(any()) }
         coVerify(exactly = 0) { provisioner.provision(any(), any(), any()) }
         verify(exactly = 1) { accountManager.save(account, false) }
         coVerify(exactly = 1) { hardwarePublicKeyStorage.save(any()) }
         coVerify(exactly = 1) { walletActivator.activateWalletsSuspended(account, any()) }
+        coVerify(exactly = 0) { heightProvider.getRestoreHeight() }
     }
 
     private fun useCase(features: TrezorFeatures): CreateTrezorWalletUseCase {
@@ -139,13 +226,14 @@ class CreateTrezorWalletUseCaseTest {
         return CreateTrezorWalletUseCase(
             trezorClient = TestTrezorClient(session),
             accountManager = accountManager,
+            accountsStorage = accountsStorage,
             hardwarePublicKeyStorage = hardwarePublicKeyStorage,
             dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
             accountFactory = accountFactory,
             walletActivator = walletActivator,
             moneroReadiness = readiness,
             moneroProvisioner = provisioner,
-            validateMoneroHeightUseCase = heightUseCase,
+            restoreSettingsManager = restoreSettingsManager,
         )
     }
 
@@ -205,6 +293,7 @@ class CreateTrezorWalletUseCaseTest {
 
     private companion object {
         const val RESTORE_HEIGHT = 3_529_956L
+        const val SAVED_RESTORE_HEIGHT = 3_400_000L
         val SEED = ByteArray(32) { (it + 1).toByte() }
     }
 }

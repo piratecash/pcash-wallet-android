@@ -35,7 +35,8 @@ fun InputField(
     onValueChange: (String) -> Unit,
     placeholderText: String,
     modifier: Modifier = Modifier,
-    focusRequester: FocusRequester = remember { FocusRequester() }
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    keyboardType: KeyboardType = KeyboardType.Number,
 ) {
 
     Column(modifier = modifier) {
@@ -63,7 +64,7 @@ fun InputField(
                         color = ComposeAppTheme.colors.leah,
                         textStyle = ComposeAppTheme.typography.headline2
                     ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                     cursorBrush = SolidColor(ComposeAppTheme.colors.jacob),
                     decorationBox = { innerTextField ->
                         Box {

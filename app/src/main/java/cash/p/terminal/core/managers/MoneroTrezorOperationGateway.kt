@@ -107,10 +107,12 @@ class MoneroTrezorOperationGateway internal constructor(
         val transport = BorrowedRawChannelTransport(channel, dispatcherProvider.io)
         val session = TrezorSession(transport, MessageTypeRegistry, dispatcherProvider.io)
         return UsbTrezorClient(session).connect {
-            val features = getFeatures()
+            var features = getFeatures()
             try {
                 val walletPublicKey = if (deriveWalletIdentity) {
-                    getPublicKeys(listOf(TrezorPublicKeySpecs.walletIdentityRequest)).single().key
+                    val key = getPublicKeys(listOf(TrezorPublicKeySpecs.walletIdentityRequest)).single().key
+                    features = getFeatures()
+                    key
                 } else {
                     ""
                 }

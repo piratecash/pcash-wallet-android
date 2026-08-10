@@ -157,6 +157,9 @@ class SendTransactionServiceMonero(
             }
         }
         coroutineScope.launch(Dispatchers.Default) {
+            adapter.spendReadiness.collect { emitState() }
+        }
+        coroutineScope.launch(Dispatchers.Default) {
             xRateService.getRateFlow(token.coin.uid).collect { coinRate = it }
         }
         coroutineScope.launch(Dispatchers.Default) {
@@ -179,6 +182,10 @@ class SendTransactionServiceMonero(
 
     override val requiresSendableState: Boolean
         get() = adapter.hardwareWallet
+
+    suspend fun updateWithTrezor() {
+        adapter.refreshHardwareKeyImages()
+    }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {

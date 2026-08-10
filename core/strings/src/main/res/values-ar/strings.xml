@@ -362,11 +362,15 @@
     <string name="receive_address_badge_used">مستخدم</string>
     <string name="receive_address_badge_unused">غير مستخدم</string>
     <string name="receive_create_new_address">إنشاء عنوان جديد</string>
-    <string name="monero_key_images_required">زامن صور مفاتيح Monero مع Trezor قبل الإرسال.</string>
+    <string name="monero_key_images_required">حدّث Monero باستخدام Trezor قبل الإرسال.</string>
     <string name="monero_sync_key_images">مزامنة صور المفاتيح</string>
     <string name="monero_prepare_trezor_title">جهّز Trezor لإرسال Monero</string>
-    <string name="monero_prepare_trezor_description">لإرسال Monero، وصّل جهاز Trezor وافتح قفله، ثم زامن المحفظة. لن يتم إرسال أي أموال خلال هذه الخطوة.</string>
+    <string name="monero_prepare_trezor_description">لإرسال Monero، وصّل جهاز Trezor وافتح قفله. أبقه متصلاً وأكّد التحديث على الجهاز. لن يتم إرسال أي أموال خلال هذه الخطوة.</string>
     <string name="monero_sync_and_continue">مزامنة ومتابعة</string>
+    <string name="monero_update_with_trezor">تحديث باستخدام Trezor</string>
+    <string name="monero_updating_with_trezor">جارٍ تحديث Monero باستخدام Trezor</string>
+    <string name="monero_full_wallet_recovery">استرداد كامل للمحفظة</string>
+    <string name="monero_full_wallet_recovery_warning">قد يستغرق هذا الاسترداد وقتاً طويلاً.</string>
     <string name="monero_show_address_on_trezor">عرض العنوان على Trezor</string>
     <string name="receive_create_another_address_title">إنشاء عنوان آخر؟</string>
     <string name="receive_create_another_address_warning">لديك بالفعل عنوان جديد لم يتلقَّ أي أموال بعد. إنشاء عنوان جديد ليس ضروريًا. هل تريد المتابعة؟</string>

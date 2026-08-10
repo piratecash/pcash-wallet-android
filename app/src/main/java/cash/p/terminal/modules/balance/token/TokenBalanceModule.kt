@@ -155,11 +155,13 @@ class TokenBalanceModule {
         val moneroSpendReadiness: MoneroSpendReadiness? = null,
         val moneroKeyImageSyncInProgress: Boolean = false,
         @StringRes val moneroKeyImageSyncError: Int? = null,
+        val moneroFullWalletRecoveryAvailable: Boolean = false,
     ) {
         val moneroKeyImageSyncRequired: Boolean
             get() =
                 moneroHardwareWallet &&
-                    moneroSpendReadiness == MoneroSpendReadiness.NeedsKeyImageSync
+                    (moneroSpendReadiness == MoneroSpendReadiness.NeedsKeyImageSync ||
+                        moneroSpendReadiness == MoneroSpendReadiness.ReconciliationFailed)
 
         val sendEntryEnabled: Boolean
             get() = balanceViewItem?.sendEnabled == true || moneroKeyImageSyncRequired

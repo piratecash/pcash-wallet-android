@@ -21,11 +21,13 @@ import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -143,6 +145,15 @@ class SendTransactionServiceMoneroTest : KoinTest {
 
         assertEquals(BALANCE, state.availableBalance)
         assertEquals(MoneroSpendReadiness.NeedsKeyImageSync, state.moneroSpendReadiness)
+    }
+
+    @Test
+    fun updateWithTrezor_hardwareMonero_delegatesToPhase3Operation() = runTest {
+        val service = SendTransactionServiceMonero(token)
+
+        service.updateWithTrezor()
+
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
     }
 
     private fun SendTransactionServiceMonero.checkFeeBalance(fee: BigDecimal) {

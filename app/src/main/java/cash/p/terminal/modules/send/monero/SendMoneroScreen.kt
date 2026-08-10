@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -24,6 +25,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.core.requiresTrezorPreparation
+import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.isEligibleForMoneroFullWalletRecovery
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -35,7 +39,7 @@ import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.memo.HSMemoInput
-import cash.p.terminal.modules.receive.ReceiveFragment
+import cash.p.terminal.modules.balance.token.MoneroSendPreparationBottomSheet
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.SendScreen
@@ -47,8 +51,9 @@ import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
+import cash.p.terminal.modules.send.hardwareWalletUserMessageRes
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.navigation.popBackStackSafely
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui.compose.components.TextPreprocessor
@@ -62,6 +67,10 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.CurrencyValue
 import java.math.BigDecimal
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Composable
 fun SendMoneroNavHost(
@@ -101,6 +110,7 @@ fun SendMoneroNavHost(
                     insufficientFeeBalance = viewModel.isInsufficientFeeBalance(viewModel.fee),
                     offlineSignSupported = viewModel.offlineSignSupported,
                     spendReadiness = spendReadiness,
+                    adapter = viewModel.adapter,
                 ),
                 callbacks = SendMoneroScreenCallbacks(
                     onOfflineSignClick = { navController.navigate(OfflineMoneroSignPage) },
@@ -111,7 +121,6 @@ fun SendMoneroNavHost(
                     onToggleAmountInputType = amountInputModeViewModel::onToggleInputType,
                     onToggleHideBalance = viewModel::toggleHideBalance,
                     onRiskAcceptedChange = viewModel::onRiskAcceptedChange,
-                    onSyncKeyImages = { openMoneroKeyImageSync(fragmentNavController, viewModel.wallet) },
                 ),
             )
         }
@@ -125,16 +134,6 @@ fun SendMoneroNavHost(
             sendViewModel = viewModel,
         )
     }
-}
-
-private fun openMoneroKeyImageSync(
-    navController: NavController,
-    wallet: Wallet,
-) {
-    navController.slideFromRight(
-        R.id.receiveFragment,
-        ReceiveFragment.Input(wallet),
-    )
 }
 
 private const val SendMoneroPage = "send_monero"
@@ -258,6 +257,7 @@ private data class SendMoneroScreenState(
     val insufficientFeeBalance: Boolean,
     val offlineSignSupported: Boolean,
     val spendReadiness: MoneroSpendReadiness,
+    val adapter: ISendMoneroAdapter,
 )
 
 private data class SendMoneroScreenCallbacks(
@@ -269,7 +269,6 @@ private data class SendMoneroScreenCallbacks(
     val onToggleAmountInputType: () -> Unit,
     val onToggleHideBalance: () -> Unit,
     val onRiskAcceptedChange: (Boolean) -> Unit,
-    val onSyncKeyImages: () -> Unit,
 )
 
 @Composable
@@ -400,23 +399,17 @@ private fun MoneroProceedButtons(
     callbacks: SendMoneroScreenCallbacks,
     onProceed: () -> Unit,
 ) {
+    MoneroLiveRefreshPreparation(state.adapter, state.spendReadiness)
     Column {
-        when (state.spendReadiness) {
-            MoneroSpendReadiness.NeedsKeyImageSync -> {
+        when {
+            state.spendReadiness.requiresTrezorPreparation() -> {
                 TextImportantWarning(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.monero_key_images_required),
-                )
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    title = stringResource(R.string.monero_sync_key_images),
-                    onClick = callbacks.onSyncKeyImages,
+                    text = stringResource(R.string.monero_prepare_trezor_description),
                 )
             }
 
-            MoneroSpendReadiness.Ready -> Unit
+            state.spendReadiness == MoneroSpendReadiness.Ready -> Unit
             else -> {
                 TextImportantWarning(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -439,6 +432,73 @@ private fun MoneroProceedButtons(
             enabled =
                 state.uiState.canBeSend &&
                     state.spendReadiness == MoneroSpendReadiness.Ready,
+        )
+    }
+}
+
+@Composable
+private fun MoneroLiveRefreshPreparation(
+    adapter: ISendMoneroAdapter,
+    spendReadiness: MoneroSpendReadiness,
+) {
+    var preparationJob by remember { mutableStateOf<Job?>(null) }
+    var preparationInProgress by remember { mutableStateOf(false) }
+    var preparationError by remember { mutableStateOf<Int?>(null) }
+    var fullWalletRecoveryAvailable by remember { mutableStateOf(false) }
+    var showPreparation by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    fun startPreparation(fullWalletRecovery: Boolean = false) {
+        if (preparationInProgress) return
+        preparationError = null
+        fullWalletRecoveryAvailable = false
+        preparationInProgress = true
+        preparationJob = coroutineScope.launch {
+            try {
+                if (fullWalletRecovery) {
+                    adapter.fullWalletRecovery()
+                } else {
+                    adapter.refreshHardwareKeyImages()
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (!error.isHardwareWalletCancelled()) {
+                    Timber.e(error, "Monero Live Refresh failed")
+                    preparationError = error.hardwareWalletUserMessageRes()
+                    fullWalletRecoveryAvailable =
+                        !fullWalletRecovery && error.isEligibleForMoneroFullWalletRecovery()
+                }
+            } finally {
+                preparationInProgress = false
+            }
+        }
+    }
+
+    LaunchedEffect(spendReadiness) {
+        if (!spendReadiness.requiresTrezorPreparation() || preparationInProgress) {
+            return@LaunchedEffect
+        }
+        showPreparation = true
+        startPreparation()
+    }
+
+    if (showPreparation && spendReadiness.requiresTrezorPreparation()) {
+        MoneroSendPreparationBottomSheet(
+            syncInProgress = preparationInProgress,
+            error = preparationError,
+            fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
+            onSync = {
+                startPreparation()
+            },
+            onFullWalletRecovery = {
+                startPreparation(fullWalletRecovery = true)
+            },
+            onDismiss = {
+                preparationJob?.cancel()
+                preparationInProgress = false
+                preparationError = null
+                showPreparation = false
+            },
         )
     }
 }

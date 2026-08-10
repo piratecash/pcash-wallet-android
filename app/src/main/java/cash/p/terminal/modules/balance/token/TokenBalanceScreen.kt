@@ -74,6 +74,7 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.balance.BackupRequiredError
@@ -182,6 +183,16 @@ fun TokenBalanceScreen(
         }
     }
 
+    LaunchedEffect(viewModel.uiState.moneroSpendReadiness) {
+        if (
+            showMoneroSendPreparation &&
+            viewModel.uiState.moneroSpendReadiness ==
+            MoneroSpendReadiness.ReconcilingSpentStatus
+        ) {
+            showMoneroSendPreparation = false
+        }
+    }
+
     TokenBalanceScreenContent(
         uiState = viewModel.uiState,
         secondaryValue = viewModel.secondaryValue,
@@ -221,8 +232,12 @@ fun TokenBalanceScreen(
         onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
         onSendClick = sendClick@{
             val wallet = viewModel.uiState.balanceViewItem?.wallet ?: return@sendClick
-            if (viewModel.uiState.moneroKeyImageSyncRequired) {
+            if (
+                viewModel.uiState.moneroHardwareWallet &&
+                viewModel.uiState.moneroSpendReadiness != MoneroSpendReadiness.Ready
+            ) {
                 showMoneroSendPreparation = true
+                viewModel.prepareMoneroSend()
             } else {
                 navController.openSend(wallet)
             }
@@ -241,7 +256,9 @@ fun TokenBalanceScreen(
         MoneroSendPreparationBottomSheet(
             syncInProgress = viewModel.uiState.moneroKeyImageSyncInProgress,
             error = viewModel.uiState.moneroKeyImageSyncError,
+            fullWalletRecoveryAvailable = viewModel.uiState.moneroFullWalletRecoveryAvailable,
             onSync = viewModel::syncMoneroKeyImages,
+            onFullWalletRecovery = viewModel::fullMoneroWalletRecovery,
             onDismiss = {
                 viewModel.cancelMoneroKeyImageSync()
                 showMoneroSendPreparation = false
@@ -1222,10 +1239,12 @@ private fun onReceiveClicked(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MoneroSendPreparationBottomSheet(
+internal fun MoneroSendPreparationBottomSheet(
     syncInProgress: Boolean,
     @StringRes error: Int?,
+    fullWalletRecoveryAvailable: Boolean,
     onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -1243,7 +1262,9 @@ private fun MoneroSendPreparationBottomSheet(
             MoneroSendPreparationContent(
                 syncInProgress = syncInProgress,
                 error = error,
+                fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
                 onSync = onSync,
+                onFullWalletRecovery = onFullWalletRecovery,
                 onDismiss = onDismiss,
             )
         }
@@ -1254,7 +1275,9 @@ private fun MoneroSendPreparationBottomSheet(
 private fun MoneroSendPreparationContent(
     syncInProgress: Boolean,
     @StringRes error: Int?,
+    fullWalletRecoveryAvailable: Boolean,
     onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     Column {
@@ -1270,7 +1293,9 @@ private fun MoneroSendPreparationContent(
         }
         MoneroSendPreparationActions(
             syncInProgress = syncInProgress,
+            fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
             onSync = onSync,
+            onFullWalletRecovery = onFullWalletRecovery,
             onDismiss = onDismiss,
         )
     }
@@ -1279,18 +1304,21 @@ private fun MoneroSendPreparationContent(
 @Composable
 private fun MoneroSendPreparationActions(
     syncInProgress: Boolean,
+    fullWalletRecoveryAvailable: Boolean,
     onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val actionUiState = moneroPreparationActionUiState(syncInProgress)
     Column {
         ButtonPrimaryYellow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 12.dp),
-            title = stringResource(R.string.monero_sync_and_continue),
+            title = stringResource(actionUiState.title),
             onClick = onSync,
-            enabled = !syncInProgress,
-            loadingIndicator = syncInProgress,
+            enabled = actionUiState.enabled,
+            loadingIndicator = actionUiState.loading,
         )
         ButtonPrimaryTransparent(
             modifier = Modifier
@@ -1299,9 +1327,36 @@ private fun MoneroSendPreparationActions(
             title = stringResource(R.string.Button_Cancel),
             onClick = onDismiss,
         )
+        if (fullWalletRecoveryAvailable) {
+            body_leah(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                text = stringResource(R.string.monero_full_wallet_recovery_warning),
+            )
+            ButtonPrimaryTransparent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                title = stringResource(R.string.monero_full_wallet_recovery),
+                onClick = onFullWalletRecovery,
+            )
+        }
         VSpacer(32.dp)
     }
 }
+
+internal data class MoneroPreparationActionUiState(
+    @StringRes val title: Int,
+    val enabled: Boolean,
+    val loading: Boolean,
+)
+
+internal fun moneroPreparationActionUiState(
+    syncInProgress: Boolean,
+): MoneroPreparationActionUiState = MoneroPreparationActionUiState(
+    title = if (syncInProgress) R.string.monero_updating_with_trezor else R.string.Button_Retry,
+    enabled = !syncInProgress,
+    loading = syncInProgress,
+)
 
 @Preview
 @Composable
@@ -1310,7 +1365,9 @@ private fun MoneroSendPreparationBottomSheetPreview() {
         MoneroSendPreparationBottomSheet(
             syncInProgress = false,
             error = null,
+            fullWalletRecoveryAvailable = false,
             onSync = {},
+            onFullWalletRecovery = {},
             onDismiss = {},
         )
     }

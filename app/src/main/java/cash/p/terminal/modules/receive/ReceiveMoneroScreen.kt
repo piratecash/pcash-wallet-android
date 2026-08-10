@@ -24,7 +24,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.modules.receive.ui.AddressBadgeChip
 import cash.p.terminal.modules.receive.ui.ReceiveAddressScreen
 import cash.p.terminal.modules.receive.viewmodels.AddressBadge
@@ -153,7 +152,7 @@ private fun MoneroBottomContent(
     if (uiState.hardwareWallet) {
         MoneroHardwareWalletActions(
             uiState = uiState,
-            onSyncKeyImages = viewModel::syncKeyImages,
+            onSyncKeyImages = viewModel::refreshWithTrezor,
             onDisplayAddress = viewModel::displayAddressOnDevice,
         )
     }
@@ -188,16 +187,12 @@ private fun MoneroHardwareWalletActions(
                 text = stringResource(error),
             )
         }
-        if (uiState.spendReadiness == MoneroSpendReadiness.NeedsKeyImageSync) {
-            TextImportantWarning(
-                modifier = Modifier.padding(vertical = 12.dp),
-                text = stringResource(R.string.monero_key_images_required),
-            )
+        if (uiState.showTrezorUpdateAction) {
             ButtonPrimaryYellow(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                title = stringResource(R.string.monero_sync_key_images),
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.monero_update_with_trezor),
                 enabled = !uiState.isHardwareOperationInProgress,
+                loadingIndicator = uiState.isHardwareOperationInProgress,
                 onClick = onSyncKeyImages,
             )
         }

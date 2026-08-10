@@ -79,8 +79,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -1412,7 +1414,7 @@ class TokenBalanceViewModelTest : KoinTest {
         every {
             adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
         } returns adapter
-        coEvery { adapter.syncKeyImages() } answers {
+        coEvery { adapter.refreshHardwareKeyImages() } answers {
             readiness.value = MoneroSpendReadiness.Ready
         }
         val viewModel = createViewModel()
@@ -1424,7 +1426,130 @@ class TokenBalanceViewModelTest : KoinTest {
 
         assertEquals(TokenBalanceModule.Event.OpenSend(testWallet), event.await())
         assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
-        coVerify(exactly = 1) { adapter.syncKeyImages() }
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
+    }
+
+    @Test
+    fun prepareMoneroSend_startupRefreshInProgress_opensOnceWhenReady() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.Syncing)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        val viewModel = createViewModel()
+        val event = async { viewModel.events.first() }
+        advanceUntilIdle()
+
+        viewModel.prepareMoneroSend()
+        readiness.value = MoneroSpendReadiness.Ready
+
+        assertEquals(TokenBalanceModule.Event.OpenSend(testWallet), event.await())
+        coVerify(exactly = 0) { adapter.refreshHardwareKeyImages() }
+    }
+
+    @Test
+    fun syncMoneroKeyImages_reconciliationStarted_stopsPreparationProgressAndEmitsOneOpenSendWhenReady() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.refreshHardwareKeyImages() } answers {
+            readiness.value = MoneroSpendReadiness.ReconcilingSpentStatus
+        }
+        val viewModel = createViewModel()
+        val events = mutableListOf<TokenBalanceModule.Event>()
+        val eventsJob = launch { viewModel.events.collect { events.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+
+        assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        readiness.value = MoneroSpendReadiness.Ready
+        advanceUntilIdle()
+
+        assertEquals(listOf(TokenBalanceModule.Event.OpenSend(testWallet)), events)
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+
+        readiness.value = MoneroSpendReadiness.Syncing
+        advanceUntilIdle()
+        readiness.value = MoneroSpendReadiness.Ready
+        advanceUntilIdle()
+        assertEquals(listOf(TokenBalanceModule.Event.OpenSend(testWallet)), events)
+        eventsJob.cancel()
+    }
+
+    @Test
+    fun syncMoneroKeyImages_reconciliationRequiresRetry_stopsProgressWithoutOpeningSend() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.refreshHardwareKeyImages() } answers {
+            readiness.value = MoneroSpendReadiness.ReconcilingSpentStatus
+        }
+        val viewModel = createViewModel()
+        val events = mutableListOf<TokenBalanceModule.Event>()
+        val eventsJob = launch { viewModel.events.collect { events.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+
+        readiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        assertEquals(true, viewModel.uiState.moneroKeyImageSyncRequired)
+        assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+        eventsJob.cancel()
+    }
+
+    @Test
+    fun syncMoneroKeyImages_reconciliationFailsAfterReturn_stopsWithErrorAndCanRetry() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        var attempts = 0
+        coEvery { adapter.refreshHardwareKeyImages() } answers {
+            attempts += 1
+            readiness.value = MoneroSpendReadiness.ReconcilingSpentStatus
+        }
+        val viewModel = createViewModel()
+        val events = mutableListOf<TokenBalanceModule.Event>()
+        val eventsJob = launch { viewModel.events.collect { events.add(it) } }
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+        readiness.value = MoneroSpendReadiness.ReconciliationFailed
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        assertEquals(R.string.trezor_connect_failed, viewModel.uiState.moneroKeyImageSyncError)
+        assertEquals(true, viewModel.uiState.moneroKeyImageSyncRequired)
+        assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        readiness.value = MoneroSpendReadiness.Ready
+        advanceUntilIdle()
+
+        assertEquals(listOf(TokenBalanceModule.Event.OpenSend(testWallet)), events)
+        coVerify(exactly = 2) { adapter.refreshHardwareKeyImages() }
+        eventsJob.cancel()
     }
 
     @Test
@@ -1435,7 +1560,7 @@ class TokenBalanceViewModelTest : KoinTest {
         every {
             adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
         } returns adapter
-        coEvery { adapter.syncKeyImages() } throws HardwareWalletOperationException(
+        coEvery { adapter.refreshHardwareKeyImages() } throws HardwareWalletOperationException(
             HardwareWalletErrorCode.DeviceNotInitialized,
             null,
         )
@@ -1446,13 +1571,132 @@ class TokenBalanceViewModelTest : KoinTest {
         viewModel.syncMoneroKeyImages()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { adapter.syncKeyImages() }
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
         assertEquals(
             R.string.trezor_not_initialized_description,
             viewModel.uiState.moneroKeyImageSyncError,
         )
         assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        assertEquals(false, viewModel.uiState.moneroFullWalletRecoveryAvailable)
     }
+
+    @Test
+    fun syncMoneroKeyImages_protocolFailure_offersAndRunsFullWalletRecovery() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.refreshHardwareKeyImages() } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.Protocol,
+            null,
+        )
+        coEvery { adapter.fullWalletRecovery() } answers { readiness.value = MoneroSpendReadiness.Ready }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.moneroFullWalletRecoveryAvailable)
+        viewModel.fullMoneroWalletRecovery()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
+        coVerify(exactly = 1) { adapter.fullWalletRecovery() }
+    }
+
+    @Test
+    fun syncMoneroKeyImages_disconnected_doesNotOfferFullWalletRecovery() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.refreshHardwareKeyImages() } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.Disconnected,
+            null,
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+        viewModel.fullMoneroWalletRecovery()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.moneroFullWalletRecoveryAvailable)
+        coVerify(exactly = 0) { adapter.fullWalletRecovery() }
+    }
+
+    @Test
+    fun syncMoneroKeyImages_connectionFailureThenBackgroundReady_clearsErrorAndContinuesSend() =
+        runTest(dispatcher) {
+            setMoneroWallet()
+            val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+            val adapter = mockMoneroAdapter(readiness)
+            every {
+                adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+            } returns adapter
+            coEvery { adapter.refreshHardwareKeyImages() } throws HardwareWalletOperationException(
+                HardwareWalletErrorCode.Disconnected,
+                null,
+            )
+            val viewModel = createViewModel()
+            val events = mutableListOf<TokenBalanceModule.Event>()
+            val eventsJob = launch { viewModel.events.collect { events.add(it) } }
+            advanceUntilIdle()
+
+            viewModel.syncMoneroKeyImages()
+            advanceUntilIdle()
+
+            assertEquals(R.string.trezor_connect_failed, viewModel.uiState.moneroKeyImageSyncError)
+            assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+            assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+
+            readiness.value = MoneroSpendReadiness.Ready
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.moneroKeyImageSyncError)
+            assertEquals(listOf(TokenBalanceModule.Event.OpenSend(testWallet)), events)
+            eventsJob.cancel()
+        }
+
+    @Test
+    fun syncMoneroKeyImages_reconciliationFailureThenBackgroundReady_clearsErrorAndContinuesSend() =
+        runTest(dispatcher) {
+            setMoneroWallet()
+            val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+            val adapter = mockMoneroAdapter(readiness)
+            every {
+                adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+            } returns adapter
+            coEvery { adapter.refreshHardwareKeyImages() } answers {
+                readiness.value = MoneroSpendReadiness.ReconcilingSpentStatus
+            }
+            val viewModel = createViewModel()
+            val events = mutableListOf<TokenBalanceModule.Event>()
+            val eventsJob = launch { viewModel.events.collect { events.add(it) } }
+            advanceUntilIdle()
+
+            viewModel.syncMoneroKeyImages()
+            advanceUntilIdle()
+            readiness.value = MoneroSpendReadiness.ReconciliationFailed
+            advanceUntilIdle()
+
+            assertEquals(R.string.trezor_connect_failed, viewModel.uiState.moneroKeyImageSyncError)
+            assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+            assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+
+            readiness.value = MoneroSpendReadiness.Ready
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.moneroKeyImageSyncError)
+            assertEquals(listOf(TokenBalanceModule.Event.OpenSend(testWallet)), events)
+            eventsJob.cancel()
+        }
 
     @Test
     fun cancelMoneroKeyImageSync_operationInProgress_stopsLoading() = runTest(dispatcher) {
@@ -1462,8 +1706,10 @@ class TokenBalanceViewModelTest : KoinTest {
         every {
             adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
         } returns adapter
-        coEvery { adapter.syncKeyImages() } coAnswers { awaitCancellation() }
+        coEvery { adapter.refreshHardwareKeyImages() } coAnswers { awaitCancellation() }
         val viewModel = createViewModel()
+        val events = mutableListOf<TokenBalanceModule.Event>()
+        val eventsJob = launch { viewModel.events.collect { events.add(it) } }
         advanceUntilIdle()
 
         viewModel.syncMoneroKeyImages()
@@ -1472,7 +1718,13 @@ class TokenBalanceViewModelTest : KoinTest {
         viewModel.cancelMoneroKeyImageSync()
         advanceUntilIdle()
         assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
-        coVerify(exactly = 1) { adapter.syncKeyImages() }
+
+        readiness.value = MoneroSpendReadiness.Ready
+        advanceUntilIdle()
+
+        assertEquals(emptyList<TokenBalanceModule.Event>(), events)
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
+        eventsJob.cancel()
     }
 
     // endregion

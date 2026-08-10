@@ -10,7 +10,9 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.INativeBalanceProvider
 import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.isEligibleForMoneroFullWalletRecovery
 import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.core.requiresTrezorPreparation
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.isCustom
@@ -164,8 +166,10 @@ class TokenBalanceViewModel(
     private var moneroHardwareWallet = false
     private var moneroSpendReadiness: MoneroSpendReadiness? = null
     private var moneroKeyImageSyncInProgress = false
+    private var pendingMoneroSendIntent = false
     @StringRes
     private var moneroKeyImageSyncError: Int? = null
+    private var moneroFullWalletRecoveryAvailable = false
 
     private val _events = Channel<TokenBalanceModule.Event>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -489,6 +493,7 @@ class TokenBalanceViewModel(
         moneroSpendReadiness = moneroSpendReadiness,
         moneroKeyImageSyncInProgress = moneroKeyImageSyncInProgress,
         moneroKeyImageSyncError = moneroKeyImageSyncError,
+        moneroFullWalletRecoveryAvailable = moneroFullWalletRecoveryAvailable,
     )
 
     private fun observeMoneroAdapter() {
@@ -507,6 +512,7 @@ class TokenBalanceViewModel(
             viewModelScope.launch {
                 it.spendReadiness.collect { readiness ->
                     moneroSpendReadiness = readiness
+                    handleMoneroReadiness(readiness)
                     emitState()
                 }
             }
@@ -521,39 +527,116 @@ class TokenBalanceViewModel(
             _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
             return
         }
-        if (!moneroHardwareWallet || moneroSpendReadiness != MoneroSpendReadiness.NeedsKeyImageSync) {
+        if (
+            !moneroHardwareWallet ||
+            moneroSpendReadiness?.requiresTrezorPreparation() != true
+        ) {
             return
         }
 
         moneroKeyImageSyncInProgress = true
         moneroKeyImageSyncError = null
+        moneroFullWalletRecoveryAvailable = false
+        pendingMoneroSendIntent = true
         emitState()
         moneroKeyImageSyncJob = viewModelScope.launch {
-            syncKeyImagesAndContinue(adapter)
+            executeMoneroPreparation(adapter, MoneroPreparationOperation.LiveRefresh)
         }
     }
 
-    private suspend fun syncKeyImagesAndContinue(adapter: ISendMoneroAdapter) {
+    fun prepareMoneroSend() {
+        if (!moneroHardwareWallet || moneroSpendReadiness == MoneroSpendReadiness.Ready) {
+            _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
+            return
+        }
+        pendingMoneroSendIntent = true
+        syncMoneroKeyImages()
+        emitState()
+    }
+
+    private suspend fun executeMoneroPreparation(
+        adapter: ISendMoneroAdapter,
+        operation: MoneroPreparationOperation,
+    ) {
         try {
-            adapter.syncKeyImages()
-            if (adapter.spendReadiness.value == MoneroSpendReadiness.Ready) {
-                _events.send(TokenBalanceModule.Event.OpenSend(wallet))
+            when (operation) {
+                MoneroPreparationOperation.LiveRefresh -> adapter.refreshHardwareKeyImages()
+                MoneroPreparationOperation.FullWalletRecovery -> adapter.fullWalletRecovery()
             }
+            handleMoneroReadiness(adapter.spendReadiness.value)
         } catch (error: CancellationException) {
+            pendingMoneroSendIntent = false
+            moneroKeyImageSyncInProgress = false
             throw error
         } catch (error: Exception) {
-            if (!error.isHardwareWalletCancelled()) {
-                Timber.e(error, "Monero key image sync failed")
+            moneroKeyImageSyncInProgress = false
+            if (error.isHardwareWalletCancelled()) {
+                pendingMoneroSendIntent = false
+            } else {
+                Timber.e(error, "Monero preparation failed")
                 moneroKeyImageSyncError = error.hardwareWalletUserMessageRes()
+                moneroFullWalletRecoveryAvailable =
+                    operation == MoneroPreparationOperation.LiveRefresh &&
+                        error.isEligibleForMoneroFullWalletRecovery()
             }
         } finally {
-            moneroKeyImageSyncInProgress = false
             emitState()
         }
     }
 
     fun cancelMoneroKeyImageSync() {
+        pendingMoneroSendIntent = false
         moneroKeyImageSyncJob?.cancel()
+        moneroKeyImageSyncInProgress = false
+        emitState()
+    }
+
+    fun fullMoneroWalletRecovery() {
+        if (!moneroFullWalletRecoveryAvailable || moneroKeyImageSyncJob?.isActive == true) return
+        val adapter = observedMoneroAdapter ?: return
+        moneroKeyImageSyncInProgress = true
+        moneroKeyImageSyncError = null
+        moneroFullWalletRecoveryAvailable = false
+        emitState()
+        moneroKeyImageSyncJob = viewModelScope.launch {
+            executeMoneroPreparation(adapter, MoneroPreparationOperation.FullWalletRecovery)
+        }
+    }
+
+    private enum class MoneroPreparationOperation {
+        LiveRefresh,
+        FullWalletRecovery,
+    }
+
+    private fun handleMoneroReadiness(readiness: MoneroSpendReadiness) {
+        if (!pendingMoneroSendIntent) return
+
+        when (readiness) {
+            MoneroSpendReadiness.Ready -> {
+                pendingMoneroSendIntent = false
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = null
+                moneroFullWalletRecoveryAvailable = false
+                _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
+            }
+
+            MoneroSpendReadiness.NeedsKeyImageSync -> {
+                pendingMoneroSendIntent = false
+                moneroKeyImageSyncInProgress = false
+            }
+
+            MoneroSpendReadiness.ReconcilingSpentStatus -> {
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = null
+            }
+
+            MoneroSpendReadiness.ReconciliationFailed -> {
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = R.string.trezor_connect_failed
+            }
+
+            else -> Unit
+        }
     }
 
     private fun calculateHoursUntilNextAccrual(): Int? {

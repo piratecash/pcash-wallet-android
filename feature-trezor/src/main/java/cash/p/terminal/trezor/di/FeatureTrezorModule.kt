@@ -35,5 +35,5 @@ val featureTrezorModule = module {
     singleOf(::FetchTrezorPublicKeysUseCaseImpl) bind FetchTrezorPublicKeysUseCase::class
     factory<ScanToAddUseCase>(named("trezor")) { TrezorScanToAddUseCase(get(), get(), get()) }
 
-    viewModel { params -> TrezorWalletViewModel(params.get(), get()) }
+    viewModel { params -> TrezorWalletViewModel(params.get(), get(), get()) }
 }

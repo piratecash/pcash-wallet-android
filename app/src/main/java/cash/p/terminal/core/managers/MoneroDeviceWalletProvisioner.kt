@@ -61,6 +61,10 @@ internal class MoneroDeviceWalletProvisioner(
                 )
                 recordInserted = true
                 saveRestoreHeight(account, restoreHeight)
+                restoreSettingsManager.saveMoneroSpentReconciliationState(
+                    account,
+                    MoneroSpentReconciliationState.LiveRefreshPending,
+                )
                 identity
             } catch (error: MoneroDeviceWalletOwnershipRetainedException) {
                 throw error

@@ -111,6 +111,20 @@
                 <data android:scheme="wc" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="cash.p.terminal.trezor.client.TrezorUsbAttachActivity"
+            android:enabled="false"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/trezor_usb_device_filter" />
+        </activity>
         <!-- Stealth-mode launcher entry. A dedicated Activity (subclass of MainActivity)
              is needed so that its `android:label` is statically "Calculator" in the manifest.
              Recents UIs (AOSP, Pixel Quickstep, MIUI/HyperOS) read the label from the

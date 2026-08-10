@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -28,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
@@ -49,6 +47,7 @@ import cash.p.terminal.modules.evmfee.legacy.LegacyFeeSettingsViewModel
 import cash.p.terminal.modules.fee.FeeCell
 import cash.p.terminal.ui.compose.animations.shake
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonsGroupWithShade as CoreButtonsGroupWithShade
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.InfoBottomSheet
@@ -312,27 +311,7 @@ fun ButtonsGroupWithShade(
     modifier: Modifier = Modifier,
     buttonsContent: @Composable (() -> Unit)
 ) {
-    Column(
-        modifier = modifier.offset(y = -(24.dp))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(24.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        listOf(ComposeAppTheme.colors.transparent, ComposeAppTheme.colors.tyler)
-                    )
-                )
-        )
-        Box(
-            modifier = Modifier
-                .background(ComposeAppTheme.colors.tyler)
-                .padding(bottom = 8.dp) // With 24dp offset actual padding will be 32dp
-        ) {
-            buttonsContent()
-        }
-    }
+    CoreButtonsGroupWithShade(modifier, buttonsContent)
 }
 
 @Composable
@@ -469,4 +448,3 @@ fun FeeInfoCell(
         )
     }
 }
-

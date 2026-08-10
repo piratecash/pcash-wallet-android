@@ -362,11 +362,15 @@
     <string name="receive_address_badge_used">Utilizado</string>
     <string name="receive_address_badge_unused">Não utilizado</string>
     <string name="receive_create_new_address">Criar novo endereço</string>
-    <string name="monero_key_images_required">Sincronize as imagens de chave do Monero com o Trezor antes de enviar.</string>
+    <string name="monero_key_images_required">Atualize o Monero com o Trezor antes de enviar.</string>
     <string name="monero_sync_key_images">Sincronizar imagens de chave</string>
     <string name="monero_prepare_trezor_title">Preparar o Trezor para enviar Monero</string>
-    <string name="monero_prepare_trezor_description">Para enviar Monero, conecte e desbloqueie o Trezor e, em seguida, sincronize a carteira. Nenhum fundo será enviado nesta etapa.</string>
+    <string name="monero_prepare_trezor_description">Para enviar Monero, conecte e desbloqueie o Trezor. Mantenha-o conectado e confirme a atualização no dispositivo. Nenhum fundo será enviado nesta etapa.</string>
     <string name="monero_sync_and_continue">Sincronizar e continuar</string>
+    <string name="monero_update_with_trezor">Atualizar com Trezor</string>
+    <string name="monero_updating_with_trezor">Atualizando Monero com Trezor</string>
+    <string name="monero_full_wallet_recovery">Recuperação completa da carteira</string>
+    <string name="monero_full_wallet_recovery_warning">Esta recuperação pode levar muito tempo.</string>
     <string name="monero_show_address_on_trezor">Mostrar endereço no Trezor</string>
     <string name="receive_create_another_address_title">Criar outro endereço?</string>
     <string name="receive_create_another_address_warning">Você já tem um novo endereço que ainda não recebeu fundos. Não é necessário criar um novo endereço. Deseja continuar?</string>

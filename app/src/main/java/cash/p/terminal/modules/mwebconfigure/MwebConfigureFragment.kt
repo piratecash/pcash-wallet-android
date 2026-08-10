@@ -10,9 +10,9 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.title
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
-import cash.p.terminal.modules.moneroconfigure.MoneroConfigureScreen
-import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureRoute
 import cash.p.terminal.navigation.popBackStackSafely
+import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.getInput
@@ -39,7 +39,7 @@ class MwebConfigureFragment : BaseComposeFragment() {
             viewModel.setInitialConfig(initialConfig)
         }
 
-        MoneroConfigureScreen(
+        MoneroConfigureRoute(
             title = TokenType.Mweb.title,
             blockchainType = BlockchainType.Litecoin,
             heightHintRes = R.string.restoreheight_hint_block_only,

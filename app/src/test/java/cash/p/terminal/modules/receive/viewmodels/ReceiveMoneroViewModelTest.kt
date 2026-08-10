@@ -189,6 +189,24 @@ class ReceiveMoneroViewModelTest {
     }
 
     @Test
+    fun showTrezorUpdateAction_onlyForStatesRequiringManualPreparation() = runTest(dispatcher) {
+        every { adapter.hardwareWallet } returns true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        MoneroSpendReadiness.entries.forEach { state ->
+            readiness.value = state
+            advanceUntilIdle()
+
+            assertEquals(
+                state == MoneroSpendReadiness.NeedsKeyImageSync ||
+                    state == MoneroSpendReadiness.ReconciliationFailed,
+                viewModel.uiState.showTrezorUpdateAction,
+            )
+        }
+    }
+
+    @Test
     fun displayAddressOnDevice_usesCurrentSubaddressIndex() = runTest(dispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -200,14 +218,14 @@ class ReceiveMoneroViewModelTest {
     }
 
     @Test
-    fun syncKeyImages_requested_invokesSemanticAdapter() = runTest(dispatcher) {
+    fun refreshWithTrezor_requested_invokesLiveRefreshAdapter() = runTest(dispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        viewModel.syncKeyImages()
+        viewModel.refreshWithTrezor()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { adapter.syncKeyImages() }
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
     }
 
     @Test

@@ -43,6 +43,8 @@ import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.reactivex.Flowable
 import io.reactivex.Single
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -417,8 +419,12 @@ interface IMoneroHardwareWalletAdapter {
     val hardwareWallet: Boolean
     val spendReadiness: StateFlow<MoneroSpendReadiness>
 
-    suspend fun syncKeyImages()
+    suspend fun refreshHardwareKeyImages()
+    suspend fun fullWalletRecovery()
 }
+
+fun Throwable.isEligibleForMoneroFullWalletRecovery(): Boolean =
+    this is HardwareWalletOperationException && error == HardwareWalletErrorCode.Protocol
 
 interface ISendMoneroAdapter :
     IBalanceAdapter,

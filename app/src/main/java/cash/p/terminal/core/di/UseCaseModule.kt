@@ -29,6 +29,7 @@ import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
 import cash.p.terminal.trezor.domain.usecase.ICreateTrezorWalletUseCase
+import cash.p.terminal.trezor.domain.usecase.TrezorMoneroRestoreHeightResolver
 import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
@@ -46,7 +47,7 @@ val useCaseModule = module {
     factoryOf(::ResolveTransactionItemUseCase)
     factoryOf(::ResolvePayCoreNavigationUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
-    factoryOf(::ValidateMoneroHeightUseCase)
+    factoryOf(::ValidateMoneroHeightUseCase) bind TrezorMoneroRestoreHeightResolver::class
     singleOf(::AddMoneroToTrezorAccountUseCase)
     factoryOf(::GetLocalizedAssetUseCase)
     factoryOf(::CheckGooglePlayUpdateUseCase)
