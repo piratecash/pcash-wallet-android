@@ -75,7 +75,9 @@ class SwapPayCoreNavigationTest {
     fun buildNextPage_payCoreRoute_opensPaymentBeforeRouteInfo() {
         assertEquals(
             "PayCorePaymentPage",
-            buildNextPage(exactOutState(BigDecimal.ONE).copy(multiSwapRoute = route())).javaClass.simpleName,
+            buildNextPage(
+                exactOutState(BigDecimal.ONE).copy(multiSwapRoute = multiSwapRouteFixture()),
+            ).javaClass.simpleName,
         )
     }
 
@@ -83,25 +85,28 @@ class SwapPayCoreNavigationTest {
     fun isMultiSwapRouteReady_requotingRoute_cannotContinue() {
         val routeState = stateWithRoute()
 
-        assertFalse(isMultiSwapRouteReady(quoting = true, route = routeState.multiSwapRoute))
-        assertTrue(isMultiSwapRouteReady(quoting = false, route = routeState.multiSwapRoute))
+        assertFalse(isMultiSwapRouteReady(quoting = true, timeout = false, route = routeState.multiSwapRoute))
+        assertTrue(isMultiSwapRouteReady(quoting = false, timeout = false, route = routeState.multiSwapRoute))
+    }
+
+    @Test
+    fun isMultiSwapRouteReady_expiredRoute_cannotContinue() {
+        assertFalse(isMultiSwapRouteReady(quoting = false, timeout = true, route = multiSwapRouteFixture()))
+    }
+
+    @Test
+    fun shouldRefreshMultiSwapRoute_expiredIdleRoute_returnsTrue() {
+        assertTrue(shouldRefreshMultiSwapRoute(quoting = false, timeout = true, route = multiSwapRouteFixture()))
+    }
+
+    @Test
+    fun shouldRefreshMultiSwapRoute_refreshInProgress_returnsFalse() {
+        assertFalse(shouldRefreshMultiSwapRoute(quoting = true, timeout = true, route = multiSwapRouteFixture()))
     }
 
     private fun stateWithRoute(): SwapUiState = exactOutState(BigDecimal.ONE, nonPayCoreProvider).copy(
-        multiSwapRoute = route(),
+        multiSwapRoute = multiSwapRouteFixture(),
     )
-
-    private fun route(): MultiSwapRoute {
-        val quote = mockk<SwapProviderQuote>(relaxed = true)
-        return MultiSwapRoute(
-            intermediateCoin = mockk(),
-            leg1Quotes = listOf(quote),
-            leg2Quotes = listOf(quote),
-            commissionReserve = BigDecimal.ZERO,
-            selectedLeg1Quote = quote,
-            selectedLeg2Quote = quote,
-        )
-    }
 
     private fun exactOutState(
         targetAmount: BigDecimal,
@@ -159,4 +164,26 @@ class SwapPayCoreNavigationTest {
             quoteCautions = emptyList(),
         )
     }
+}
+
+internal fun multiSwapRouteFixture(): MultiSwapRoute {
+    val token = PayCoreAssets.rubToken
+    val provider = mockk<IMultiSwapProvider>(relaxed = true) {
+        every { title } returns "Provider"
+    }
+    val quote = mockk<SwapProviderQuote>(relaxed = true) {
+        every { this@mockk.provider } returns provider
+        every { tokenIn } returns token
+        every { tokenOut } returns token
+        every { amountIn } returns BigDecimal.ONE
+        every { amountOut } returns BigDecimal.ONE
+    }
+    return MultiSwapRoute(
+        intermediateCoin = token,
+        leg1Quotes = listOf(quote),
+        leg2Quotes = listOf(quote),
+        commissionReserve = BigDecimal.ZERO,
+        selectedLeg1Quote = quote,
+        selectedLeg2Quote = quote,
+    )
 }

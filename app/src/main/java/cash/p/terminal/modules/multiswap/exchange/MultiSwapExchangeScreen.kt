@@ -243,8 +243,9 @@ internal fun MultiSwapExchangeScreen(
 
             if (uiState.presentation == MultiSwapExchangePresentation.RouteInfo) {
                 RouteInfoButtons(
-                    enabled = uiState.buttonState == ButtonState.Enabled,
+                    buttonState = uiState.buttonState,
                     onContinue = onSwap,
+                    onRefresh = onRefresh,
                     onCancel = onBack,
                 )
             } else BottomButtons(
@@ -292,16 +293,24 @@ private fun String.withCenteredRouteArrows(): AnnotatedString = buildAnnotatedSt
 }
 
 @Composable
-private fun RouteInfoButtons(enabled: Boolean, onContinue: () -> Unit, onCancel: () -> Unit) {
+private fun RouteInfoButtons(
+    buttonState: ButtonState,
+    onContinue: () -> Unit,
+    onRefresh: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    val buttonModifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
     ButtonsGroupWithShade {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            ButtonPrimaryYellow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+            SwapPrimaryButton(
+                buttonState = buttonState,
+                modifier = buttonModifier,
                 title = stringResource(R.string.multi_swap_understood_continue),
-                enabled = enabled,
-                onClick = onContinue,
+                onSwap = onContinue,
+                onRefresh = onRefresh,
+                onClose = onCancel,
             )
             VSpacer(height = 8.dp)
             ButtonPrimaryTransparent(
@@ -594,47 +603,14 @@ private fun BottomButtons(
 
     ButtonsGroupWithShade {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            when (buttonState) {
-                ButtonState.Close -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = stringResource(R.string.Button_Close),
-                    onClick = onClose,
-                )
-
-                ButtonState.Enabled -> {
-                    ButtonPrimaryYellow(
-                        modifier = buttonModifier,
-                        title = swapButtonTitle,
-                        onClick = onSwap,
-                    )
-                }
-
-                ButtonState.Refresh -> {
-                    ButtonPrimaryDefault(
-                        modifier = buttonModifier,
-                        title = stringResource(R.string.Button_Refresh),
-                        onClick = onRefresh,
-                    )
-                }
-
-                ButtonState.Quoting -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = stringResource(R.string.Swap_Quoting),
-                    enabled = false,
-                    loadingIndicator = true,
-                    onClick = {},
-                )
-
-                ButtonState.Hidden -> { /* no primary button */
-                }
-
-                ButtonState.Disabled -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = swapButtonTitle,
-                    onClick = {},
-                    enabled = false,
-                )
-            }
+            SwapPrimaryButton(
+                buttonState = buttonState,
+                modifier = buttonModifier,
+                title = swapButtonTitle,
+                onSwap = onSwap,
+                onRefresh = onRefresh,
+                onClose = onClose,
+            )
 
             if (showContinueLater) {
                 VSpacer(height = 8.dp)
@@ -657,6 +633,45 @@ private fun BottomButtons(
             }
         }
     }
+}
+
+@Composable
+private fun SwapPrimaryButton(
+    buttonState: ButtonState,
+    title: String,
+    onSwap: () -> Unit,
+    onRefresh: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (buttonState == ButtonState.Hidden) return
+    if (buttonState == ButtonState.Refresh) {
+        ButtonPrimaryDefault(
+            modifier = modifier,
+            title = stringResource(R.string.Button_Refresh),
+            onClick = onRefresh,
+        )
+        return
+    }
+
+    val enabled = buttonState == ButtonState.Enabled || buttonState == ButtonState.Close
+    val buttonTitle = when (buttonState) {
+        ButtonState.Close -> stringResource(R.string.Button_Close)
+        ButtonState.Quoting -> stringResource(R.string.Swap_Quoting)
+        else -> title
+    }
+    val onClick: () -> Unit = when (buttonState) {
+        ButtonState.Close -> onClose
+        ButtonState.Enabled -> onSwap
+        else -> ({})
+    }
+    ButtonPrimaryYellow(
+        modifier = modifier,
+        title = buttonTitle,
+        enabled = enabled,
+        loadingIndicator = buttonState == ButtonState.Quoting,
+        onClick = onClick,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

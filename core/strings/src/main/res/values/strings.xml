@@ -2530,7 +2530,7 @@ Proceed only if you\'re sure.</string>
     <string name="multi_swap_route_explanation">To get the best rate, a route through %2$s is used. The swap will be completed in two consecutive steps: first %1$s → %2$s, then %2$s → %3$s.</string>
     <string name="multi_swap_route_title">Swap route</string>
     <string name="multi_swap_step">%d step</string>
-    <string name="multi_swap_understood_continue">Understood, continue</string>
+    <string name="multi_swap_understood_continue">Got it, continue</string>
     <string name="multi_swap_unfinished">Unfinished swap</string>
     <string name="multi_swap_unfinished_plural">Unfinished swaps (%d)</string>
 

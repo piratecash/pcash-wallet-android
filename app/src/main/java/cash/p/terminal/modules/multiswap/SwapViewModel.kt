@@ -32,6 +32,8 @@ import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+private enum class MultiSwapRouteRefreshState { Idle, Refreshing, Failed }
+
 class SwapViewModel(
     private val quoteService: SwapQuoteService,
     private val balanceService: TokenBalanceService,
@@ -54,6 +56,8 @@ class SwapViewModel(
     private var balanceState = balanceService.stateFlow.value
     private var priceImpactState = priceImpactService.stateFlow.value
     private var timerState = timerService.stateFlow.value
+    private var multiSwapRouteInfoSnapshot = quoteState.multiSwapRoute
+    private var multiSwapRouteRefreshState by mutableStateOf(MultiSwapRouteRefreshState.Idle)
 
     var timeRemainingProgress by mutableStateOf<Float?>(null)
         private set
@@ -213,6 +217,7 @@ class SwapViewModel(
     }
 
     private fun handleUpdatedQuoteState(quoteState: SwapQuoteService.State) {
+        updateMultiSwapRouteRefreshState(quoteState)
         this.quoteState = quoteState
 
         balanceService.setToken(quoteState.tokenIn)
@@ -274,26 +279,43 @@ class SwapViewModel(
         quoteService.selectQuote(quote, SwapQuoteSelectionTarget.Primary)
     }
 
-    fun onSelectLeg2Quote(quote: SwapProviderQuote) =
-        quoteService.selectQuote(quote, SwapQuoteSelectionTarget.RouteLeg2)
+    fun onSelectLeg2Quote(quote: SwapProviderQuote): Boolean {
+        if (!canContinueMultiSwapRoute()) return false
+        return quoteService.selectQuote(quote, SwapQuoteSelectionTarget.RouteLeg2)
+    }
 
     fun canContinueMultiSwapRoute(): Boolean = isMultiSwapRouteReady(
         quoting = quoteState.quoting,
+        timeout = timerState.timeout,
         route = quoteState.multiSwapRoute,
     )
 
+    fun refreshExpiredMultiSwapRoute() {
+        if (shouldRefreshMultiSwapRoute(quoteState.quoting, timerState.timeout, quoteState.multiSwapRoute)) {
+            refreshMultiSwapRoute()
+        }
+    }
+
+    fun refreshMultiSwapRoute() {
+        if (multiSwapRouteRefreshState == MultiSwapRouteRefreshState.Refreshing ||
+            quoteState.quoting ||
+            multiSwapRouteInfoSnapshot == null
+        ) {
+            return
+        }
+        multiSwapRouteRefreshState = MultiSwapRouteRefreshState.Refreshing
+        reQuote()
+    }
+
     fun multiSwapRouteInfoUiState(uiState: SwapUiState): MultiSwapExchangeUiState? {
-        val route = uiState.multiSwapRoute ?: return null
+        val route = multiSwapRouteInfoRoute(uiState) ?: return null
         val leg1 = route.selectedLeg1Quote
         val leg2 = route.selectedLeg2Quote
+        val buttonState = multiSwapRouteInfoButtonState(uiState, route)
         return MultiSwapExchangeUiState(
             leg1 = leg1.toLegUiState(uiState.currency, uiState.fiatAmountIn, fiatAmount(leg1.tokenOut, leg1.amountOut)),
             leg2 = leg2.toLegUiState(uiState.currency, fiatAmount(leg2.tokenIn, leg2.amountIn), uiState.fiatAmountOut),
-            buttonState = if (isMultiSwapRouteReady(uiState.quoting, route)) {
-                ButtonState.Enabled
-            } else {
-                ButtonState.Disabled
-            },
+            buttonState = buttonState,
             showContinueLater = false,
             presentation = MultiSwapExchangePresentation.RouteInfo,
             routeExplanationTokens = listOf(
@@ -301,8 +323,43 @@ class SwapViewModel(
                 route.intermediateCoin.coin.code,
                 leg2.tokenOut.coin.code,
             ),
-            leg2ProviderClickable = !uiState.quoting && route.leg2Quotes.isNotEmpty(),
+            leg2ProviderClickable = buttonState == ButtonState.Enabled && route.leg2Quotes.isNotEmpty(),
         )
+    }
+
+    private fun multiSwapRouteInfoRoute(uiState: SwapUiState): MultiSwapRoute? =
+        uiState.multiSwapRoute ?: multiSwapRouteInfoSnapshot?.takeIf {
+            multiSwapRouteRefreshState != MultiSwapRouteRefreshState.Idle
+        }
+
+    private fun multiSwapRouteInfoButtonState(uiState: SwapUiState, route: MultiSwapRoute): ButtonState = when {
+        multiSwapRouteRefreshState == MultiSwapRouteRefreshState.Failed -> ButtonState.Refresh
+        multiSwapRouteRefreshState == MultiSwapRouteRefreshState.Refreshing || uiState.quoting || uiState.timeout ->
+            ButtonState.Quoting
+        isMultiSwapRouteReady(uiState.quoting, uiState.timeout, route) -> ButtonState.Enabled
+        else -> ButtonState.Disabled
+    }
+
+    private fun updateMultiSwapRouteRefreshState(quoteState: SwapQuoteService.State) {
+        quoteState.multiSwapRoute?.let { multiSwapRouteInfoSnapshot = it }
+        if (quoteState.quoting) {
+            if (this.quoteState.multiSwapRoute != null ||
+                multiSwapRouteRefreshState != MultiSwapRouteRefreshState.Idle
+            ) {
+                multiSwapRouteRefreshState = MultiSwapRouteRefreshState.Refreshing
+            }
+            return
+        }
+        if (multiSwapRouteRefreshState == MultiSwapRouteRefreshState.Idle) return
+
+        multiSwapRouteRefreshState = when {
+            quoteState.error != null -> MultiSwapRouteRefreshState.Failed
+            quoteState.multiSwapRoute != null -> MultiSwapRouteRefreshState.Idle
+            else -> {
+                multiSwapRouteInfoSnapshot = null
+                MultiSwapRouteRefreshState.Idle
+            }
+        }
     }
 
     fun onEnterAmount(v: BigDecimal?) = setTokenAmount(v, SwapAmountDirection.In)
@@ -445,10 +502,21 @@ class SwapViewModel(
     }
 }
 
-internal fun isMultiSwapRouteReady(quoting: Boolean, route: MultiSwapRoute?): Boolean {
-    return !quoting && route != null && route.leg1Quotes.contains(route.selectedLeg1Quote)
-        && route.leg2Quotes.contains(route.selectedLeg2Quote)
+internal fun isMultiSwapRouteReady(
+    quoting: Boolean,
+    timeout: Boolean,
+    route: MultiSwapRoute?,
+): Boolean {
+    val settledRoute = settledMultiSwapRoute(quoting, route)
+    return !timeout && settledRoute != null && settledRoute.leg1Quotes.contains(settledRoute.selectedLeg1Quote)
+        && settledRoute.leg2Quotes.contains(settledRoute.selectedLeg2Quote)
 }
+
+internal fun shouldRefreshMultiSwapRoute(quoting: Boolean, timeout: Boolean, route: MultiSwapRoute?): Boolean =
+    timeout && settledMultiSwapRoute(quoting, route) != null
+
+private fun settledMultiSwapRoute(quoting: Boolean, route: MultiSwapRoute?): MultiSwapRoute? =
+    route?.takeUnless { quoting }
 
 private fun SwapProviderQuote.toLegUiState(
     currency: Currency,

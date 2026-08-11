@@ -403,13 +403,17 @@ private fun NavGraphBuilder.swapRouteInfoDestination(
             LaunchedEffect(Unit) { navController.navigateUp() }
             return@composablePage
         }
+        LifecycleResumeEffect(uiState.timeout) {
+            viewModel.refreshExpiredMultiSwapRoute()
+            onPauseOrDispose { }
+        }
         MultiSwapExchangeScreen(
             uiState = routeState,
-            timeRemainingProgress = { null },
+            timeRemainingProgress = { viewModel.timeRemainingProgress },
             onSwap = {
                 if (viewModel.canContinueMultiSwapRoute()) navController.navigate(SwapConfirmPage)
             },
-            onRefresh = {},
+            onRefresh = viewModel::refreshMultiSwapRoute,
             onContinueLater = navController::navigateUp,
             onDeleteAndClose = navController::navigateUp,
             onBack = navController::navigateUp,
@@ -425,7 +429,7 @@ private fun NavGraphBuilder.swapSelectLeg2ProviderDestination(
     composablePopup<SwapSelectLeg2ProviderPage> { backStackEntry ->
         val uiState = viewModel.uiState
         val route = uiState.multiSwapRoute
-        if (route == null || uiState.quoting || route.leg2Quotes.isEmpty()) {
+        if (route == null || !viewModel.canContinueMultiSwapRoute() || route.leg2Quotes.isEmpty()) {
             LaunchedEffect(Unit) { navController.navigateUp() }
             return@composablePopup
         }
