@@ -2,6 +2,7 @@ package cash.p.terminal.modules.market.filters
 
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.modules.market.filters.MarketFiltersModule.BlockchainViewItem
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -13,15 +14,14 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
-class MarketFiltersViewModel(val service: MarketFiltersService)
-    : ViewModelUiState<MarketFiltersUiState>() {
+class MarketFiltersViewModel(val service: MarketFiltersService) : ViewModelUiState<MarketFiltersUiState>() {
 
     private var coinListSet = FilterViewItemWrapper(
-        cash.p.terminal.strings.helpers.Translator.getString(CoinList.Top250.titleResId),
+        Translator.getString(CoinList.Top250.titleResId),
         CoinList.Top250,
     )
     private var period = FilterViewItemWrapper(
-        cash.p.terminal.strings.helpers.Translator.getString(TimePeriod.TimePeriod_1D.titleResId),
+        Translator.getString(TimePeriod.TimePeriod_1D.titleResId),
         TimePeriod.TimePeriod_1D,
     )
     private var filterTradingSignal = FilterViewItemWrapper.getAny<FilterTradingSignal>()
@@ -42,25 +42,29 @@ class MarketFiltersViewModel(val service: MarketFiltersService)
     private var blockchainOptions = listOf<BlockchainViewItem>()
     private var showSpinner = false
     private var buttonEnabled = false
-    private var buttonTitle = cash.p.terminal.strings.helpers.Translator.getString(R.string.Market_Filter_ShowResults)
+    private var buttonTitle = Translator.getString(R.string.Market_Filter_ShowResults)
     private var errorMessage: TranslatableString? = null
 
     private var reloadDataJob: Job? = null
 
     val coinListsViewItemOptions = CoinList.values().map {
-        FilterViewItemWrapper(cash.p.terminal.strings.helpers.Translator.getString(it.titleResId), it)
+        FilterViewItemWrapper(Translator.getString(it.titleResId), it)
     }
     val marketCapViewItemOptions = getRanges(service.currencyCode)
     val volumeViewItemOptions = getRanges(service.currencyCode)
     val periodViewItemOptions = TimePeriod.values().map {
-        FilterViewItemWrapper(cash.p.terminal.strings.helpers.Translator.getString(it.titleResId), it)
+        FilterViewItemWrapper(Translator.getString(it.titleResId), it)
     }
 
     val tradingSignals = listOf(FilterViewItemWrapper.getAny<FilterTradingSignal>()) +
-                FilterTradingSignal.values().map { FilterViewItemWrapper<FilterTradingSignal?>(cash.p.terminal.strings.helpers.Translator.getString(it.titleResId), it) }
+            FilterTradingSignal.values().map {
+                FilterViewItemWrapper<FilterTradingSignal?>(
+                    Translator.getString(it.titleResId), it
+                )
+            }
     val priceChangeViewItemOptions =
         listOf(FilterViewItemWrapper.getAny<PriceChange>()) + PriceChange.values().map {
-            FilterViewItemWrapper<PriceChange?>(cash.p.terminal.strings.helpers.Translator.getString(it.titleResId), it)
+            FilterViewItemWrapper<PriceChange?>(Translator.getString(it.titleResId), it)
         }
 
     init {
@@ -98,14 +102,14 @@ class MarketFiltersViewModel(val service: MarketFiltersService)
     fun reset() {
         updateCoinList(
             FilterViewItemWrapper(
-                cash.p.terminal.strings.helpers.Translator.getString(CoinList.Top250.titleResId),
+                Translator.getString(CoinList.Top250.titleResId),
                 CoinList.Top250,
             )
         )
         marketCap = rangeEmpty
         volume = rangeEmpty
         period = FilterViewItemWrapper(
-            cash.p.terminal.strings.helpers.Translator.getString(TimePeriod.TimePeriod_1D.titleResId),
+            Translator.getString(TimePeriod.TimePeriod_1D.titleResId),
             TimePeriod.TimePeriod_1D,
         )
         priceChange = FilterViewItemWrapper.getAny()
@@ -258,13 +262,15 @@ class MarketFiltersViewModel(val service: MarketFiltersService)
 
                 val numberOfItems = service.fetchNumberOfItems()
 
-                buttonTitle = cash.p.terminal.strings.helpers.Translator.getString(R.string.Market_Filter_ShowResults_Counter, numberOfItems)
+                buttonTitle = Translator.getString(
+                    R.string.Market_Filter_ShowResults_Counter, numberOfItems
+                )
                 buttonEnabled = numberOfItems > 0
                 errorMessage = null
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
-                buttonTitle = cash.p.terminal.strings.helpers.Translator.getString(R.string.Market_Filter_ShowResults)
+                buttonTitle = Translator.getString(R.string.Market_Filter_ShowResults)
                 buttonEnabled = false
                 errorMessage = convertErrorMessage(e)
             }
@@ -294,7 +300,7 @@ val rangeEmpty = FilterViewItemWrapper.getAny<Range>()
 
 fun getRanges(currencyCode: String): List<FilterViewItemWrapper<Range?>> {
     return listOf(rangeEmpty) + Range.valuesByCurrency(currencyCode).map {
-        FilterViewItemWrapper(cash.p.terminal.strings.helpers.Translator.getString(it.titleResId), it)
+        FilterViewItemWrapper(Translator.getString(it.titleResId), it)
     }
 }
 

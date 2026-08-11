@@ -200,7 +200,8 @@ class SendSolanaViewModel(
             val solanaAddress = addressState.solanaAddress
                 ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
-            val totalSolAmount = (if (sendToken.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
+            val totalSolAmount =
+                (if (sendToken.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
 
             val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
                 ?: solBalance
@@ -281,7 +282,10 @@ class SendSolanaViewModel(
     private fun createCaution(error: Throwable) = when (error) {
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))
-        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(feeToken.coin.code, solBalance.toPlainString())
+        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(
+            feeToken.coin.code, solBalance.toPlainString()
+        )
+
         else -> HSCaution(TranslatableString.PlainString(error.cause?.message ?: error.message ?: ""))
     }
 

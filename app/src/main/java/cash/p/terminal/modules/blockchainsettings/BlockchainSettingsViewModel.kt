@@ -61,12 +61,15 @@ class BlockchainSettingsViewModel(
                             imageUrl = item.blockchain.type.imageUrl,
                             blockchainItem = item
                         )
-                        is BlockchainSettingsModule.BlockchainItem.Solana -> BlockchainSettingsModule.BlockchainViewItem(
+
+                        is BlockchainSettingsModule.BlockchainItem.Solana ->
+                            BlockchainSettingsModule.BlockchainViewItem(
                             title = item.blockchain.name,
                             subtitle = item.rpcSource.name,
                             imageUrl = item.blockchain.type.imageUrl,
                             blockchainItem = item
                         )
+
                         else -> null
                     }
                 }

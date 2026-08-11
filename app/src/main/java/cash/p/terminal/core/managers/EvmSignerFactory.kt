@@ -40,7 +40,9 @@ class EvmSignerFactory(
         when (val type = account.type) {
             is AccountType.Mnemonic -> Signer.getInstance(type.seed, chain)
             is AccountType.EvmPrivateKey -> Signer.getInstance(type.key, chain)
-            is AccountType.HardwareCard -> hardwareKey(account.id, blockchainType)?.let { (publicKey, addressWithPublicKey) ->
+            is AccountType.HardwareCard -> hardwareKey(
+                account.id, blockchainType
+            )?.let { (publicKey, addressWithPublicKey) ->
                 HardwareWalletEvmSigner(
                     address = Address(addressWithPublicKey.addressBytes),
                     publicKey = publicKey,
@@ -48,7 +50,10 @@ class EvmSignerFactory(
                     expectedPublicKeyBytes = addressWithPublicKey.publicKey
                 )
             }
-            is AccountType.TrezorDevice -> hardwareKey(account.id, blockchainType)?.let { (publicKey, addressWithPublicKey) ->
+
+            is AccountType.TrezorDevice -> hardwareKey(
+                account.id, blockchainType
+            )?.let { (publicKey, addressWithPublicKey) ->
                 TrezorEvmSigner(
                     address = Address(addressWithPublicKey.addressBytes),
                     chain = chain,
@@ -56,6 +61,7 @@ class EvmSignerFactory(
                     trezorClient = trezorClient
                 )
             }
+
             else -> null // EvmAddress (watch) and unsupported account types have no signer
         }
 

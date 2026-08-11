@@ -75,7 +75,9 @@ class UnstoppableEvmSwapProviderTest {
         coEvery { repository.getTokens("BARTER") } returns UnstoppableProviderTokens(
             tokens = listOf(
                 UnstoppableToken(chain = "ethereum", chainId = ETH_CHAIN_ID, address = null, identifier = "ETH"),
-                UnstoppableToken(chain = "ethereum", chainId = ETH_CHAIN_ID, address = USDC_ADDRESS, identifier = "USDC"),
+                UnstoppableToken(
+                    chain = "ethereum", chainId = ETH_CHAIN_ID, address = USDC_ADDRESS, identifier = "USDC"
+                ),
             ),
             supportedChainIds = emptyList(),
         )
@@ -83,7 +85,8 @@ class UnstoppableEvmSwapProviderTest {
             marketKit.token(match { it.blockchainType == BlockchainType.Ethereum && it.tokenType == TokenType.Native })
         } returns tokenIn
         every {
-            marketKit.token(match { it.blockchainType == BlockchainType.Ethereum && it.tokenType == TokenType.Eip20(USDC_ADDRESS) })
+            marketKit.token(
+                match { it.blockchainType == BlockchainType.Ethereum && it.tokenType == TokenType.Eip20(USDC_ADDRESS) })
         } returns tokenOut
         every { walletUseCase.getReceiveAddress(tokenIn) } returns SENDER_ADDRESS
     }
@@ -103,7 +106,10 @@ class UnstoppableEvmSwapProviderTest {
         chain = ETH_CHAIN_ID,
         transactions = listOf(
             // Native ETH input of AMOUNT_IN=1 → value must be 1e18 wei (0xde0b6b3a7640000).
-            UnstoppableSignableTx(kind = "evm", to = ROUTER_ADDRESS, from = SENDER_ADDRESS, value = "0xde0b6b3a7640000", data = "0xabcdef", gas = "0x5208"),
+            UnstoppableSignableTx(
+                kind = "evm", to = ROUTER_ADDRESS, from = SENDER_ADDRESS, value = "0xde0b6b3a7640000",
+                data = "0xabcdef", gas = "0x5208"
+            ),
         ),
         approval = UnstoppableApproval(token = null, spender = SPENDER_ADDRESS, amount = null),
         depositAddress = null,
@@ -111,14 +117,15 @@ class UnstoppableEvmSwapProviderTest {
         unsignedTx = null,
     )
 
-    private fun routeWith(execution: UnstoppableExecution, approvalSpender: String? = SPENDER_ADDRESS) = UnstoppableRoute(
-        expectedBuyAmount = BigDecimal("100"),
-        minBuyAmount = null,
-        estimatedTimeSeconds = null,
-        approvalSpender = approvalSpender,
-        execution = execution,
-        uuid = "route-uuid",
-    )
+    private fun routeWith(execution: UnstoppableExecution, approvalSpender: String? = SPENDER_ADDRESS) =
+        UnstoppableRoute(
+            expectedBuyAmount = BigDecimal("100"),
+            minBuyAmount = null,
+            estimatedTimeSeconds = null,
+            approvalSpender = approvalSpender,
+            execution = execution,
+            uuid = "route-uuid",
+        )
 
     private fun stubSwapResponse(route: UnstoppableRoute) {
         coEvery {
@@ -161,7 +168,8 @@ class UnstoppableEvmSwapProviderTest {
     @Test
     fun fetchFinalQuote_nativeValueMismatch_throws() = runTest(dispatcher) {
         // Native input but the server-signed value differs from the quoted amount → reject before sending.
-        val execution = validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(value = "0x1"))) }
+        val execution =
+            validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(value = "0x1"))) }
         assertFetchFinalQuoteThrows(routeWith(execution), "does not match expected")
     }
 
@@ -188,7 +196,8 @@ class UnstoppableEvmSwapProviderTest {
 
     @Test
     fun fetchFinalQuote_wrongSignableKind_throws() = runTest(dispatcher) {
-        val execution = validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(kind = "solana"))) }
+        val execution =
+            validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(kind = "solana"))) }
         assertFetchFinalQuoteThrows(routeWith(execution), "unexpected signable kind")
     }
 
@@ -200,18 +209,25 @@ class UnstoppableEvmSwapProviderTest {
 
     @Test
     fun fetchFinalQuote_fromMismatch_throws() = runTest(dispatcher) {
-        val execution = validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(from = OTHER_SENDER_ADDRESS))) }
+        val execution = validExecution().let {
+            it.copy(
+                transactions = listOf(it.transactions.single().copy(from = OTHER_SENDER_ADDRESS))
+            )
+        }
         assertFetchFinalQuoteThrows(routeWith(execution), "does not match sending address")
     }
 
     @Test
     fun fetchFinalQuote_missingToAddress_throws() = runTest(dispatcher) {
-        val execution = validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(to = null))) }
+        val execution =
+            validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(to = null))) }
         assertFetchFinalQuoteThrows(routeWith(execution), "has no `to` address")
     }
 
     @Test
     fun fetchFinalQuote_approvalSpenderMismatch_throws() = runTest(dispatcher) {
-        assertFetchFinalQuoteThrows(routeWith(validExecution(), approvalSpender = OTHER_SPENDER_ADDRESS), "approval spender mismatch")
+        assertFetchFinalQuoteThrows(
+            routeWith(validExecution(), approvalSpender = OTHER_SPENDER_ADDRESS), "approval spender mismatch"
+        )
     }
 }

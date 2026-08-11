@@ -16,6 +16,8 @@ object Migration_66_67 : Migration(66, 67) {
             )
         """
         )
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_HardwarePublicKey_accountId` ON `HardwarePublicKey` (`accountId`)")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_HardwarePublicKey_accountId` ON `HardwarePublicKey` (`accountId`)"
+        )
     }
 }

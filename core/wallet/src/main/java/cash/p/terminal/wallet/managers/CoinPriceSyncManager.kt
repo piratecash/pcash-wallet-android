@@ -74,7 +74,8 @@ class CoinPriceSyncManager(
         if (candidate != null) {
             subject = candidate
         } else {                                        // create new subject
-            forceUpdate = needForceUpdate(key)     // if subject has non-subscribed tokens we need force schedule
+            forceUpdate =
+                needForceUpdate(key)     // if subject has non-subscribed tokens we need force schedule
 
             subject = PublishSubject.create()
             subjects[key] = subject
@@ -109,7 +110,11 @@ class CoinPriceSyncManager(
         return observingCoinUids(currencyCode).toList()
     }
 
-    fun coinPriceObservable(tag: String, coinUid: String, currencyCode: String): Observable<CoinPrice> {
+    fun coinPriceObservable(
+        tag: String,
+        coinUid: String,
+        currencyCode: String
+    ): Observable<CoinPrice> {
         val key = CoinPriceKey(tag, listOf(coinUid), currencyCode)
 
         return subject(key).flatMap { coinPriceMap ->
@@ -119,7 +124,11 @@ class CoinPriceSyncManager(
         }
     }
 
-    fun coinPriceMapObservable(tag: String, coinUids: List<String>, currencyCode: String): Observable<Map<String, CoinPrice>> {
+    fun coinPriceMapObservable(
+        tag: String,
+        coinUids: List<String>,
+        currencyCode: String
+    ): Observable<Map<String, CoinPrice>> {
         val key = CoinPriceKey(tag, coinUids, currencyCode)
         return subject(key)
     }

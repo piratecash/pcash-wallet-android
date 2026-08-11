@@ -150,7 +150,9 @@ class AddressHandlerFactory(
         return AddressParserChain(addressHandlers, domainHandlers)
     }
 
-    fun parserChain(blockchainTypes: List<BlockchainType>, blockchainTypesWithEns: List<BlockchainType>): AddressParserChain {
+    fun parserChain(
+        blockchainTypes: List<BlockchainType>, blockchainTypesWithEns: List<BlockchainType>
+    ): AddressParserChain {
         val addressHandlers = mutableListOf<IAddressHandler>()
         val domainHandlers = mutableListOf<IAddressHandler>()
 

@@ -12,7 +12,9 @@ interface RestoreSettingDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(records: List<RestoreSettingRecord>)
 
-    @Query("SELECT * FROM `RestoreSettingRecord` WHERE accountId = :accountId AND blockchainTypeUid = :blockchainTypeUid")
+    @Query(
+        "SELECT * FROM `RestoreSettingRecord` WHERE accountId = :accountId AND blockchainTypeUid = :blockchainTypeUid"
+    )
     fun get(accountId: String, blockchainTypeUid: String): List<RestoreSettingRecord>
 
     @Query("SELECT * FROM `RestoreSettingRecord` WHERE accountId = :accountId")

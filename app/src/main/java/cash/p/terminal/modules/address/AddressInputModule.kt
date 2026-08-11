@@ -11,7 +11,9 @@ import cash.p.terminal.wallet.entities.TokenQuery
 
 object AddressInputModule {
 
-    class FactoryToken(private val tokenQuery: TokenQuery, private val coinCode: String, private val initial: Address?) : ViewModelProvider.Factory {
+    class FactoryToken(
+        private val tokenQuery: TokenQuery, private val coinCode: String, private val initial: Address?
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val ensHandler = AddressHandlerEns(tokenQuery.blockchainType, EnsResolverHolder.resolver)
@@ -30,6 +32,7 @@ object AddressInputModule {
                 BlockchainType.Zcash -> {
                     addressParserChain.addHandler(AddressHandlerPure(tokenQuery.blockchainType))
                 }
+
                 BlockchainType.Ethereum,
                 BlockchainType.BinanceSmartChain,
                 BlockchainType.Polygon,
@@ -42,15 +45,19 @@ object AddressInputModule {
                 BlockchainType.ArbitrumOne -> {
                     addressParserChain.addHandler(AddressHandlerEvm(tokenQuery.blockchainType))
                 }
+
                 BlockchainType.Monero -> {
                     addressParserChain.addHandler(AddressHandlerMonero())
                 }
+
                 BlockchainType.Solana -> {
                     addressParserChain.addHandler(AddressHandlerSolana())
                 }
+
                 BlockchainType.Tron -> {
                     addressParserChain.addHandler(AddressHandlerTron())
                 }
+
                 BlockchainType.Ton -> {
                     addressParserChain.addHandler(AddressHandlerTon())
                 }
@@ -93,6 +100,7 @@ object AddressInputModule {
                 BlockchainType.Zcash -> {
                     addressParserChain.addHandler(AddressHandlerPure(blockchainType))
                 }
+
                 BlockchainType.Ethereum,
                 BlockchainType.BinanceSmartChain,
                 BlockchainType.Polygon,
@@ -105,6 +113,7 @@ object AddressInputModule {
                 BlockchainType.ArbitrumOne -> {
                     addressParserChain.addHandler(AddressHandlerEvm(blockchainType))
                 }
+
                 BlockchainType.Solana,
                 BlockchainType.Tron,
                 BlockchainType.Ton,

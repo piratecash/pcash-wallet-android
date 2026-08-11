@@ -153,9 +153,14 @@ private fun CoinRankScreen(
 
                         stickyHeader {
                             HeaderSorting {
+                                val sortIcon = if (uiState.sortDescending) {
+                                    R.drawable.ic_sort_l2h_20
+                                } else {
+                                    R.drawable.ic_sort_h2l_20
+                                }
                                 ButtonSecondaryCircle(
                                     modifier = Modifier.padding(start = 16.dp),
-                                    icon = if (uiState.sortDescending) R.drawable.ic_sort_l2h_20 else R.drawable.ic_sort_h2l_20,
+                                    icon = sortIcon,
                                     onClick = { viewModel.toggleSortType() }
                                 )
                                 Spacer(Modifier.weight(1f))

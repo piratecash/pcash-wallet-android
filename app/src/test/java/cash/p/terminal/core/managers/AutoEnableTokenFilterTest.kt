@@ -141,7 +141,8 @@ class AutoEnableTokenFilterTest {
         val marketKit = marketKitResolving(query to curated)
 
         val wallet = marketKit.curatedEnabledWallets(
-            ACCOUNT_ID, listOf(StoredToken(query.id, metadata = null, trustedDecimals = false)), approvedTokenQueryIds = emptySet()
+            ACCOUNT_ID, listOf(StoredToken(query.id, metadata = null, trustedDecimals = false)),
+            approvedTokenQueryIds = emptySet()
         ).enabled.single()
 
         assertEquals(ACCOUNT_ID, wallet.accountId)
@@ -259,7 +260,8 @@ class AutoEnableTokenFilterTest {
         val marketKit = marketKitResolving()
 
         val result = marketKit.curatedEnabledWallets(
-            ACCOUNT_ID, listOf(StoredToken(custom.id, metadata = null, trustedDecimals = false)), approvedTokenQueryIds = emptySet()
+            ACCOUNT_ID, listOf(StoredToken(custom.id, metadata = null, trustedDecimals = false)),
+            approvedTokenQueryIds = emptySet()
         )
 
         assertTrue(result.enabled.isEmpty())
@@ -273,7 +275,9 @@ class AutoEnableTokenFilterTest {
 
         val result = marketKit.curatedEnabledWallets(
             ACCOUNT_ID,
-            listOf(StoredToken(custom.id, TrustedTokenMetadata("My Token", "MYT", decimals = null), trustedDecimals = true)),
+            listOf(
+                StoredToken(custom.id, TrustedTokenMetadata("My Token", "MYT", decimals = null), trustedDecimals = true)
+            ),
             approvedTokenQueryIds = emptySet(),
         )
 
@@ -287,7 +291,9 @@ class AutoEnableTokenFilterTest {
 
         val result = marketKit.curatedEnabledWallets(
             ACCOUNT_ID,
-            listOf(StoredToken("solana|unsupported:spl:ref", TrustedTokenMetadata("X", "X", 6), trustedDecimals = true)),
+            listOf(
+                StoredToken("solana|unsupported:spl:ref", TrustedTokenMetadata("X", "X", 6), trustedDecimals = true)
+            ),
             approvedTokenQueryIds = emptySet(),
         )
 
@@ -341,7 +347,11 @@ class AutoEnableTokenFilterTest {
 
         val result = marketKit.curatedEnabledWallets(
             ACCOUNT_ID,
-            listOf(StoredToken(custom.id, TrustedTokenMetadata("My Token", "MYT", decimals = null), trustedDecimals = false)),
+            listOf(
+                StoredToken(
+                    custom.id, TrustedTokenMetadata("My Token", "MYT", decimals = null), trustedDecimals = false
+                )
+            ),
             approvedTokenQueryIds = emptySet(),
         )
 
@@ -355,7 +365,9 @@ class AutoEnableTokenFilterTest {
 
         val result = marketKit.curatedEnabledWallets(
             ACCOUNT_ID,
-            listOf(StoredToken("solana|unsupported:spl:ref", TrustedTokenMetadata("X", "X", 6), trustedDecimals = false)),
+            listOf(
+                StoredToken("solana|unsupported:spl:ref", TrustedTokenMetadata("X", "X", 6), trustedDecimals = false)
+            ),
             approvedTokenQueryIds = emptySet(),
         )
 
@@ -380,25 +392,26 @@ class AutoEnableTokenFilterTest {
     }
 
     @Test
-    fun curatedEnabledWallets_twoCaseVariantsWithConflictingMetadata_declinesExactlyOneWithFirstRowsMetadata() = runTest {
-        val checksummed = TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xAbCd"))
-        val lowercased = TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xabcd"))
-        val marketKit = marketKitResolving()
+    fun curatedEnabledWallets_twoCaseVariantsWithConflictingMetadata_declinesExactlyOneWithFirstRowsMetadata() =
+        runTest {
+            val checksummed = TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xAbCd"))
+            val lowercased = TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xabcd"))
+            val marketKit = marketKitResolving()
 
-        val result = marketKit.curatedEnabledWallets(
-            ACCOUNT_ID,
-            listOf(
-                StoredToken(checksummed.id, TrustedTokenMetadata("First", "FST", 8), trustedDecimals = false),
-                StoredToken(lowercased.id, TrustedTokenMetadata("Second", "SND", 10), trustedDecimals = false),
-            ),
-            approvedTokenQueryIds = emptySet(),
-        )
+            val result = marketKit.curatedEnabledWallets(
+                ACCOUNT_ID,
+                listOf(
+                    StoredToken(checksummed.id, TrustedTokenMetadata("First", "FST", 8), trustedDecimals = false),
+                    StoredToken(lowercased.id, TrustedTokenMetadata("Second", "SND", 10), trustedDecimals = false),
+                ),
+                approvedTokenQueryIds = emptySet(),
+            )
 
-        assertTrue(result.enabled.isEmpty())
-        val declined = result.declined.single()
-        assertEquals("First", declined.coinName)
-        assertEquals("FST", declined.coinCode)
-    }
+            assertTrue(result.enabled.isEmpty())
+            val declined = result.declined.single()
+            assertEquals("First", declined.coinName)
+            assertEquals("FST", declined.coinCode)
+        }
 
     @Test
     fun curatedEnabledWallets_firstCaseVariantUnrestorableSecondRestorable_keepsSecondDeclined() = runTest {
@@ -409,7 +422,9 @@ class AutoEnableTokenFilterTest {
         val result = marketKit.curatedEnabledWallets(
             ACCOUNT_ID,
             listOf(
-                StoredToken(checksummed.id, TrustedTokenMetadata("First", "FST", decimals = null), trustedDecimals = false),
+                StoredToken(
+                    checksummed.id, TrustedTokenMetadata("First", "FST", decimals = null), trustedDecimals = false
+                ),
                 StoredToken(lowercased.id, TrustedTokenMetadata("Second", "SND", 10), trustedDecimals = false),
             ),
             approvedTokenQueryIds = emptySet(),
@@ -538,14 +553,16 @@ class AutoEnableTokenFilterTest {
         assertTrue(result.isEmpty())
     }
 
-    // Legacy "zcash|native" isn't in MarketKit's catalog, but WalletStorage still expands it into the live Zcash wallet group.
+    // Legacy "zcash|native" isn't in MarketKit's catalog, but WalletStorage still expands it into the live Zcash
+    // wallet group.
     @Test
     fun curatedEnabledWallets_legacyZcashNativeAbsentFromMarketKit_keepsItWithoutMetadata() = runTest {
         val legacyZcash = TokenQuery(BlockchainType.Zcash, TokenType.Native)
         val marketKit = marketKitResolving()
 
         val wallet = marketKit.curatedEnabledWallets(
-            ACCOUNT_ID, listOf(StoredToken(legacyZcash.id, metadata = null, trustedDecimals = false)), approvedTokenQueryIds = emptySet()
+            ACCOUNT_ID, listOf(StoredToken(legacyZcash.id, metadata = null, trustedDecimals = false)),
+            approvedTokenQueryIds = emptySet()
         ).enabled.single()
 
         assertEquals(legacyZcash.id, wallet.tokenQueryId)
@@ -555,13 +572,15 @@ class AutoEnableTokenFilterTest {
         assertNull(wallet.coinImage)
     }
 
-    // TokenType.fromId ignores anything past the first ":" segment, so a noisy suffix still parses as legacy-Zcash native.
+    // TokenType.fromId ignores anything past the first ":" segment, so a noisy suffix still parses as legacy-Zcash
+    // native.
     @Test
     fun curatedEnabledWallets_legacyZcashNoisyId_persistsCanonicalId() = runTest {
         val marketKit = marketKitResolving()
 
         val wallet = marketKit.curatedEnabledWallets(
-            ACCOUNT_ID, listOf(StoredToken("zcash|native:ignored", metadata = null, trustedDecimals = false)), approvedTokenQueryIds = emptySet()
+            ACCOUNT_ID, listOf(StoredToken("zcash|native:ignored", metadata = null, trustedDecimals = false)),
+            approvedTokenQueryIds = emptySet()
         ).enabled.single()
 
         assertEquals("zcash|native", wallet.tokenQueryId)

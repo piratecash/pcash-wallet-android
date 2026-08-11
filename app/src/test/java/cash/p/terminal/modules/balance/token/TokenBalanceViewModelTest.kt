@@ -475,7 +475,11 @@ class TokenBalanceViewModelTest : KoinTest {
         )
         balanceItemFlow.value = balanceItem
         every { balanceService.balanceItem } answers { balanceItemFlow.value }
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -495,7 +499,11 @@ class TokenBalanceViewModelTest : KoinTest {
         )
         balanceItemFlow.value = balanceItem
         every { balanceService.balanceItem } answers { balanceItemFlow.value }
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -519,7 +527,11 @@ class TokenBalanceViewModelTest : KoinTest {
         val balanceViewItem = createBalanceViewItem(
             secondaryValue = DeemedValue(value = expectedFiat, dimmed = false, visible = true)
         )
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns balanceViewItem
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns balanceViewItem
         every { balanceHiddenManager.isWalletBalanceHidden(any()) } returns false
 
         val testBalanceItem = createBalanceItem()
@@ -550,7 +562,11 @@ class TokenBalanceViewModelTest : KoinTest {
 
         val balanceItem = createBalanceItem(balance = BigDecimal("150"), wallet = pirateWallet)
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -568,7 +584,11 @@ class TokenBalanceViewModelTest : KoinTest {
 
         val balanceItem = createBalanceItem(balance = BigDecimal("1"), wallet = pirateWallet)
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         balanceItemFlow.value = balanceItem
@@ -588,7 +608,11 @@ class TokenBalanceViewModelTest : KoinTest {
 
         val balanceItem = createBalanceItem(balance = BigDecimal("1"), wallet = pirateWallet)
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         balanceItemFlow.value = balanceItem
@@ -605,7 +629,11 @@ class TokenBalanceViewModelTest : KoinTest {
 
         val balanceItem = createBalanceItem(balance = BigDecimal("100"), wallet = pirateWallet)
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         balanceItemFlow.value = balanceItem
@@ -622,7 +650,11 @@ class TokenBalanceViewModelTest : KoinTest {
     fun networkFeeWarning_nativeToken_noWarning() = runTest(dispatcher) {
         val balanceItem = createBalanceItem()
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         balanceItemFlow.value = balanceItem
@@ -724,7 +756,11 @@ class TokenBalanceViewModelTest : KoinTest {
 
         val balanceItem = createBalanceItem(wallet = bep20Wallet)
         every { balanceService.balanceItem } returns balanceItem
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         balanceItemFlow.value = balanceItem
@@ -765,7 +801,11 @@ class TokenBalanceViewModelTest : KoinTest {
             blockchainType = BlockchainType.Tron,
             blockchainName = "TRON"
         )
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         val balanceItem = createBalanceItem(wallet = tronWallet)
@@ -786,7 +826,11 @@ class TokenBalanceViewModelTest : KoinTest {
             blockchainType = BlockchainType.Tron,
             blockchainName = "TRON"
         )
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
 
         val viewModel = createViewModel()
         val balanceItem = createBalanceItem(wallet = tronWallet)
@@ -895,7 +939,11 @@ class TokenBalanceViewModelTest : KoinTest {
             type = BlockchainType.BinanceSmartChain, name = "BNB Smart Chain", eip3091url = null
         )
         every { numberFormatter.formatCoinShort(any(), any(), any()) } returns "0"
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns createBalanceViewItem()
+        every {
+            balanceViewItemFactory.viewItem(
+                any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns createBalanceViewItem()
     }
 
     private fun setupNativeBalanceMocks(

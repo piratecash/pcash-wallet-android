@@ -84,7 +84,12 @@ class CoinSyncer(
         blockchainsResponse: List<BlockchainResponse>,
         tokensResponse: List<TokenResponse>
     ) {
-        val mapped = CoinResponseMapper.mapFetched(coinsResponse, blockchainsResponse, tokensResponse, virtualCoinMapper)
+        val mapped = CoinResponseMapper.mapFetched(
+            coinsResponse,
+            blockchainsResponse,
+            tokensResponse,
+            virtualCoinMapper
+        )
 
         storage.update(mapped.coins, mapped.blockchains, mapped.tokens)
 

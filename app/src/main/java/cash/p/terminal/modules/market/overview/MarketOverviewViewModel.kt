@@ -121,17 +121,19 @@ class MarketOverviewViewModel(
         topMovers: TopMovers,
         marketOverview: MarketOverview
     ): MarketOverviewModule.ViewItem {
-        val topPlatformItems = TopPlatformsRepository.getTopPlatformItems(marketOverview.topPlatforms, topPlatformsTimeDuration)
+        val topPlatformItems =
+            TopPlatformsRepository.getTopPlatformItems(marketOverview.topPlatforms, topPlatformsTimeDuration)
         val coinCategoryItems = marketOverview.coinCategories.map { category ->
             Category(category, getCategoryMarketData(category, baseCurrency))
         }
 
-        val timePeriod = when(topNftsTimeDuration) {
+        val timePeriod = when (topNftsTimeDuration) {
             TimeDuration.OneDay -> HsTimePeriod.Day1
             TimeDuration.SevenDay -> HsTimePeriod.Week1
             TimeDuration.ThirtyDay -> HsTimePeriod.Month1
         }
-        val nftCollectionItems = marketOverview.nftCollections.getOrElse(timePeriod) { listOf() }.map { it.nftCollectionItem }
+        val nftCollectionItems =
+            marketOverview.nftCollections.getOrElse(timePeriod) { listOf() }.map { it.nftCollectionItem }
 
 //        val topGainersBoard = getBoard(ListType.TopGainers, topMovers)
 //        val topLosersBoard = getBoard(ListType.TopLosers, topMovers)
@@ -329,6 +331,7 @@ class MarketOverviewViewModel(
                 gainersTopMarket = topMarket
                 syncViewItems()
             }
+
             ListType.TopLosers -> {
                 losersTopMarket = topMarket
                 syncViewItems()
@@ -359,6 +362,7 @@ class MarketOverviewViewModel(
             ListType.TopGainers -> {
                 Triple(SortingField.TopGainers, gainersTopMarket, MarketField.PriceDiff)
             }
+
             ListType.TopLosers -> {
                 Triple(SortingField.TopLosers, losersTopMarket, MarketField.PriceDiff)
             }

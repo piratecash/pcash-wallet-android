@@ -137,7 +137,8 @@ class MoneroKitWrapperRefreshTest {
     fun refreshedStatePath_deviceOfflineWalletReportsSynced_forcesNotSynced() {
         val wrapper = createWrapper(mockService(), connectivityManager = connectivity(connected = false))
 
-        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = true, currentHeight = 0L, totalHeight = 0L)
+        val state =
+            invokeResolve(wrapper, nativeConnected = true, isSynchronized = true, currentHeight = 0L, totalHeight = 0L)
         invokePublish(wrapper, state)
 
         assertTrue(wrapper.syncState.value is AdapterState.NotSynced)
@@ -147,7 +148,8 @@ class MoneroKitWrapperRefreshTest {
     fun refreshedStatePath_deviceOfflineNativeConnected_forcesNotSynced() {
         val wrapper = createWrapper(mockService(), connectivityManager = connectivity(connected = false))
 
-        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 0L, totalHeight = 0L)
+        val state =
+            invokeResolve(wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 0L, totalHeight = 0L)
         invokePublish(wrapper, state)
 
         assertTrue(wrapper.syncState.value is AdapterState.NotSynced)
@@ -157,7 +159,9 @@ class MoneroKitWrapperRefreshTest {
     fun refreshedStatePath_deviceOnlineNativeConnected_keepsSyncing() {
         val wrapper = createWrapper(mockService())
 
-        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 50L, totalHeight = 100L)
+        val state = invokeResolve(
+            wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 50L, totalHeight = 100L
+        )
         invokePublish(wrapper, state)
 
         assertTrue(wrapper.syncState.value is AdapterState.Syncing)
@@ -167,7 +171,9 @@ class MoneroKitWrapperRefreshTest {
     fun resolveSyncState_nativeDisconnected_returnsNotSynced() {
         val wrapper = createWrapper(mockService())
 
-        val state = invokeResolve(wrapper, nativeConnected = false, isSynchronized = false, currentHeight = 0L, totalHeight = 0L)
+        val state = invokeResolve(
+            wrapper, nativeConnected = false, isSynchronized = false, currentHeight = 0L, totalHeight = 0L
+        )
 
         assertTrue(state is AdapterState.NotSynced)
     }

@@ -166,7 +166,7 @@ class SendTransactionServiceMonero(
         try {
             val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
                 ?.balanceData?.available ?: amountState.availableBalance
-                ?: throw IllegalStateException("Balance unavailable")
+            ?: throw IllegalStateException("Balance unavailable")
 
             val draft = PendingTransactionDraft(
                 wallet = wallet,
@@ -207,7 +207,9 @@ class SendTransactionServiceMonero(
             val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
             if (availableBalance != null) {
                 feeCaution = if (availableBalance < fee) {
-                    createCaution(LocalizedException(R.string.check_fee_warning, fee.toPlainString() + " " + feeToken.coin.code))
+                    createCaution(
+                        LocalizedException(R.string.check_fee_warning, fee.toPlainString() + " " + feeToken.coin.code)
+                    )
                 } else null
                 hasEnoughFeeAmount = feeCaution == null
             }

@@ -150,7 +150,8 @@ class SendStellarViewModel(
             amountCaution = amountState.amountCaution,
             addressError = addressState.addressError,
             minimumAmountError = minimumAmountState.error,
-            canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend && (!poison || riskAccepted),
+            canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend && (!poison
+                    || riskAccepted),
             showAddressInput = showAddressInput,
             fee = fee,
             address = addressState.address,

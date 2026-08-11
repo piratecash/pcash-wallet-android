@@ -40,7 +40,9 @@ class CoinMarketsViewModel(private val service: CoinMarketsService) : ViewModel(
             market = item.market,
             marketImageUrl = item.marketImageUrl,
             pair = "${item.baseCoinCode}/${item.targetCoinCode}",
-            volumeFiat = App.numberFormatter.formatFiatShort(item.volumeFiat, service.currency.symbol, service.currency.decimal),
+            volumeFiat = App.numberFormatter.formatFiatShort(
+                item.volumeFiat, service.currency.symbol, service.currency.decimal
+            ),
             volumeToken = App.numberFormatter.formatCoinShort(item.volumeToken, item.baseCoinCode, 8),
             tradeUrl = item.tradeUrl,
             badge = if (item.verified) TranslatableString.ResString(R.string.CoinPage_MarketsLabel_Verified) else null

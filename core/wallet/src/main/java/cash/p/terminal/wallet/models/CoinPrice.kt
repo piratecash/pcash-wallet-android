@@ -20,7 +20,8 @@ data class CoinPrice(
         get() = System.currentTimeMillis() / 1000 - timestamp > EXPIRATION_SECONDS
 
     override fun toString(): String {
-        return "CoinPrice [coinUid: $coinUid; currencyCode: $currencyCode; value: $value; diff24h: $diff24h; timestamp: $timestamp]"
+        return "CoinPrice [coinUid: $coinUid; currencyCode: $currencyCode; value: $value; diff24h: $diff24h; " +
+                "timestamp: $timestamp]"
     }
 
     companion object {

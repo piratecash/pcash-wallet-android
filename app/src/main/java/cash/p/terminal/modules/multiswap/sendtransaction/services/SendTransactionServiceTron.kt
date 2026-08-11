@@ -97,7 +97,8 @@ class SendTransactionServiceTron(
         networkFee = networkFee,
         cautions = cautions,
         feeCaution = feeCaution,
-        sendable = hasEnoughFeeBalance && (sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend)),
+        sendable = hasEnoughFeeBalance && (sendTransactionData != null || (amountState.canBeSend && feeState
+            .canBeSend && addressState.canBeSend)),
         loading = false,
         fields = fields
     )

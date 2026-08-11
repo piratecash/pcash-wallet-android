@@ -139,6 +139,7 @@ class TokenBalanceViewModel(
         transactionsService.syncingFlow.value || !transactionsService.recordsLoadedFlow.value
     private var hasHiddenTransactions: Boolean = false
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
+
     // Reflects whether the wallet has transactions, updated only on non-search loads. This keeps
     // the AML promo banner from blinking out (and shifting the pinned search panel) on every
     // keystroke, since a search transiently empties the transaction list while scanning.
@@ -240,7 +241,9 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            combine(transactionsService.transactionItemsFlow, transactionsService.searchScanStateFlow, ::updateTransactions)
+            combine(
+                transactionsService.transactionItemsFlow, transactionsService.searchScanStateFlow, ::updateTransactions
+            )
                 .collect { }
         }
 
@@ -254,7 +257,9 @@ class TokenBalanceViewModel(
                 val wasSyncing = syncing
                 syncing = newSyncing
                 if (wasSyncing && !newSyncing && transactions == null) {
-                    updateTransactions(transactionsService.transactionItemsFlow.value, transactionsService.searchScanStateFlow.value)
+                    updateTransactions(
+                        transactionsService.transactionItemsFlow.value, transactionsService.searchScanStateFlow.value
+                    )
                 }
                 emitState()
             }
@@ -460,7 +465,8 @@ class TokenBalanceViewModel(
         searchActive = searchController.searchActive,
         searchQuery = searchController.searchQuery,
         searchScanning = searchScanning,
-        searchEmptyResult = appliedSearchQuery.isNotEmpty() && !searchScanning && transactions?.values?.flatten().isNullOrEmpty(),
+        searchEmptyResult = appliedSearchQuery.isNotEmpty() && !searchScanning && transactions?.values?.flatten()
+            .isNullOrEmpty(),
     )
 
     private fun calculateHoursUntilNextAccrual(): Int? {
@@ -622,7 +628,9 @@ class TokenBalanceViewModel(
         )
 
         this.balanceViewItem = balanceViewItem.copy(
-            primaryValue = balanceViewItem.primaryValue.copy(value = balanceViewItem.primaryValue.value + " " + balanceViewItem.wallet.coin.code)
+            primaryValue = balanceViewItem.primaryValue.copy(
+                value = balanceViewItem.primaryValue.value + " " + balanceViewItem.wallet.coin.code
+            )
         )
 
         totalBalance.setTotalServiceItems(

@@ -137,7 +137,8 @@ internal class EvmTransactionRepository(
 
     private suspend fun getEip1559GasPrice(): BigInteger {
         val provider = Eip1559GasPriceProvider(evmKit)
-        val feeHistory = provider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
+        val feeHistory =
+            provider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
 
         val baseFee = feeHistory.baseFeePerGas.takeLast(LAST_N_RECOMMENDED_BASE_FEES).maxOrNull() ?: 0L
         var priorityFeeSum = 0L

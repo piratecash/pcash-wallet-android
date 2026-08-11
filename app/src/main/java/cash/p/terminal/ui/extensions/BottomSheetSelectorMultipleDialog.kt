@@ -91,7 +91,9 @@ class BottomSheetSelectorMultipleDialog(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .border(1.dp, cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel10, RoundedCornerShape(12.dp))
+                .border(
+                    1.dp, cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel10, RoundedCornerShape(12.dp)
+                )
         ) {
             items.forEachIndexed { index, item ->
                 val onClick = if (item.copyableString != null) {

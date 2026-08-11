@@ -79,7 +79,9 @@ fun MarketSignalsScreen(navController: NavController) {
                     VSpacer(height = 24.dp)
                 }
 
-                val signals = listOf(Advice.StrongBuy, Advice.Buy, Advice.Neutral, Advice.Sell, Advice.StrongSell, Advice.Overbought)
+                val signals = listOf(
+                    Advice.StrongBuy, Advice.Buy, Advice.Neutral, Advice.Sell, Advice.StrongSell, Advice.Overbought
+                )
                 signals.forEachIndexed { index, signal ->
                     val position: SectionItemPosition = when (index) {
                         0 -> SectionItemPosition.First
@@ -92,7 +94,11 @@ fun MarketSignalsScreen(navController: NavController) {
                             RowUniversal(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .then(Modifier.sectionItemBorder(1.dp, ComposeAppTheme.colors.steel20, 12.dp, position)),
+                                    .then(
+                                        Modifier.sectionItemBorder(
+                                            1.dp, ComposeAppTheme.colors.steel20, 12.dp, position
+                                        )
+                                    ),
                             ) {
                                 Box(
                                     modifier = Modifier

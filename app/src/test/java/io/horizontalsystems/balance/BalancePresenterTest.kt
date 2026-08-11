@@ -16,7 +16,8 @@ package cash.p.terminal.modules.balance
         RxBaseTest.setup()
         RxJavaPlugins.setComputationSchedulerHandler { testScheduler }
 
-        presenter = BalancePresenter(interactor, router, dataSource, mock(IPredefinedAccountTypeManager::class.java), factory)
+        presenter = BalancePresenter(interactor, router, dataSource, mock(IPredefinedAccountTypeManager::class.java),
+         factory)
         presenter.view = view
     }
 

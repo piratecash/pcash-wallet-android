@@ -52,7 +52,12 @@ class InitialCoinsListGenerator {
         val tokensResponse = service.getAllTokens().blockingGet()
 
         val virtualCoinMapper = VirtualCoinMapper()
-        val mapped = CoinResponseMapper.mapFetched(coinsResponse, blockchainsResponse, tokensResponse, virtualCoinMapper)
+        val mapped = CoinResponseMapper.mapFetched(
+            coinsResponse,
+            blockchainsResponse,
+            tokensResponse,
+            virtualCoinMapper
+        )
         val dump = DumpManager.getInitialDump(mapped.blockchains, mapped.coins, mapped.tokens)
 
         assertFetchedDataIsSane(mapped)
@@ -87,7 +92,8 @@ class InitialCoinsListGenerator {
     }
 
     private fun assertCountNotRegressed(table: String, fetchedCount: Int, currentDump: String) {
-        val currentCount = currentDump.lines().count { it.startsWith("INSERT OR REPLACE INTO $table ") }
+        val currentCount =
+            currentDump.lines().count { it.startsWith("INSERT OR REPLACE INTO $table ") }
         assertTrue(
             "$table record count regressed too much: fetched $fetchedCount, current asset has $currentCount",
             fetchedCount >= currentCount * MIN_RECORD_COUNT_RATIO
@@ -111,7 +117,12 @@ class InitialCoinsListGenerator {
     ) {
         val rawCounts = primaryKeyCounts(tokensResponse.map { CoinResponseMapper.tokenEntity(it) })
         val pipelineCounts = primaryKeyCounts(
-            CoinResponseMapper.tokenPipeline(mapped.coins, mapped.blockchains, tokensResponse, virtualCoinMapper)
+            CoinResponseMapper.tokenPipeline(
+                mapped.coins,
+                mapped.blockchains,
+                tokensResponse,
+                virtualCoinMapper
+            )
         )
         // Per-key multiplicities, not collision-key sets: a key already duplicated upstream
         // must still trip the guard when the pipeline adds yet another row for it.
@@ -144,13 +155,13 @@ class InitialCoinsListGenerator {
     private fun assertNativeChainAnchors(tokens: List<TokenEntity>) {
         assertTokenAnchor(tokens, "mweb litecoin") {
             it.coinUid == "litecoin" && it.blockchainUid == "litecoin" &&
-                it.type == "mweb" && it.decimals == 8 && it.reference == ""
+                    it.type == "mweb" && it.decimals == 8 && it.reference == ""
         }
         listOf("bitcoin", "litecoin").forEach { chain ->
             listOf("Bip44", "Bip49", "Bip84", "Bip86").forEach { reference ->
                 assertTokenAnchor(tokens, "$chain derived '$reference'") {
                     it.coinUid == chain && it.blockchainUid == chain &&
-                        it.type == "derived" && it.decimals == 8 && it.reference == reference
+                            it.type == "derived" && it.decimals == 8 && it.reference == reference
                 }
             }
         }
@@ -163,7 +174,7 @@ class InitialCoinsListGenerator {
     private fun assertStartupAnchors(tokens: List<TokenEntity>) {
         assertTokenAnchor(tokens, "zcash Shielded") {
             it.coinUid == "zcash" && it.blockchainUid == "zcash" &&
-                it.type == "address_spec_type" && it.decimals == 8 && it.reference == "Shielded"
+                    it.type == "address_spec_type" && it.decimals == 8 && it.reference == "Shielded"
         }
         assertTokenAnchor(tokens, "tether on binance-smart-chain") {
             it.coinUid == "tether" && it.blockchainUid == "binance-smart-chain"
@@ -192,8 +203,8 @@ class InitialCoinsListGenerator {
             val values = query.tokenType.values
             assertTokenAnchor(tokens, "default wallet '${query.id}'") {
                 it.blockchainUid == query.blockchainType.uid &&
-                    it.type == values.type && it.reference == values.reference &&
-                    it.decimals == decimals
+                        it.type == values.type && it.reference == values.reference &&
+                        it.decimals == decimals
             }
         }
     }

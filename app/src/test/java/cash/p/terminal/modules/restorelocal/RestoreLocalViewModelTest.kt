@@ -51,6 +51,7 @@ class RestoreLocalViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
     }
+
     private val dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher))
     private val accountFactory = mockk<IAccountFactory> {
         every { getNextAccountName() } returns "Wallet 1"
@@ -155,7 +156,9 @@ class RestoreLocalViewModelTest {
 
     @Test
     fun onImportClick_singleWalletJson_restoresAsSingleWallet() = runTest(dispatcher) {
-        val json = requireNotNull(requireNotNull(javaClass.classLoader).getResource("backup/wallet_backup_v2_sample.json")).readText()
+        val json = requireNotNull(
+            requireNotNull(javaClass.classLoader).getResource("backup/wallet_backup_v2_sample.json")
+        ).readText()
         val file = createTempFile(json.toByteArray(Charsets.UTF_8))
 
         val mockAccountType = mockk<AccountType>()
@@ -185,7 +188,9 @@ class RestoreLocalViewModelTest {
 
     @Test
     fun onImportClick_fullBackupJson_showsBackupItems() = runTest(dispatcher) {
-        val json = requireNotNull(requireNotNull(javaClass.classLoader).getResource("backup/full_backup_v2_sample.json")).readText()
+        val json = requireNotNull(
+            requireNotNull(javaClass.classLoader).getResource("backup/full_backup_v2_sample.json")
+        ).readText()
         val file = createTempFile(json.toByteArray(Charsets.UTF_8))
 
         val decryptedFullBackup = mockk<DecryptedFullBackup>()
@@ -314,29 +319,30 @@ class RestoreLocalViewModelTest {
     }
 
     @Test
-    fun onApproveTokens_v4BinarySingleWalletReviewed_restoresViaFullBackupPathAndReachesRestored() = runTest(dispatcher) {
-        val file = binaryV4File()
-        val walletItem = walletBackupItem()
-        val decrypted = singleWalletDecryptedBackup(walletItem)
-        coEvery { backupProvider.restoreFromV4BinaryBackup(any(), any()) } returns decrypted
-        coEvery { backupProvider.restoreSingleWalletBackup(walletItem) } returns
-                RestoreOutcome.TokensNeedReview(listOf(declinedWallet))
-        val approvals = mapOf(declinedWallet.accountId to setOf("eth|native"))
-        coEvery { backupProvider.restoreFullBackup(decrypted, any(), approvals) } returns RestoreOutcome.Restored
+    fun onApproveTokens_v4BinarySingleWalletReviewed_restoresViaFullBackupPathAndReachesRestored() =
+        runTest(dispatcher) {
+            val file = binaryV4File()
+            val walletItem = walletBackupItem()
+            val decrypted = singleWalletDecryptedBackup(walletItem)
+            coEvery { backupProvider.restoreFromV4BinaryBackup(any(), any()) } returns decrypted
+            coEvery { backupProvider.restoreSingleWalletBackup(walletItem) } returns
+                    RestoreOutcome.TokensNeedReview(listOf(declinedWallet))
+            val approvals = mapOf(declinedWallet.accountId to setOf("eth|native"))
+            coEvery { backupProvider.restoreFullBackup(decrypted, any(), approvals) } returns RestoreOutcome.Restored
 
-        val viewModel = createViewModel(file.absolutePath)
-        advanceUntilIdle()
-        viewModel.onImportClick()
-        advanceUntilIdle()
-        assertNotNull("expected tokenReview to be set", viewModel.uiState.tokenReview)
+            val viewModel = createViewModel(file.absolutePath)
+            advanceUntilIdle()
+            viewModel.onImportClick()
+            advanceUntilIdle()
+            assertNotNull("expected tokenReview to be set", viewModel.uiState.tokenReview)
 
-        viewModel.onApproveTokens(approvals)
-        advanceUntilIdle()
+            viewModel.onApproveTokens(approvals)
+            advanceUntilIdle()
 
-        assertTrue("expected restored=true", viewModel.uiState.restored)
-        assertNull("sheet must not reopen", viewModel.uiState.tokenReview)
-        coVerify(exactly = 1) { backupProvider.restoreFullBackup(decrypted, any(), approvals) }
-    }
+            assertTrue("expected restored=true", viewModel.uiState.restored)
+            assertNull("sheet must not reopen", viewModel.uiState.tokenReview)
+            coVerify(exactly = 1) { backupProvider.restoreFullBackup(decrypted, any(), approvals) }
+        }
 
     private val declinedWallet = WalletDeclinedTokens(
         accountId = "acct-1",
@@ -352,7 +358,9 @@ class RestoreLocalViewModelTest {
     private fun TestScope.viewModelWithPendingFullBackupReview(
         declinedWallets: List<WalletDeclinedTokens> = listOf(declinedWallet)
     ): Pair<RestoreLocalViewModel, DecryptedFullBackup> {
-        val json = requireNotNull(requireNotNull(javaClass.classLoader).getResource("backup/full_backup_v2_sample.json")).readText()
+        val json = requireNotNull(
+            requireNotNull(javaClass.classLoader).getResource("backup/full_backup_v2_sample.json")
+        ).readText()
         val file = createTempFile(json.toByteArray(Charsets.UTF_8))
         val decryptedFullBackup = mockk<DecryptedFullBackup>()
 
@@ -391,7 +399,8 @@ class RestoreLocalViewModelTest {
         val (viewModel, _) = viewModelWithPendingFullBackupReview(listOf(declinedWallet, secondDeclinedWallet))
 
         val review = requireNotNull(viewModel.uiState.tokenReview)
-        assertEquals(listOf(declinedWallet.accountId, secondDeclinedWallet.accountId), review.wallets.map { it.accountId })
+        assertEquals(
+            listOf(declinedWallet.accountId, secondDeclinedWallet.accountId), review.wallets.map { it.accountId })
     }
 
     @Test
@@ -443,7 +452,9 @@ class RestoreLocalViewModelTest {
 
     @Test
     fun onApproveTokens_singleWalletSkipAll_restoresWithEmptyApprovalSetAndReachesRestored() = runTest(dispatcher) {
-        val json = requireNotNull(requireNotNull(javaClass.classLoader).getResource("backup/wallet_backup_v2_sample.json")).readText()
+        val json = requireNotNull(
+            requireNotNull(javaClass.classLoader).getResource("backup/wallet_backup_v2_sample.json")
+        ).readText()
         val file = createTempFile(json.toByteArray(Charsets.UTF_8))
 
         val mockAccountType = mockk<AccountType>()

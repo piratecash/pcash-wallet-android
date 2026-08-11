@@ -102,7 +102,12 @@ class EmulatorDetector(
             if (!value.isNullOrEmpty()) {
                 for (expected in expectedValues) {
                     if (value.contains(expected, ignoreCase = true)) {
-                        indicators.add(EmulatorIndicator("SYSTEM_PROPERTY", "$key contains $expected"))
+                        indicators.add(
+                            EmulatorIndicator(
+                                "SYSTEM_PROPERTY",
+                                "$key contains $expected"
+                            )
+                        )
                         break
                     }
                 }
@@ -257,7 +262,12 @@ class EmulatorDetector(
             if (mountsFile.exists() && mountsFile.canRead()) {
                 val content = mountsFile.readText()
                 if (content.contains(EmulatorSignatures.VBOXSF_INDICATOR, ignoreCase = true)) {
-                    indicators.add(EmulatorIndicator("MOUNT", "VirtualBox shared folder detected in /proc/mounts"))
+                    indicators.add(
+                        EmulatorIndicator(
+                            "MOUNT",
+                            "VirtualBox shared folder detected in /proc/mounts"
+                        )
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -271,7 +281,11 @@ class EmulatorDetector(
         val indicators = mutableListOf<EmulatorIndicator>()
 
         val abi = getSystemProperty(EmulatorSignatures.CPU_ABI_PROPERTY)
-        if (!abi.isNullOrEmpty() && abi.contains(EmulatorSignatures.X86_INDICATOR, ignoreCase = true)) {
+        if (!abi.isNullOrEmpty() && abi.contains(
+                EmulatorSignatures.X86_INDICATOR,
+                ignoreCase = true
+            )
+        ) {
             indicators.add(EmulatorIndicator("ARCHITECTURE", "x86 architecture detected: $abi"))
         }
 
@@ -284,7 +298,12 @@ class EmulatorDetector(
         // Check native bridge property
         val nativeBridge = getSystemProperty(EmulatorSignatures.NATIVE_BRIDGE_PROPERTY)
         if (!nativeBridge.isNullOrEmpty() && nativeBridge != "0") {
-            indicators.add(EmulatorIndicator("ARM_TRANSLATION", "Native bridge enabled: $nativeBridge"))
+            indicators.add(
+                EmulatorIndicator(
+                    "ARM_TRANSLATION",
+                    "Native bridge enabled: $nativeBridge"
+                )
+            )
         }
 
         // Check ARM translation properties
@@ -299,7 +318,12 @@ class EmulatorDetector(
         for (filePath in EmulatorSignatures.ARM_TRANSLATION_FILES) {
             val file = File(filePath)
             if (file.exists()) {
-                indicators.add(EmulatorIndicator("ARM_TRANSLATION", "libhoudini.so found: $filePath"))
+                indicators.add(
+                    EmulatorIndicator(
+                        "ARM_TRANSLATION",
+                        "libhoudini.so found: $filePath"
+                    )
+                )
             }
         }
 
@@ -315,7 +339,12 @@ class EmulatorDetector(
                 val files = propertyDir.listFiles()
                 files?.forEach { file ->
                     if (file.name.contains(EmulatorSignatures.NOX_INDICATOR, ignoreCase = true)) {
-                        indicators.add(EmulatorIndicator("FILE", "Nox property file: ${file.absolutePath}"))
+                        indicators.add(
+                            EmulatorIndicator(
+                                "FILE",
+                                "Nox property file: ${file.absolutePath}"
+                            )
+                        )
                     }
                 }
             }
@@ -348,7 +377,12 @@ class EmulatorDetector(
                 variance.y < SENSOR_VARIANCE_THRESHOLD &&
                 variance.z < SENSOR_VARIANCE_THRESHOLD
             ) {
-                indicators.add(EmulatorIndicator("SENSOR", "Accelerometer variance too low: ${variance.x}, ${variance.y}, ${variance.z}"))
+                indicators.add(
+                    EmulatorIndicator(
+                        "SENSOR",
+                        "Accelerometer variance too low: ${variance.x}, ${variance.y}, ${variance.z}"
+                    )
+                )
             }
         }
 
@@ -358,13 +392,23 @@ class EmulatorDetector(
                 variance.y < SENSOR_VARIANCE_THRESHOLD &&
                 variance.z < SENSOR_VARIANCE_THRESHOLD
             ) {
-                indicators.add(EmulatorIndicator("SENSOR", "Gyroscope variance too low: ${variance.x}, ${variance.y}, ${variance.z}"))
+                indicators.add(
+                    EmulatorIndicator(
+                        "SENSOR",
+                        "Gyroscope variance too low: ${variance.x}, ${variance.y}, ${variance.z}"
+                    )
+                )
             }
         }
 
         // No movement at all during collection is suspicious for an actively used device
         if (!data.wasDeviceMoved && data.sampleCount > MIN_SENSOR_SAMPLES) {
-            indicators.add(EmulatorIndicator("BEHAVIOR", "No device movement detected during ${data.collectionDurationMs}ms"))
+            indicators.add(
+                EmulatorIndicator(
+                    "BEHAVIOR",
+                    "No device movement detected during ${data.collectionDurationMs}ms"
+                )
+            )
         }
 
         return indicators

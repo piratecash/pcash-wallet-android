@@ -139,7 +139,9 @@ class CoinTreasuriesFragment : BaseComposeFragment() {
 
                                         item {
                                             VSpacer(32.dp)
-                                            CellFooter(text = stringResource(id = R.string.CoinPage_Treasuries_PoweredBy))
+                                            CellFooter(
+                                                text = stringResource(id = R.string.CoinPage_Treasuries_PoweredBy)
+                                            )
                                         }
                                     }
                                 }

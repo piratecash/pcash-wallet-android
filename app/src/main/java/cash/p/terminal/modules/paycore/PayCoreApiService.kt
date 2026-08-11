@@ -53,7 +53,9 @@ class PayCoreApiService(
             if (response.status.value == 400 && errorBody.indicatesPayCoreAmountOutOfRange()) {
                 throw PayCoreAmountOutOfRangeException(errorBody.payCoreErrorMessage().orEmpty())
             }
-            error("HTTP ${response.status.value}: ${response.status.description}${errorBody.payCoreErrorMessageSuffix()}")
+            error(
+                "HTTP ${response.status.value}: ${response.status.description}${errorBody.payCoreErrorMessageSuffix()}"
+            )
         }
         response.body()
     }

@@ -62,9 +62,11 @@ fun NftCollectionOverviewScreen(
                 ViewState.Loading -> {
                     Loading()
                 }
+
                 is ViewState.Error -> {
                     ListErrorView(stringResource(R.string.SyncError), viewModel::onErrorClick)
                 }
+
                 ViewState.Success -> {
                     collection?.let { collection ->
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -88,7 +90,9 @@ fun NftCollectionOverviewScreen(
                                                                 .fillMaxSize(),
                                                             verticalAlignment = Alignment.CenterVertically
                                                         ) {
-                                                            subhead2_grey(text = stringResource(R.string.NftCollection_Royalty))
+                                                            subhead2_grey(
+                                                                text = stringResource(R.string.NftCollection_Royalty)
+                                                            )
                                                             Spacer(Modifier.weight(1f))
                                                             subhead1_leah(text = collection.royalty)
                                                         }
@@ -102,7 +106,11 @@ fun NftCollectionOverviewScreen(
                                                                 .fillMaxSize(),
                                                             verticalAlignment = Alignment.CenterVertically
                                                         ) {
-                                                            subhead2_grey(text = stringResource(R.string.NftCollection_InceptionDate))
+                                                            subhead2_grey(
+                                                                text = stringResource(
+                                                                    R.string.NftCollection_InceptionDate
+                                                                )
+                                                            )
                                                             Spacer(Modifier.weight(1f))
                                                             subhead1_leah(text = collection.inceptionDate)
                                                         }
@@ -299,7 +307,11 @@ private fun Stats(collection: NftCollectionOverviewViewItem) {
                     caption_grey(text = stringResource(R.string.NftCollection_TodaysSales))
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = collection.oneDaySellersCount?.let { stringResource(R.string.NftCollection_TodaysSalesCount, it) } ?: "",
+                        text = collection.oneDaySellersCount?.let {
+                            stringResource(
+                                R.string.NftCollection_TodaysSalesCount, it
+                            )
+                        } ?: "",
                         style = ComposeAppTheme.typography.headline1,
                         color = ComposeAppTheme.colors.bran,
                     )
