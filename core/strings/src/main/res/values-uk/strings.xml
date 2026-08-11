@@ -135,7 +135,7 @@
     <string name="Restore_PrivateKey">Приватний ключ</string>
     <string name="Restore_PrivateKeyHint">Введіть приватний ключ EVM, BIP32 Root Key або Account Extended Private Key</string>
     <string name="Restore_PhraseHint">Введіть фразу відновлення</string>
-    <string name="monero_restore_seed">Сід-фраза для відновлення Monero</string>
+    <string name="monero_restore_seed">Фраза відновлення Monero</string>
     <string name="Restore_NonStandardRestore">Нестандартний імпорт</string>
     <string name="Restore_NonStandard_Description">На цій сторінці представлено спеціальний механізм відновлення гаманця для користувачів P.CASH з нестандартним гаманцем. Як правило, такі гаманці могли бути створені у версіях P.CASH 0.27–0.28 з використанням неангломовного списку мнемонічних слів та/або спеціального символу в парольній фразі гаманця (наприклад, діакритичного знака).\n\nЯкщо ви є таким користувачем, то баланс вашого гаманця буде відображатися як 0 після відновлення такого гаманця у версії 0.29 або вище. Ця сторінка дозволить вам відновити доступ до вашого нестандартного гаманця. Після відновлення рекомендується створити новий гаманець (який буде відповідати стандарту) та перевести туди кошти.</string>
     <string name="Restore_Bip_Recommended">(рекомендовано)</string>
