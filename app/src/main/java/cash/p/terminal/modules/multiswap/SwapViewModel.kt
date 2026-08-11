@@ -10,6 +10,13 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.exchange.ButtonState
+import cash.p.terminal.modules.multiswap.exchange.LegStatus
+import cash.p.terminal.modules.multiswap.exchange.LegUiState
+import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangePresentation
+import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeUiState
+import cash.p.terminal.wallet.badge
+import cash.p.terminal.wallet.coinImageUrl
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -264,7 +271,38 @@ class SwapViewModel(
     }
 
     fun onSelectQuote(quote: SwapProviderQuote) {
-        quoteService.selectQuote(quote)
+        quoteService.selectQuote(quote, SwapQuoteSelectionTarget.Primary)
+    }
+
+    fun onSelectLeg2Quote(quote: SwapProviderQuote) =
+        quoteService.selectQuote(quote, SwapQuoteSelectionTarget.RouteLeg2)
+
+    fun canContinueMultiSwapRoute(): Boolean = isMultiSwapRouteReady(
+        quoting = quoteState.quoting,
+        route = quoteState.multiSwapRoute,
+    )
+
+    fun multiSwapRouteInfoUiState(uiState: SwapUiState): MultiSwapExchangeUiState? {
+        val route = uiState.multiSwapRoute ?: return null
+        val leg1 = route.selectedLeg1Quote
+        val leg2 = route.selectedLeg2Quote
+        return MultiSwapExchangeUiState(
+            leg1 = leg1.toLegUiState(uiState.currency, uiState.fiatAmountIn, fiatAmount(leg1.tokenOut, leg1.amountOut)),
+            leg2 = leg2.toLegUiState(uiState.currency, fiatAmount(leg2.tokenIn, leg2.amountIn), uiState.fiatAmountOut),
+            buttonState = if (isMultiSwapRouteReady(uiState.quoting, route)) {
+                ButtonState.Enabled
+            } else {
+                ButtonState.Disabled
+            },
+            showContinueLater = false,
+            presentation = MultiSwapExchangePresentation.RouteInfo,
+            routeExplanationTokens = listOf(
+                leg1.tokenIn.coin.code,
+                route.intermediateCoin.coin.code,
+                leg2.tokenOut.coin.code,
+            ),
+            leg2ProviderClickable = !uiState.quoting && route.leg2Quotes.isNotEmpty(),
+        )
     }
 
     fun onEnterAmount(v: BigDecimal?) = setTokenAmount(v, SwapAmountDirection.In)
@@ -372,6 +410,9 @@ class SwapViewModel(
         return quote.provider.getWarningMessage(quote.tokenIn, quote.tokenOut)
     }
 
+    private fun fiatAmount(token: Token, amount: BigDecimal): BigDecimal? =
+        marketKit.coinPrice(token.coin.uid, currency.code)?.value?.let(amount::multiply)
+
     override fun onCleared() {
         quoteService.clear()
         super.onCleared()
@@ -402,6 +443,42 @@ class SwapViewModel(
             ) as T
         }
     }
+}
+
+internal fun isMultiSwapRouteReady(quoting: Boolean, route: MultiSwapRoute?): Boolean {
+    return !quoting && route != null && route.leg1Quotes.contains(route.selectedLeg1Quote)
+        && route.leg2Quotes.contains(route.selectedLeg2Quote)
+}
+
+private fun SwapProviderQuote.toLegUiState(
+    currency: Currency,
+    fiatAmountIn: BigDecimal?,
+    fiatAmountOut: BigDecimal?,
+) = PriceImpactService.fiatPriceImpact(fiatAmountOut, fiatAmountIn).let { priceImpact ->
+    LegUiState(
+        status = LegStatus.Pending,
+        providerName = provider.title,
+        providerIcon = provider.icon,
+        tokenIn = tokenIn,
+        tokenOut = tokenOut,
+        amountIn = amountIn,
+        amountOut = amountOut,
+        fiatAmountIn = fiatAmountIn,
+        fiatAmountOut = fiatAmountOut,
+        currency = currency,
+        badgeIn = tokenIn.badge,
+        badgeOut = tokenOut.badge,
+        coinIn = tokenIn.coin.code,
+        coinOut = tokenOut.coin.code,
+        amountInFormatted = amountIn.stripTrailingZeros().toPlainString(),
+        amountOutFormatted = amountOut.stripTrailingZeros().toPlainString(),
+        priceImpact = priceImpact,
+        priceImpactLevel = PriceImpactService.priceImpactLevel(priceImpact),
+        riskType = provider.riskType,
+        estimationTime = estimationTime,
+        coinIconUrlIn = coinImageUrl(tokenIn.coin.uid),
+        coinIconUrlOut = coinImageUrl(tokenOut.coin.uid),
+    )
 }
 
 data class SwapUiState(

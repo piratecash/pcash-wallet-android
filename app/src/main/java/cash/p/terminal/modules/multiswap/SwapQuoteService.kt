@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.math.BigDecimal
 
+enum class SwapQuoteSelectionTarget { Primary, RouteLeg2 }
+
 class SwapQuoteService(
     private val routeResolver: MultiSwapRouteResolver,
     private val fetchSwapQuotesUseCase: FetchSwapQuotesUseCase,
@@ -406,7 +408,18 @@ class SwapQuoteService(
         runQuotation(clearQuotes = true)
     }
 
-    fun selectQuote(quote: SwapProviderQuote) {
+    fun selectQuote(
+        quote: SwapProviderQuote,
+        target: SwapQuoteSelectionTarget,
+    ): Boolean {
+        if (target == SwapQuoteSelectionTarget.RouteLeg2) {
+            val route = multiSwapRoute ?: return false
+            val currentQuote = route.leg2Quotes.firstOrNull { it == quote } ?: return false
+            multiSwapRoute = route.copy(selectedLeg2Quote = currentQuote)
+            emitState()
+            return true
+        }
+
         preferredProvider = quote.provider
         val currentQuote = quotes.find { it.provider == quote.provider }
 
@@ -422,6 +435,7 @@ class SwapQuoteService(
             this.quote = currentQuote
             emitState()
         }
+        return true
     }
 
     fun reQuote() {

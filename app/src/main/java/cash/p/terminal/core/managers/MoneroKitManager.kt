@@ -242,7 +242,10 @@ class MoneroKitManager(
                 if (state == BackgroundManagerState.EnterForeground) {
                     resumeOrStartKit()
                 } else if (state == BackgroundManagerState.EnterBackground) {
-                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Monero)) {
+                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(
+                            BlockchainType.Monero
+                        )
+                    ) {
                         stopAndSaveKit()
                     } else {
                         Timber.tag("TxPoller").d("MoneroKit staying alive")
@@ -307,6 +310,7 @@ class MoneroKitWrapper(
         IGetMoneroWalletFilesNameUseCase::class.java
     )
     private val logger = AppLogger("monero-kit").getScoped(account.id)
+
     @Volatile
     private var lastLoggedConnectionStatus: ConnectionStatus? = null
     private var lastLoggedSyncProgress: Int = -1
@@ -441,7 +445,8 @@ class MoneroKitWrapper(
                     startService(walletFileName, walletPassword, fixIfCorruptedFile)
                     isStarted = true
                     logger.info(
-                        "start: completed startService, connection=${moneroWalletService.connectionStatus}, walletStatus=${moneroWalletService.wallet?.status}"
+                        "start: completed startService, connection=${moneroWalletService.connectionStatus}, " +
+                                "walletStatus=${moneroWalletService.wallet?.status}"
                     )
                     fixWalletHeight()
                 } catch (e: Exception) {
@@ -461,7 +466,8 @@ class MoneroKitWrapper(
         try {
             val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
             logger.info(
-                "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} connection=${walletStatus?.connectionStatus}"
+                "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} " +
+                        "connection=${walletStatus?.connectionStatus}"
             )
             // Route EVERY start() result through the self-gated helper (incl. a successful Connected
             // start, which arms lastLoggedConnectionStatus so the first onRefreshed is not a "new" transition).
@@ -483,35 +489,51 @@ class MoneroKitWrapper(
             }
         } catch (e: WalletCorruptedException) {
             logger.warning("startService: WalletCorruptedException received", e)
-            try {
-                if (fixIfCorruptedFile) {
-                    if (e.message?.contains("std::bad_alloc") == true) { // too big cache file
-                        val cacheFileSize = tryOrNull { getCacheFile().sizeInMb() } ?: ""
-                        val deleted = tryOrNull { getCacheFile()?.delete() } ?: false
-                        Timber.d("MoneroKitManager: detected bad_alloc error(size: $cacheFileSize), deleted cache file: $deleted")
-                        logger.info("startService: detected bad_alloc error(size: $cacheFileSize), deleting cache file, deleted=$deleted")
-                        startService(walletFileName, walletPassword, false)
-                        return
-                    }
-                    Timber.e(
-                        e,
-                        "WalletCorruptedException, trying to fix wallet, cache size: ${tryOrNull { getCacheFile().sizeInMb() } ?: "unknown"}"
-                    )
-                    logger.info("startService: attempting wallet fix after corruption")
-                    getBirthdayHeight(account)?.let {
-                        resetWalletAndRestart(it)
-                    }
-                } else {
-                    Timber.e(e, "WalletCorruptedException, fix disabled")
-                    logger.info("startService: wallet fix disabled, corruption remains")
-                }
-            } catch (ex: Exception) {
-                logger.warning("startService: failed while handling WalletCorruptedException", ex)
-                Timber.e(ex, "Failed to fix corrupted wallet")
-            }
+            handleWalletCorruption(e, walletFileName, walletPassword, fixIfCorruptedFile)
         } catch (e: Exception) {
             logger.warning("startService: unexpected exception", e)
             throw e
+        }
+    }
+
+    private suspend fun handleWalletCorruption(
+        error: WalletCorruptedException,
+        walletFileName: String,
+        walletPassword: String,
+        fixIfCorruptedFile: Boolean
+    ) {
+        try {
+            if (fixIfCorruptedFile) {
+                if (error.message?.contains("std::bad_alloc") == true) { // too big cache file
+                    val cacheFileSize = tryOrNull { getCacheFile().sizeInMb() } ?: ""
+                    val deleted = tryOrNull { getCacheFile()?.delete() } ?: false
+                    Timber.d(
+                        "MoneroKitManager: detected bad_alloc error(size: $cacheFileSize), deleted cache file: " +
+                                "$deleted"
+                    )
+                    logger.info(
+                        "startService: detected bad_alloc error(size: $cacheFileSize), deleting cache file, " +
+                                "deleted=$deleted"
+                    )
+                    startService(walletFileName, walletPassword, false)
+                    return
+                }
+                Timber.e(
+                    error,
+                    "WalletCorruptedException, trying to fix wallet, cache size: " +
+                            "${tryOrNull { getCacheFile().sizeInMb() } ?: "unknown"}"
+                )
+                logger.info("startService: attempting wallet fix after corruption")
+                getBirthdayHeight(account)?.let {
+                    resetWalletAndRestart(it)
+                }
+            } else {
+                Timber.e(error, "WalletCorruptedException, fix disabled")
+                logger.info("startService: wallet fix disabled, corruption remains")
+            }
+        } catch (handlingError: Exception) {
+            logger.warning("startService: failed while handling WalletCorruptedException", handlingError)
+            Timber.e(handlingError, "Failed to fix corrupted wallet")
         }
     }
 
@@ -519,7 +541,8 @@ class MoneroKitWrapper(
         delay(3_000)
         val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
         logger.info(
-            "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} connection=${retryStatus?.connectionStatus}"
+            "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} " +
+                    "connection=${retryStatus?.connectionStatus}"
         )
         recordNativeConnectionError(retryStatus?.connectionStatus, retryStatus?.errorString)
     }
@@ -821,7 +844,9 @@ class MoneroKitWrapper(
 
     fun statusInfo(): Map<String, Any> {
         logger.info(
-            "statusInfo: connection=${moneroWalletService.connectionStatus} wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
+            "statusInfo: connection=${moneroWalletService.connectionStatus} " +
+                    "wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted " +
+                    "restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
         )
         val base = mapOf<String, Any>(
             "connectionStatus" to moneroWalletService.connectionStatus,
@@ -952,9 +977,9 @@ class MoneroKitWrapper(
         if (observed != lastLoggedConnectionStatus) {
             logger.info(
                 "onRefreshed: connection=$observed full=$full " +
-                    "isSynchronized=${wallet?.isSynchronized} " +
-                    "daemonHeight=${moneroWalletService.daemonHeight} " +
-                    "walletHeight=${wallet?.blockChainHeight}"
+                        "isSynchronized=${wallet?.isSynchronized} " +
+                        "daemonHeight=${moneroWalletService.daemonHeight} " +
+                        "walletHeight=${wallet?.blockChainHeight}"
             )
         }
         recordNativeConnectionError(observed, tryOrNull { wallet?.status?.errorString })
@@ -987,7 +1012,11 @@ class MoneroKitWrapper(
             resolveSyncState(nativeConnected, isSynchronized, currentHeight, totalHeight)
         )
         Timber
-            .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full, restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}")
+            .d(
+                "onRefreshed, isSynchronized = ${wallet?.isSynchronized}, " +
+                        "connectionStatus = ${wallet?.connectionStatus}, full = $full, " +
+                        "restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}"
+            )
         return true
     }
 
@@ -1080,7 +1109,10 @@ class MoneroKitWrapper(
     }
 
     override fun onWalletStarted(walletStatus: Wallet.Status?) {
-        logger.info("onWalletStarted: status=${walletStatus?.toString()} isSynchronized=${moneroWalletService.wallet?.isSynchronized}")
+        logger.info(
+            "onWalletStarted: status=${walletStatus?.toString()} " +
+                    "isSynchronized=${moneroWalletService.wallet?.isSynchronized}"
+        )
         Timber.d("onWalletStarted: $walletStatus")
         if (moneroWalletService.wallet?.isSynchronized == true) {
             Timber.d("MoneroKitWrapper: Synced")

@@ -13,6 +13,8 @@ import io.horizontalsystems.core.entities.Currency
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
 
@@ -35,6 +37,9 @@ class SwapPayCoreNavigationTest {
     private val provider = mockk<IMultiSwapProvider> {
         every { id } returns "paycore"
     }
+    private val nonPayCoreProvider = mockk<IMultiSwapProvider> {
+        every { id } returns "provider"
+    }
 
     @Test
     fun buildPayCorePaymentPage_exactOut_preservesRequestedAmountInParams() {
@@ -53,7 +58,55 @@ class SwapPayCoreNavigationTest {
         assertEquals(PayCoreTicker.USDT_ERC20, params.networkType)
     }
 
-    private fun exactOutState(targetAmount: BigDecimal): SwapUiState {
+    @Test
+    fun buildNextPage_twoStepRoute_opensRouteInfo() {
+        assertEquals("SwapRouteInfoPage", buildNextPage(stateWithRoute()).javaClass.simpleName)
+    }
+
+    @Test
+    fun buildNextPage_oneStepRoute_opensConfirmation() {
+        assertEquals(
+            "SwapConfirmPage",
+            buildNextPage(exactOutState(BigDecimal.ONE, nonPayCoreProvider)).javaClass.simpleName,
+        )
+    }
+
+    @Test
+    fun buildNextPage_payCoreRoute_opensPaymentBeforeRouteInfo() {
+        assertEquals(
+            "PayCorePaymentPage",
+            buildNextPage(exactOutState(BigDecimal.ONE).copy(multiSwapRoute = route())).javaClass.simpleName,
+        )
+    }
+
+    @Test
+    fun isMultiSwapRouteReady_requotingRoute_cannotContinue() {
+        val routeState = stateWithRoute()
+
+        assertFalse(isMultiSwapRouteReady(quoting = true, route = routeState.multiSwapRoute))
+        assertTrue(isMultiSwapRouteReady(quoting = false, route = routeState.multiSwapRoute))
+    }
+
+    private fun stateWithRoute(): SwapUiState = exactOutState(BigDecimal.ONE, nonPayCoreProvider).copy(
+        multiSwapRoute = route(),
+    )
+
+    private fun route(): MultiSwapRoute {
+        val quote = mockk<SwapProviderQuote>(relaxed = true)
+        return MultiSwapRoute(
+            intermediateCoin = mockk(),
+            leg1Quotes = listOf(quote),
+            leg2Quotes = listOf(quote),
+            commissionReserve = BigDecimal.ZERO,
+            selectedLeg1Quote = quote,
+            selectedLeg2Quote = quote,
+        )
+    }
+
+    private fun exactOutState(
+        targetAmount: BigDecimal,
+        provider: IMultiSwapProvider = this.provider,
+    ): SwapUiState {
         val quote = SwapProviderQuote(
             provider = provider,
             swapQuote = PayCoreQuote(

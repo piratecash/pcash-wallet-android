@@ -117,14 +117,18 @@ fun AppStatusScreen(
                                             type = "text/plain"
                                             putExtra(Intent.EXTRA_STREAM, uri)
                                             putExtra(Intent.EXTRA_TEXT, context.getString(R.string.Settings_AppStatus))
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            addFlags(
+                                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                                            )
                                         }
                                         context.startActivity(Intent.createChooser(intent, null))
                                     } else {
                                         HudHelper.showErrorMessage(localView, R.string.error_cannot_create_log_file)
                                     }
                                 } catch (e: Exception) {
-                                    HudHelper.showErrorMessage(localView, e.message ?: context.getString(R.string.Error))
+                                    HudHelper.showErrorMessage(
+                                        localView, e.message ?: context.getString(R.string.Error)
+                                    )
                                 }
                             }
                         )
@@ -209,6 +213,11 @@ private fun StatusBlock(
 @Preview
 @Composable
 fun StatusBlockPreview() {
+    val sampleText =
+        "So then I thought what if I use chat GPT, save a link to my home screen on my phone, and start a new thread " +
+                "on it called MyFitness app. For anyone not familiar with chat GPT you can essentially give it " +
+                "prompts and get it to give outputs that provide information you need. Not always 100% correct but " +
+                "you can give it feedback to adjust as needed."
     val testBlocks = listOf(
         BlockData(
             title = "Status",
@@ -216,7 +225,7 @@ fun StatusBlockPreview() {
                 BlockContent.Header("Header"),
                 BlockContent.TitleValue("Title", "Value"),
                 BlockContent.TitleValue("Title 2", "Value 2"),
-                BlockContent.Text("So then I thought what if I use chat GPT, save a link to my home screen on my phone, and start a new thread on it called MyFitness app. For anyone not familiar with chat GPT you can essentially give it prompts and get it to give outputs that provide information you need. Not always 100% correct but you can give it feedback to adjust as needed."),
+                BlockContent.Text(sampleText),
             )
         ),
         BlockData(
@@ -224,7 +233,7 @@ fun StatusBlockPreview() {
             content = listOf(
                 BlockContent.TitleValue("Title", "Value"),
                 BlockContent.TitleValue("Title 2", "Value 2"),
-                BlockContent.Text("So then I thought what if I use chat GPT, save a link to my home screen on my phone, and start a new thread on it called MyFitness app. For anyone not familiar with chat GPT you can essentially give it prompts and get it to give outputs that provide information you need. Not always 100% correct but you can give it feedback to adjust as needed."),
+                BlockContent.Text(sampleText),
             )
         ),
     )
