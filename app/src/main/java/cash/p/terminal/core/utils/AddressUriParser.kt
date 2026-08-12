@@ -10,6 +10,7 @@ import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import java.net.URI
+import java.net.URLDecoder
 
 
 class AddressUriParser(
@@ -46,74 +47,158 @@ class AddressUriParser(
     }
 
     override fun parse(addressUri: String): AddressUriResult {
-        val uri = try {
-            URI(addressUri)
-        } catch (e: Throwable) {
-            null
-        } ?: return AddressUriResult.WrongUri
+        val source = parseSource(addressUri) ?: return AddressUriResult.WrongUri
+        val scheme = source.scheme ?: contextualScheme() ?: return AddressUriResult.NoUri
+        contextResult(scheme)?.let { return it }
 
-        val schemeSpecificPart = uri.schemeSpecificPart
+        val parameters = parseQueryParameters(source.parameterPart)
+        if (parameters.isUnsafeFor(scheme)) return AddressUriResult.WrongUri
 
-        val pathEndIndex =
-            schemeSpecificPart.indexOf('?').let { if (it != -1) it else schemeSpecificPart.length }
-        val path = schemeSpecificPart.substring(0, pathEndIndex)
+        return createAddressUri(scheme, source.address, parameters)
+    }
 
-        val scheme = uri.scheme ?: blockchainType?.uriScheme ?: return AddressUriResult.NoUri
+    private fun parseSource(addressUri: String): Source? {
+        val (addressPart, parameterPart) = addressUri.splitParameterSuffix()
+        val uri = tryOrNull { URI(addressPart) } ?: return null
+        val scheme = uri.scheme?.lowercase()
+        val address = uri.schemeSpecificPart.removeSingleLeadingSlash(scheme != null)
 
-        blockchainType?.uriScheme?.let { blockchainTypeScheme ->
-            if (scheme != blockchainTypeScheme) {
-                return AddressUriResult.InvalidBlockchainType
-            }
+        return Source(scheme, address, parameterPart)
+    }
+
+    private fun contextualScheme(): String? = blockchainType?.uriScheme ?: blockchainType?.uid
+
+    private fun contextResult(scheme: String): AddressUriResult? {
+        if (blockchainType != null && !scheme.equals(contextualScheme(), ignoreCase = true)) {
+            return AddressUriResult.InvalidBlockchainType
         }
 
-        val parsedUri = AddressUri(scheme = scheme)
+        return solanaRequestResult(scheme)
+    }
 
-        val queryStartIndex = schemeSpecificPart.indexOf('?')
-            .let { if (it != -1) it + 1 else schemeSpecificPart.length }
-        val query = schemeSpecificPart.substring(queryStartIndex)
+    private fun List<Pair<String, String?>>.isUnsafeFor(scheme: String): Boolean {
+        return hasUnsupportedRequiredParameter(scheme) || hasIndexedZcashPayment(scheme) ||
+                hasSolanaSplToken(scheme)
+    }
 
-        val parameters = tryOrNull { parseQueryParameters(query) }.orEmpty()
-        if (parameters.isEmpty()) {
-            parsedUri.address = fullAddress(scheme, path)
-            return AddressUriResult.Uri(parsedUri)
+    private fun List<Pair<String, String?>>.hasSolanaSplToken(scheme: String): Boolean {
+        return scheme == SOLANA_SCHEME && any { (key, _) ->
+            key.equals(SOLANA_SPL_TOKEN_PARAMETER, ignoreCase = true)
         }
+    }
 
-        for (parameter in parameters) {
-            val (key, value) = parameter
-            AddressUri.Field.values().firstOrNull { it.value == key }?.let { field ->
-                parsedUri.parameters[field] = value
-            }
+    private fun createAddressUri(
+        scheme: String,
+        address: String,
+        parameters: List<Pair<String, String?>>
+    ): AddressUriResult {
+        val parsedUri = AddressUri(scheme)
+        parsedUri.populate(scheme, parameters)
+        uidMismatchResult(parsedUri)?.let { return it }
+        parsedUri.address = fullAddress(scheme, address, parsedUri.value(AddressUri.Field.BlockchainUid))
+        return AddressUriResult.Uri(parsedUri)
+    }
+
+    private fun AddressUri.populate(scheme: String, parameters: List<Pair<String, String?>>) {
+        for ((key, value) in parameters) {
+            value ?: continue
+            fieldFor(scheme, key)?.let { this.parameters[it] = value }
+                ?: unhandledParameters.put(key, value)
         }
+    }
 
-        parsedUri.value<String>(AddressUri.Field.BlockchainUid)?.let { uid ->
+    private fun uidMismatchResult(addressUri: AddressUri): AddressUriResult? {
+        addressUri.value<String>(AddressUri.Field.BlockchainUid)?.let { uid ->
             if (blockchainType?.uid != null && blockchainType.uid != uid) {
                 return AddressUriResult.InvalidBlockchainType
             }
         }
-
-        parsedUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
+        addressUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
             if (tokenType?.id != null && tokenType.id.lowercase() != uid.lowercase()) {
                 return AddressUriResult.InvalidTokenType
             }
         }
-
-        parsedUri.address =
-            fullAddress(scheme, path, parsedUri.value(AddressUri.Field.BlockchainUid))
-        return AddressUriResult.Uri(parsedUri)
+        return null
     }
 
-    private fun parseQueryParameters(query: String?): Map<String, String> {
-        val parameters = mutableMapOf<String, String>()
+    private fun solanaRequestResult(scheme: String): AddressUriResult? {
+        if (scheme != SOLANA_SCHEME) return null
 
-        if (!query.isNullOrBlank()) {
-            val keyValuePairs = query.split("&")
-            for (pair in keyValuePairs) {
-                val (key, value) = pair.split("=")
-                parameters[key] = value
-            }
+        return when {
+            blockchainType != BlockchainType.Solana -> AddressUriResult.InvalidBlockchainType
+            tokenType != TokenType.Native -> AddressUriResult.InvalidTokenType
+            else -> null
         }
+    }
 
-        return parameters
+    private fun fieldFor(scheme: String, key: String): AddressUri.Field? {
+        val normalizedKey = if (scheme == BITCOIN_SCHEME) key.lowercase() else key
+        return AddressUri.Field.values().firstOrNull { it.value == normalizedKey }
+    }
+
+    private fun List<Pair<String, String?>>.hasUnsupportedRequiredParameter(scheme: String): Boolean {
+        return scheme in REQUIRED_PARAMETER_SCHEMES && any { (key, _) ->
+            key.startsWith(REQUIRED_PARAMETER_PREFIX, ignoreCase = true)
+        }
+    }
+
+    private fun List<Pair<String, String?>>.hasIndexedZcashPayment(scheme: String): Boolean {
+        return scheme == ZCASH_SCHEME && any { (key, _) -> key.isIndexedZcashPaymentParameter() }
+    }
+
+    private fun String.isIndexedZcashPaymentParameter(): Boolean {
+        val separatorIndex = lastIndexOf('.')
+        val index = substring(separatorIndex + 1)
+        if (separatorIndex == -1 || index.isEmpty() || index.any { it !in '0'..'9' }) return false
+
+        return substring(0, separatorIndex) in ZCASH_PAYMENT_PARAMETERS
+    }
+
+    private fun parseQueryParameters(query: String?): List<Pair<String, String?>> {
+        return query.orEmpty()
+            .split("&")
+            .mapNotNull(::parseParameter)
+    }
+
+    private fun parseParameter(fragment: String): Pair<String, String?>? {
+        val delimiterIndex = fragment.indexOf('=')
+        val rawKey = fragment.substring(0, delimiterIndex.takeIf { it >= 0 } ?: fragment.length)
+        if (rawKey.isEmpty()) return null
+
+        val key = rawKey.decodeUriComponent() ?: return null
+        val value = delimiterIndex.takeIf { it >= 0 }
+            ?.let { fragment.substring(it + 1).decodeUriComponent() }
+
+        return key to value
+    }
+
+    private fun String.splitParameterSuffix(): Pair<String, String?> {
+        val queryStart = indexOfAny(charArrayOf('?', '&'))
+        return if (queryStart == -1) {
+            this to null
+        } else {
+            substring(0, queryStart) to substring(queryStart + 1)
+        }
+    }
+
+    private fun String.removeSingleLeadingSlash(hasScheme: Boolean): String {
+        return if (hasScheme) removePrefix("/") else this
+    }
+
+    private fun String.decodeUriComponent(): String? {
+        if (!hasValidPercentEncoding()) return null
+
+        return tryOrNull { URLDecoder.decode(replace("+", "%2B"), Charsets.UTF_8.name()) }
+    }
+
+    private fun String.hasValidPercentEncoding(): Boolean {
+        return split('%').drop(1).all { it.startsWithHexByte() }
+    }
+
+    private fun String.startsWithHexByte(): Boolean {
+        if (length < 2) return false
+
+        return this[0].digitToIntOrNull(16) != null && this[1].digitToIntOrNull(16) != null
     }
 
     fun uri(addressUri: AddressUri): String {
@@ -139,6 +224,15 @@ class AddressUriParser(
     }
 
     companion object {
+        private const val BITCOIN_SCHEME = "bitcoin"
+        private const val ZCASH_SCHEME = "zcash"
+        private const val SOLANA_SCHEME = "solana"
+        private const val SOLANA_SPL_TOKEN_PARAMETER = "spl-token"
+        private const val REQUIRED_PARAMETER_PREFIX = "req-"
+
+        private val REQUIRED_PARAMETER_SCHEMES = setOf(BITCOIN_SCHEME, ZCASH_SCHEME)
+        private val ZCASH_PAYMENT_PARAMETERS = setOf("address", "amount", "memo", "label", "message")
+
         fun hasUriPrefix(text: String): Boolean {
             return text.split(":").size > 1
         }
@@ -161,6 +255,12 @@ class AddressUriParser(
             return null
         }
     }
+
+    private data class Source(
+        val scheme: String?,
+        val address: String,
+        val parameterPart: String?
+    )
 }
 
 sealed class AddressUriResult {
