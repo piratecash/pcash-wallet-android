@@ -2184,6 +2184,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ocultar al voltear</string>
     <string name="balance_hide_on_flip_description">Gira la pantalla del dispositivo hacia abajo para ocultar y mostrar tu saldo rápidamente.</string>
+    <string name="balance_hide_on_flip_unsupported">Este dispositivo no admite Ocultar al voltear.</string>
     <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
     <string name="balance_hide_on_flip_info_description">Para ocultar o mostrar tu saldo, simplemente gira la pantalla del dispositivo hacia abajo o desactívalo en los ajustes de seguridad.</string>
     <string name="balance_hide_on_flip_dont_show_again">No volver a mostrar</string>

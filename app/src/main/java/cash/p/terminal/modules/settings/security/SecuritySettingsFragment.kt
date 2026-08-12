@@ -1,5 +1,8 @@
 package cash.p.terminal.modules.settings.security
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -15,7 +18,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -58,6 +63,7 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.SnackbarDuration
@@ -242,6 +248,13 @@ private fun SecurityCenterScreen(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
+    val showBalanceHideOnFlipUnsupported: () -> Unit = {
+        HudHelper.showWarningMessage(
+            contentView = view,
+            resId = R.string.balance_hide_on_flip_unsupported,
+            duration = SnackbarDuration.LONG
+        )
+    }
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         securitySettingsViewModel.update()
     }
@@ -251,7 +264,6 @@ private fun SecurityCenterScreen(
         torViewModel.appRestarted()
     }
 
-    val uiState = securitySettingsViewModel.uiState
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
@@ -319,12 +331,20 @@ private fun SecurityCenterScreen(
                         )
                     },
                     center = {
-                        body_leah(
-                            text = stringResource(id = R.string.balance_hide_on_flip_title),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (uiState.showFlipNewDot) {
+                        if (uiState.balanceHideOnFlipSupported) {
+                            body_leah(
+                                text = stringResource(id = R.string.balance_hide_on_flip_title),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        } else {
+                            body_grey(
+                                text = stringResource(id = R.string.balance_hide_on_flip_title),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        if (uiState.showFlipNewDot && uiState.balanceHideOnFlipSupported) {
                             NewDot(
                                 modifier = Modifier
                                     .align(Alignment.Top)
@@ -333,13 +353,32 @@ private fun SecurityCenterScreen(
                         }
                     },
                     end = {
-                        HsSwitch(
-                            checked = uiState.balanceHideOnFlipEnabled,
-                            onCheckedChange = {
-                                securitySettingsViewModel.onSetBalanceHideOnFlip(it)
+                        Box {
+                            HsSwitch(
+                                checked = uiState.balanceHideOnFlipEnabled,
+                                onCheckedChange = {
+                                    securitySettingsViewModel.onSetBalanceHideOnFlip(it)
+                                },
+                                enabled = uiState.balanceHideOnFlipSupported,
+                            )
+                            if (!uiState.balanceHideOnFlipSupported) {
+                                Box(
+                                    Modifier
+                                        .matchParentSize()
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = ripple(bounded = false, radius = 24.dp),
+                                            onClick = showBalanceHideOnFlipUnsupported
+                                        )
+                                )
                             }
-                        )
-                    }
+                        }
+                    },
+                    onClick = if (uiState.balanceHideOnFlipSupported) {
+                        null
+                    } else {
+                        showBalanceHideOnFlipUnsupported
+                    },
                 )
             }
             InfoText(

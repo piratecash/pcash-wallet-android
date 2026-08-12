@@ -2175,6 +2175,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">翻转隐藏</string>
     <string name="balance_hide_on_flip_description">将设备屏幕朝下翻转，即可快速隐藏和显示余额。</string>
+    <string name="balance_hide_on_flip_unsupported">此设备不支持翻转隐藏。</string>
     <string name="balance_hide_on_flip_info_title">余额已隐藏</string>
     <string name="balance_hide_on_flip_info_description">若要隐藏或显示余额，只需将设备屏幕朝下翻转，或在安全设置中将其关闭。</string>
     <string name="balance_hide_on_flip_dont_show_again">不再显示</string>

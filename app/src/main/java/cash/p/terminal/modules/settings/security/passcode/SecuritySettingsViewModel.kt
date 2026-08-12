@@ -30,7 +30,7 @@ class SecuritySettingsViewModel(
     private var pinEnabled = pinComponent.isPinSet
     private var duressPinEnabled = pinComponent.isDuressPinSet()
     private var balanceAutoHideEnabled = balanceHiddenManager.balanceAutoHidden
-    private var balanceHideOnFlipEnabled = localStorage.balanceHideOnFlipEnabled
+    private var balanceHideOnFlipEnabled = balanceHideOnFlipManager.enabled.value
 
     // Snapshot at VM creation so the "New" pill stays visible during the session that first
     // opens Security, then never reappears (securityFlipFeatureSeen is set true below).
@@ -54,6 +54,7 @@ class SecuritySettingsViewModel(
         duressPinEnabled = duressPinEnabled,
         balanceAutoHideEnabled = balanceAutoHideEnabled,
         balanceHideOnFlipEnabled = balanceHideOnFlipEnabled,
+        balanceHideOnFlipSupported = balanceHideOnFlipManager.isSupported,
         showFlipNewDot = showFlipNewDot,
         transactionAutoHideEnabled = transactionHiddenManager.transactionHiddenFlow.value.transactionHidden,
         displayLevel = transactionHiddenManager.transactionHiddenFlow.value.transactionDisplayLevel,
@@ -151,6 +152,7 @@ data class SecuritySettingsUiState(
     val duressPinEnabled: Boolean,
     val balanceAutoHideEnabled: Boolean,
     val balanceHideOnFlipEnabled: Boolean,
+    val balanceHideOnFlipSupported: Boolean,
     val showFlipNewDot: Boolean,
     val transactionAutoHideEnabled: Boolean,
     val displayLevel: TransactionDisplayLevel,

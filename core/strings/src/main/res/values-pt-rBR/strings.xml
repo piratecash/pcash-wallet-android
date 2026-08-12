@@ -2192,6 +2192,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ocultar ao virar</string>
     <string name="balance_hide_on_flip_description">Vire a tela do dispositivo para baixo para ocultar e mostrar rapidamente seu saldo.</string>
+    <string name="balance_hide_on_flip_unsupported">Este dispositivo não oferece suporte a Ocultar ao virar.</string>
     <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
     <string name="balance_hide_on_flip_info_description">Para ocultar ou mostrar seu saldo, basta virar a tela do dispositivo para baixo ou desativá-lo nas configurações de segurança.</string>
     <string name="balance_hide_on_flip_dont_show_again">Não mostrar novamente</string>

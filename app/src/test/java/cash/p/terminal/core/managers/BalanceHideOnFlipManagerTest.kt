@@ -15,6 +15,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -68,15 +70,37 @@ class BalanceHideOnFlipManagerTest {
         verify { detector.stop() }
     }
 
-    private fun flipDetector(): DeviceFlipDetector = mockk(relaxed = true) {
+    @Test
+    fun initialization_supportedDevice_keepsEnabledPreference() = runTest(UnconfinedTestDispatcher()) {
+        val (manager, _) = createManager(flipDetector(), mockk(relaxed = true), MutableStateFlow(false))
+
+        assertTrue(manager.isSupported)
+        assertTrue(manager.enabled.value)
+    }
+
+    @Test
+    fun initialization_unsupportedDevice_disablesLegacyEnabledPreference() = runTest(UnconfinedTestDispatcher()) {
+        val (manager, localStorage) = createManager(
+            flipDetector(supported = false),
+            mockk(relaxed = true),
+            MutableStateFlow(false)
+        )
+
+        assertFalse(manager.isSupported)
+        assertFalse(manager.enabled.value)
+        verify { localStorage.balanceHideOnFlipEnabled = false }
+    }
+
+    private fun flipDetector(supported: Boolean = true): DeviceFlipDetector = mockk(relaxed = true) {
         every { flipEvents } returns this@BalanceHideOnFlipManagerTest.flipEvents
+        every { isSupported } returns supported
     }
 
     private fun TestScope.createManager(
         detector: DeviceFlipDetector,
         balanceHiddenManager: BalanceHiddenManager,
         lockedFlow: MutableStateFlow<Boolean>,
-    ): BalanceHideOnFlipManager {
+    ): Pair<BalanceHideOnFlipManager, ILocalStorage> {
         every { balanceHiddenManager.flipHiddenResult } returns MutableSharedFlow()
         val backgroundManager = mockk<BackgroundManager> {
             every { stateFlow } returns MutableStateFlow(BackgroundManagerState.EnterForeground)
@@ -95,6 +119,6 @@ class BalanceHideOnFlipManagerTest {
             localStorage = localStorage,
             pinComponent = pinComponent,
             dispatcherProvider = TestDispatcherProvider(dispatcher, backgroundScope),
-        )
+        ) to localStorage
     }
 }

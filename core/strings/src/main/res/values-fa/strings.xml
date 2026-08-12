@@ -2195,6 +2195,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">پنهان‌سازی با برگرداندن</string>
     <string name="balance_hide_on_flip_description">برای پنهان و نمایش سریع موجودی، صفحه‌نمایش دستگاه را رو به پایین بچرخانید.</string>
+    <string name="balance_hide_on_flip_unsupported">این دستگاه از پنهان‌سازی با برگرداندن پشتیبانی نمی‌کند.</string>
     <string name="balance_hide_on_flip_info_title">موجودی پنهان شد</string>
     <string name="balance_hide_on_flip_info_description">برای پنهان یا نمایش موجودی خود، کافی است صفحه‌نمایش دستگاه را رو به پایین بچرخانید یا آن را در تنظیمات امنیتی خاموش کنید.</string>
     <string name="balance_hide_on_flip_dont_show_again">دیگر نمایش داده نشود</string>

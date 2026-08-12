@@ -2632,6 +2632,7 @@ Proceed only if you\'re sure.</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Hide on flip</string>
     <string name="balance_hide_on_flip_description">Flip the device screen face down to quickly hide and show your balance.</string>
+    <string name="balance_hide_on_flip_unsupported">This device doesn\'t support Hide on flip.</string>
     <string name="balance_hide_on_flip_info_title">Balance hidden</string>
     <string name="balance_hide_on_flip_info_description">To hide or show your balance, just flip the device screen face down, or turn it off in the security settings.</string>
     <string name="balance_hide_on_flip_dont_show_again">Don\'t show again</string>

@@ -2184,6 +2184,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">뒤집어서 숨기기</string>
     <string name="balance_hide_on_flip_description">기기 화면을 아래로 뒤집으면 잔액을 빠르게 숨기고 표시할 수 있습니다.</string>
+    <string name="balance_hide_on_flip_unsupported">이 기기는 뒤집어서 숨기기를 지원하지 않습니다.</string>
     <string name="balance_hide_on_flip_info_title">잔액 숨김</string>
     <string name="balance_hide_on_flip_info_description">잔액을 숨기거나 표시하려면 기기 화면을 아래로 뒤집거나 보안 설정에서 끄면 됩니다.</string>
     <string name="balance_hide_on_flip_dont_show_again">다시 표시 안 함</string>

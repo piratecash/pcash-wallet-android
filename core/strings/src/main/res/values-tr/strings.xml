@@ -2192,6 +2192,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
     <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>
+    <string name="balance_hide_on_flip_unsupported">Bu cihaz Ters çevirince gizle özelliğini desteklemiyor.</string>
     <string name="balance_hide_on_flip_info_title">Bakiye gizlendi</string>
     <string name="balance_hide_on_flip_info_description">Bakiyenizi gizlemek veya göstermek için cihazın ekranını aşağı çevirin ya da güvenlik ayarlarından kapatın.</string>
     <string name="balance_hide_on_flip_dont_show_again">Tekrar gösterme</string>

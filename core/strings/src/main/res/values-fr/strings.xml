@@ -2190,6 +2190,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Masquer en retournant</string>
     <string name="balance_hide_on_flip_description">Retournez l\'écran de l\'appareil vers le bas pour masquer et afficher rapidement votre solde.</string>
+    <string name="balance_hide_on_flip_unsupported">Cet appareil ne prend pas en charge Masquer en retournant.</string>
     <string name="balance_hide_on_flip_info_title">Solde masqué</string>
     <string name="balance_hide_on_flip_info_description">Pour masquer ou afficher votre solde, retournez simplement l\'écran de l\'appareil vers le bas, ou désactivez-le dans les paramètres de sécurité.</string>
     <string name="balance_hide_on_flip_dont_show_again">Ne plus afficher</string>

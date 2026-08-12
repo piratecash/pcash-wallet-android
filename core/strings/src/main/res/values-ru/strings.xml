@@ -2370,6 +2370,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Скрытие переворотом</string>
     <string name="balance_hide_on_flip_description">Переверните экран устройства вниз, чтобы быстро спрятать и отобразить баланс.</string>
+    <string name="balance_hide_on_flip_unsupported">Это устройство не поддерживает скрытие переворотом.</string>
     <string name="balance_hide_on_flip_info_title">Баланс скрыт</string>
     <string name="balance_hide_on_flip_info_description">Чтобы скрыть или показать свой баланс, просто переверните экран устройства вниз или выключите его в настройках безопасности.</string>
     <string name="balance_hide_on_flip_dont_show_again">Больше не показывать</string>

@@ -2183,6 +2183,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen durch Umdrehen</string>
     <string name="balance_hide_on_flip_description">Drehen Sie das Gerät mit dem Bildschirm nach unten, um Ihren Kontostand schnell aus- und einzublenden.</string>
+    <string name="balance_hide_on_flip_unsupported">Dieses Gerät unterstützt Verbergen durch Umdrehen nicht.</string>
     <string name="balance_hide_on_flip_info_title">Kontostand verborgen</string>
     <string name="balance_hide_on_flip_info_description">Um Ihren Kontostand aus- oder einzublenden, drehen Sie das Gerät einfach mit dem Bildschirm nach unten oder deaktivieren Sie die Funktion in den Sicherheitseinstellungen.</string>
     <string name="balance_hide_on_flip_dont_show_again">Nicht mehr anzeigen</string>

@@ -2218,6 +2218,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">الإخفاء بالقلب</string>
     <string name="balance_hide_on_flip_description">اقلب شاشة الجهاز إلى الأسفل لإخفاء رصيدك وإظهاره بسرعة.</string>
+    <string name="balance_hide_on_flip_unsupported">هذا الجهاز لا يدعم الإخفاء بالقلب.</string>
     <string name="balance_hide_on_flip_info_title">تم إخفاء الرصيد</string>
     <string name="balance_hide_on_flip_info_description">لإخفاء رصيدك أو إظهاره، ما عليك سوى قلب شاشة الجهاز إلى الأسفل أو إيقافه من إعدادات الأمان.</string>
     <string name="balance_hide_on_flip_dont_show_again">عدم الإظهار مرة أخرى</string>
