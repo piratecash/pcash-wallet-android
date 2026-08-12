@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
@@ -18,6 +18,7 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.getInput
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.parcelize.Parcelize
@@ -79,12 +80,12 @@ class SendTokenSelectFragment : BaseComposeFragment() {
                 )
                 navController.navigate(
                     MainGraphDirections.actionGlobalToSendFragment(
-                        SendFragment.Input(
-                            wallet = viewItem.wallet,
-                            title = sendTitle,
-                            sendEntryPointDestId = R.id.sendTokenSelectFragment,
-                            address = input?.address?.let { Address(it) }
-                        )
+                        input?.toSendInput(viewItem.wallet, sendTitle)
+                            ?: SendFragment.Input(
+                                wallet = viewItem.wallet,
+                                title = sendTitle,
+                                sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                            )
                     )
                 )
             }
@@ -103,16 +104,31 @@ class SendTokenSelectFragment : BaseComposeFragment() {
     data class Input(
         val blockchainTypes: List<BlockchainType>?,
         val tokenTypes: List<TokenType>?,
-        val address: String,
-        val amount: BigDecimal?,
-    ) : Parcelable {
-        val prefilledData: PrefilledData
-            get() = PrefilledData(address, amount)
-    }
+        val prefilledData: PrefilledData,
+    ) : Parcelable
 }
 
 @Parcelize
 data class PrefilledData(
     val address: String?,
     val amount: BigDecimal? = null,
-) : Parcelable
+    val memo: String? = null,
+) : Parcelable {
+    companion object {
+        fun from(addressUri: AddressUri) = PrefilledData(
+            address = addressUri.address,
+            amount = addressUri.amount,
+            memo = addressUri.value(AddressUri.Field.Memo),
+        )
+    }
+}
+
+internal fun SendTokenSelectFragment.Input.toSendInput(
+    wallet: Wallet,
+    title: String,
+) = SendFragment.Input(
+    wallet = wallet,
+    title = title,
+    sendEntryPointDestId = R.id.sendTokenSelectFragment,
+    prefilledData = prefilledData,
+)

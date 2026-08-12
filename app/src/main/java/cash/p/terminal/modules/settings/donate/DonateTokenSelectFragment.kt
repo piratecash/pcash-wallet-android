@@ -18,8 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.send.SendFragment
+import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
 import cash.p.terminal.modules.tokenselect.TokenSelectViewModel
 import cash.p.terminal.navigation.slideFromRight
@@ -54,7 +54,7 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
                                 wallet = viewItem.wallet,
                                 title = sendTitle,
                                 sendEntryPointDestId = R.id.donateTokenSelectFragment,
-                                address = Address(donateAddress),
+                                prefilledData = PrefilledData(donateAddress),
                                 hideAddress = true
                             )
                         )

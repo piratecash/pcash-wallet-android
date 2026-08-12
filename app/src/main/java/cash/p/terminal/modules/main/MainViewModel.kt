@@ -14,10 +14,10 @@ import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
 import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
 import cash.p.terminal.core.utils.AddressUriParser
-import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
+import cash.p.terminal.modules.balance.openSendTokenSelect
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.nft.collection.NftCollectionFragment
@@ -28,14 +28,12 @@ import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.IAccountManager
-import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import org.koin.java.KoinJavaComponent.inject
@@ -443,26 +441,9 @@ class MainViewModel(
         }
 
         val deeplinkString = uri.toString()
-        if (
-            deeplinkString.startsWith("bitcoin:")
-            || deeplinkString.startsWith("ethereum:")
-            || deeplinkString.startsWith("toncoin:")
-        ) {
+        if (AddressUriParser.hasUriPrefix(deeplinkString)) {
             AddressUriParser.addressUri(deeplinkString)?.let { addressUri ->
-                val allowedBlockchainTypes = addressUri.allowedBlockchainTypes
-                var allowedTokenTypes: List<TokenType>? = null
-                addressUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
-                    TokenType.fromId(uid)?.let { tokenType ->
-                        allowedTokenTypes = listOf(tokenType)
-                    }
-                }
-
-                openSendTokenSelect = OpenSendTokenSelect(
-                    blockchainTypes = allowedBlockchainTypes,
-                    tokenTypes = allowedTokenTypes,
-                    address = addressUri.address,
-                    amount = addressUri.amount
-                )
+                openSendTokenSelect = addressUri.openSendTokenSelect()
                 emitState()
                 return
             }

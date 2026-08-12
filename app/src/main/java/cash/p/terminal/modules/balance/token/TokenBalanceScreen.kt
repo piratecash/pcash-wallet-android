@@ -82,6 +82,7 @@ import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendFragment
+import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.syncerror.showSyncErrorDialog
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
@@ -1204,7 +1205,7 @@ private fun ButtonsRow(
                                     wallet = viewItem.wallet,
                                     title = sendTitle,
                                     sendEntryPointDestId = R.id.tokenBalanceFragment,
-                                    address = null
+                                    prefilledData = PrefilledData(null)
                                 )
                             )
                         )

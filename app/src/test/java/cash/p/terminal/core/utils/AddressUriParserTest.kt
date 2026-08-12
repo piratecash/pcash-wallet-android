@@ -50,6 +50,31 @@ class AddressUriParserTest {
         assertEquals("4address", monero.address)
         assertEquals(BigDecimal("2.5"), monero.amount)
     }
+    @Test fun parse_nativeTonTransfer_handlesNativeFieldsAndRejectsUnsupportedForms() {
+        assertEquals("UQaddress", parser(BlockchainType.Ton).uri("ton://transfer/UQaddress").address)
+        val parsed = parser(BlockchainType.Ton).uri(
+            "ton://transfer/UQaddress?amount=1500000000&text=Thanks%20%F0%9F%99%82&exp=123"
+        )
+        assertEquals(BigDecimal("1.5"), parsed.amount)
+        assertEquals("Thanks 🙂", parsed.value<String>(AddressUri.Field.Memo))
+        assertEquals("123", parsed.unhandledParameters["exp"])
+        val decimal = parser(BlockchainType.Ton).uri("ton://transfer/UQaddress?amount=1.5")
+        val negative = parser(BlockchainType.Ton).uri("ton://transfer/UQaddress?amount=-1")
+        assertEquals(null, decimal.amount)
+        assertEquals(null, negative.amount)
+        val jetton = parser(BlockchainType.Ton).uri("ton://transfer/UQaddress?jetton=EQtoken&amount=1500000")
+        assertEquals(null, jetton.amount)
+        assertEquals("1500000", jetton.unhandledParameters["amount"])
+        val result = AddressUriParser(BlockchainType.Ton, TokenType.Jetton("EQtoken"))
+            .parse("ton://transfer/UQaddress?amount=1500000")
+        assertTrue(result is AddressUriResult.InvalidTokenType)
+        assertTrue(AddressUriParser(BlockchainType.Ton, TokenType.Jetton("EQtoken")).parse("UQaddress") is AddressUriResult.Uri)
+        assertTrue(parser(BlockchainType.Ton).parse("ton://connect/UQaddress") is AddressUriResult.WrongUri)
+    }
+    @Test fun parse_nonTonUriWithHttpsOptionalParameter_remainsSupported() {
+        val parsed = parser(BlockchainType.Dash).uri("dash:Xaddress?callback=https://example.com//pay&amount=1")
+        assertEquals(BigDecimal.ONE to "https://example.com//pay", parsed.amount to parsed.unhandledParameters["callback"])
+    }
     @Test
     fun parse_bitrefillDashUriWithLeadingAmpersand_retainsIsParameter() {
         val parsed = parser(BlockchainType.Dash).uri("dash:XvmJPjJ8pjKn51YrBnZjqkXqprQ3cmW56U&IS=1")
@@ -73,6 +98,9 @@ class AddressUriParserTest {
     fun parse_amountAndValue_usesAmountPrecedence() {
         val parsed = parser(BlockchainType.Ethereum).uri("ethereum:0xaddress?value=2&amount=1")
         assertEquals(BigDecimal.ONE, parsed.amount)
+        val tokenResult = AddressUriParser(BlockchainType.Ethereum, TokenType.Eip20("0xtoken"))
+            .parse("ethereum:0xaddress?value=2")
+        assertTrue(tokenResult is AddressUriResult.InvalidTokenType)
     }
     @Test
     fun parse_singlePaymentZip321Uri_extractsAmountAndMetadata() {

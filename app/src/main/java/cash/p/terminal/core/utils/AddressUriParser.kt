@@ -9,6 +9,8 @@ import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.net.URI
 import java.net.URLDecoder
 
@@ -49,17 +51,23 @@ class AddressUriParser(
     override fun parse(addressUri: String): AddressUriResult {
         val source = parseSource(addressUri) ?: return AddressUriResult.WrongUri
         val scheme = source.scheme ?: contextualScheme() ?: return AddressUriResult.NoUri
-        contextResult(scheme)?.let { return it }
+        contextResult(scheme, source.scheme != null)?.let { return it }
 
         val parameters = parseQueryParameters(source.parameterPart)
         if (parameters.isUnsafeFor(scheme)) return AddressUriResult.WrongUri
 
-        return createAddressUri(scheme, source.address, parameters)
+        return createAddressUri(source, scheme, parameters)
     }
 
     private fun parseSource(addressUri: String): Source? {
         val (addressPart, parameterPart) = addressUri.splitParameterSuffix()
         val uri = tryOrNull { URI(addressPart) } ?: return null
+        uri.tonTransferAddress()?.let { address ->
+            return Source(TONCOIN_SCHEME, address, parameterPart, isTonTransfer = true)
+        }
+
+        if (uri.scheme.equals(TON_SCHEME, ignoreCase = true)) return null
+
         val scheme = uri.scheme?.lowercase()
         val address = uri.schemeSpecificPart.removeSingleLeadingSlash(scheme != null)
 
@@ -68,12 +76,12 @@ class AddressUriParser(
 
     private fun contextualScheme(): String? = blockchainType?.uriScheme ?: blockchainType?.uid
 
-    private fun contextResult(scheme: String): AddressUriResult? {
+    private fun contextResult(scheme: String, hasExplicitScheme: Boolean): AddressUriResult? {
         if (blockchainType != null && !scheme.equals(contextualScheme(), ignoreCase = true)) {
             return AddressUriResult.InvalidBlockchainType
         }
 
-        return solanaRequestResult(scheme)
+        return nativeTokenRequestResult(scheme, hasExplicitScheme)
     }
 
     private fun List<Pair<String, String?>>.isUnsafeFor(scheme: String): Boolean {
@@ -88,15 +96,44 @@ class AddressUriParser(
     }
 
     private fun createAddressUri(
+        source: Source,
         scheme: String,
-        address: String,
         parameters: List<Pair<String, String?>>
     ): AddressUriResult {
         val parsedUri = AddressUri(scheme)
         parsedUri.populate(scheme, parameters)
+        if (source.isTonTransfer) parsedUri.normalizeTonTransfer(parameters)
         uidMismatchResult(parsedUri)?.let { return it }
-        parsedUri.address = fullAddress(scheme, address, parsedUri.value(AddressUri.Field.BlockchainUid))
+        parsedUri.address = fullAddress(scheme, source.address, parsedUri.value(AddressUri.Field.BlockchainUid))
         return AddressUriResult.Uri(parsedUri)
+    }
+
+    private fun URI.tonTransferAddress(): String? {
+        if (!scheme.equals(TON_SCHEME, ignoreCase = true) || !host.equals(TON_TRANSFER_HOST, ignoreCase = true)) {
+            return null
+        }
+
+        return path
+            ?.removePrefix("/")
+            ?.takeIf { it.isNotEmpty() && '/' !in it }
+    }
+
+    private fun AddressUri.normalizeTonTransfer(parameters: List<Pair<String, String?>>) {
+        unhandledParameters.remove(TON_TEXT_PARAMETER)?.let { this.parameters[AddressUri.Field.Memo] = it }
+
+        val rawAmount = this.parameters.remove(AddressUri.Field.Amount) ?: return
+        if (parameters.any { (key, _) -> key.equals(TON_JETTON_PARAMETER, ignoreCase = true) }) {
+            unhandledParameters[AddressUri.Field.Amount.value] = rawAmount
+            return
+        }
+
+        rawAmount.nanotonsToTon()?.let { this.parameters[AddressUri.Field.Amount] = it }
+    }
+
+    private fun String.nanotonsToTon(): String? {
+        if (isEmpty() || any { it !in '0'..'9' }) return null
+
+        return BigDecimal(BigInteger(this)).movePointLeft(TON_DECIMALS).stripTrailingZeros().toPlainString()
     }
 
     private fun AddressUri.populate(scheme: String, parameters: List<Pair<String, String?>>) {
@@ -121,14 +158,9 @@ class AddressUriParser(
         return null
     }
 
-    private fun solanaRequestResult(scheme: String): AddressUriResult? {
-        if (scheme != SOLANA_SCHEME) return null
-
-        return when {
-            blockchainType != BlockchainType.Solana -> AddressUriResult.InvalidBlockchainType
-            tokenType != TokenType.Native -> AddressUriResult.InvalidTokenType
-            else -> null
-        }
+    private fun nativeTokenRequestResult(scheme: String, hasExplicitScheme: Boolean): AddressUriResult? {
+        if (!hasExplicitScheme || blockchainType == null || scheme !in NATIVE_TOKEN_SCHEMES) return null
+        return AddressUriResult.InvalidTokenType.takeIf { tokenType != TokenType.Native }
     }
 
     private fun fieldFor(scheme: String, key: String): AddressUri.Field? {
@@ -228,13 +260,20 @@ class AddressUriParser(
         private const val ZCASH_SCHEME = "zcash"
         private const val SOLANA_SCHEME = "solana"
         private const val SOLANA_SPL_TOKEN_PARAMETER = "spl-token"
+        private const val TON_SCHEME = "ton"
+        private const val TONCOIN_SCHEME = "toncoin"
+        private const val TON_TRANSFER_HOST = "transfer"
+        private const val TON_TEXT_PARAMETER = "text"
+        private const val TON_JETTON_PARAMETER = "jetton"
+        private const val TON_DECIMALS = 9
         private const val REQUIRED_PARAMETER_PREFIX = "req-"
 
+        private val NATIVE_TOKEN_SCHEMES = setOf(SOLANA_SCHEME, TONCOIN_SCHEME, "ethereum")
         private val REQUIRED_PARAMETER_SCHEMES = setOf(BITCOIN_SCHEME, ZCASH_SCHEME)
         private val ZCASH_PAYMENT_PARAMETERS = setOf("address", "amount", "memo", "label", "message")
 
         fun hasUriPrefix(text: String): Boolean {
-            return text.split(":").size > 1
+            return ':' in text.substringBefore('?').substringBefore('&')
         }
 
         fun addressUri(text: String): AddressUri? {
@@ -242,8 +281,7 @@ class AddressUriParser(
                 val abstractUriParse = AddressUriParser(null, null)
                 return when (val result = abstractUriParse.parse(text)) {
                     is AddressUriResult.Uri -> {
-                        if (BlockchainType.supported.map { it.uriScheme }
-                                .contains(result.addressUri.scheme))
+                        if (BlockchainType.supported.any { it.uriScheme == result.addressUri.scheme || it.uid == result.addressUri.scheme })
                             result.addressUri
                         else
                             null
@@ -259,7 +297,8 @@ class AddressUriParser(
     private data class Source(
         val scheme: String?,
         val address: String,
-        val parameterPart: String?
+        val parameterPart: String?,
+        val isTonTransfer: Boolean = false,
     )
 }
 

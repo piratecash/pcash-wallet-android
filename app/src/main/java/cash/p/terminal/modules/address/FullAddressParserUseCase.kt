@@ -2,7 +2,6 @@ package cash.p.terminal.modules.address
 
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
-import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.title
@@ -80,14 +79,6 @@ class FullAddressParserUseCase(
      */
     private suspend fun validateForUri(text: String) {
         coroutineContext.ensureActive()
-        if (blockchainType == BlockchainType.Ton && text.contains("//")) {
-            ToncoinUriParser.getAddress(text)?.let { tonAddress ->
-                coroutineContext.ensureActive()
-                _valueFlow.value = tonAddress
-                validateAddress(tonAddress)
-                return
-            }
-        }
         when (val result = addressUriParser.parse(text)) {
             is AddressUriResult.Uri -> {
                 coroutineContext.ensureActive()
