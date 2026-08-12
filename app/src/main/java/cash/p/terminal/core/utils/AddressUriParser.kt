@@ -1,6 +1,7 @@
 package cash.p.terminal.core.utils
 
 import android.net.Uri
+import android.util.Base64
 import cash.p.terminal.core.IAddressParser
 import cash.p.terminal.core.factories.removeScheme
 import cash.p.terminal.core.factories.uriScheme
@@ -8,12 +9,12 @@ import cash.p.terminal.core.supported
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.wallet.entities.TokenType
+import cash.z.ecc.android.sdk.model.MemoContent
 import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.URI
 import java.net.URLDecoder
-
 
 class AddressUriParser(
     private val blockchainType: BlockchainType?,
@@ -53,7 +54,7 @@ class AddressUriParser(
         val scheme = source.scheme ?: contextualScheme() ?: return AddressUriResult.NoUri
         contextResult(scheme, source.scheme != null)?.let { return it }
 
-        val parameters = parseQueryParameters(source.parameterPart)
+        val parameters = parseQueryParameters(source.parameterPart) ?: return AddressUriResult.WrongUri
         if (parameters.isUnsafeFor(scheme)) return AddressUriResult.WrongUri
 
         return createAddressUri(source, scheme, parameters)
@@ -86,7 +87,7 @@ class AddressUriParser(
 
     private fun List<Pair<String, String?>>.isUnsafeFor(scheme: String): Boolean {
         return hasUnsupportedRequiredParameter(scheme) || hasIndexedZcashPayment(scheme) ||
-                hasSolanaSplToken(scheme)
+                hasSolanaSplToken(scheme) || hasInvalidZcashMemo(scheme)
     }
 
     private fun List<Pair<String, String?>>.hasSolanaSplToken(scheme: String): Boolean {
@@ -102,6 +103,9 @@ class AddressUriParser(
     ): AddressUriResult {
         val parsedUri = AddressUri(scheme)
         parsedUri.populate(scheme, parameters)
+        if (scheme == ZCASH_SCHEME && !parsedUri.decodeZcashMemo(source.address)) {
+            return AddressUriResult.WrongUri
+        }
         if (source.isTonTransfer) parsedUri.normalizeTonTransfer(parameters)
         uidMismatchResult(parsedUri)?.let { return it }
         parsedUri.address = fullAddress(scheme, source.address, parsedUri.value(AddressUri.Field.BlockchainUid))
@@ -144,6 +148,33 @@ class AddressUriParser(
         }
     }
 
+    private fun AddressUri.decodeZcashMemo(address: String): Boolean {
+        val encoded = parameters[AddressUri.Field.Memo] ?: return true
+        if (address.startsWith("t", ignoreCase = true)) return false
+        if (encoded.any { !it.isBase64UrlCharacter() }) return false
+
+        val decodedBytes = tryOrNull {
+            Base64.decode(encoded, ZCASH_MEMO_BASE64_FLAGS)
+        } ?: return false
+        val canonical = Base64.encodeToString(
+            decodedBytes,
+            ZCASH_MEMO_BASE64_FLAGS,
+        )
+        if (canonical != encoded) return false
+        val decodedMemo = when (val memo = tryOrNull { MemoContent.fromBytes(decodedBytes) }) {
+            MemoContent.Empty -> ""
+            is MemoContent.Text -> memo.text.string.takeUnless { it.isBlank() } ?: return false
+            else -> return false
+        }
+
+        parameters[AddressUri.Field.Memo] = decodedMemo
+        return true
+    }
+
+    private fun Char.isBase64UrlCharacter(): Boolean {
+        return this in 'A'..'Z' || this in 'a'..'z' || this in '0'..'9' || this == '-' || this == '_'
+    }
+
     private fun uidMismatchResult(addressUri: AddressUri): AddressUriResult? {
         addressUri.value<String>(AddressUri.Field.BlockchainUid)?.let { uid ->
             if (blockchainType?.uid != null && blockchainType.uid != uid) {
@@ -178,6 +209,12 @@ class AddressUriParser(
         return scheme == ZCASH_SCHEME && any { (key, _) -> key.isIndexedZcashPaymentParameter() }
     }
 
+    private fun List<Pair<String, String?>>.hasInvalidZcashMemo(scheme: String): Boolean {
+        return scheme == ZCASH_SCHEME && any { (key, value) ->
+            key == AddressUri.Field.Memo.value && value == null
+        }
+    }
+
     private fun String.isIndexedZcashPaymentParameter(): Boolean {
         val separatorIndex = lastIndexOf('.')
         val index = substring(separatorIndex + 1)
@@ -186,22 +223,24 @@ class AddressUriParser(
         return substring(0, separatorIndex) in ZCASH_PAYMENT_PARAMETERS
     }
 
-    private fun parseQueryParameters(query: String?): List<Pair<String, String?>> {
+    private fun parseQueryParameters(query: String?): List<Pair<String, String?>>? {
         return query.orEmpty()
             .split("&")
-            .mapNotNull(::parseParameter)
+            .map(::parseParameter)
+            .takeIf { parameters -> parameters.none { it is Parameter.Malformed } }
+            ?.mapNotNull { (it as? Parameter.Parsed)?.value }
     }
 
-    private fun parseParameter(fragment: String): Pair<String, String?>? {
+    private fun parseParameter(fragment: String): Parameter {
         val delimiterIndex = fragment.indexOf('=')
         val rawKey = fragment.substring(0, delimiterIndex.takeIf { it >= 0 } ?: fragment.length)
-        if (rawKey.isEmpty()) return null
+        if (rawKey.isEmpty()) return Parameter.Ignored
 
-        val key = rawKey.decodeUriComponent() ?: return null
+        val key = rawKey.decodeUriComponent() ?: return Parameter.Malformed
         val value = delimiterIndex.takeIf { it >= 0 }
             ?.let { fragment.substring(it + 1).decodeUriComponent() }
 
-        return key to value
+        return Parameter.Parsed(key to value)
     }
 
     private fun String.splitParameterSuffix(): Pair<String, String?> {
@@ -241,7 +280,14 @@ class AddressUriParser(
             )
 
         for ((key, value) in addressUri.parameters) {
-            uriBuilder.appendQueryParameter(key.value, value)
+            val encodedValue = if (addressUri.scheme.equals(ZCASH_SCHEME, ignoreCase = true) &&
+                key == AddressUri.Field.Memo
+            ) {
+                value.encodeZcashMemo()
+            } else {
+                value
+            }
+            uriBuilder.appendQueryParameter(key.value, encodedValue)
         }
 
         for ((key, value) in addressUri.unhandledParameters) {
@@ -267,6 +313,7 @@ class AddressUriParser(
         private const val TON_JETTON_PARAMETER = "jetton"
         private const val TON_DECIMALS = 9
         private const val REQUIRED_PARAMETER_PREFIX = "req-"
+        private val ZCASH_MEMO_BASE64_FLAGS = Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
 
         private val NATIVE_TOKEN_SCHEMES = setOf(SOLANA_SCHEME, TONCOIN_SCHEME, "ethereum")
         private val REQUIRED_PARAMETER_SCHEMES = setOf(BITCOIN_SCHEME, ZCASH_SCHEME)
@@ -300,6 +347,18 @@ class AddressUriParser(
         val parameterPart: String?,
         val isTonTransfer: Boolean = false,
     )
+
+    private sealed interface Parameter {
+        data class Parsed(val value: Pair<String, String?>) : Parameter
+        data object Ignored : Parameter
+        data object Malformed : Parameter
+    }
+
+    private fun String.encodeZcashMemo(): String {
+        val memo = if (isEmpty()) MemoContent.Empty else MemoContent.fromString(this)
+        val bytes = memo.asMemoBytes().unpaddedRawBytes()
+        return Base64.encodeToString(bytes, ZCASH_MEMO_BASE64_FLAGS)
+    }
 }
 
 sealed class AddressUriResult {

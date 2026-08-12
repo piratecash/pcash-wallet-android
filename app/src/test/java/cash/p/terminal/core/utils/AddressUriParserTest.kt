@@ -2,6 +2,7 @@ package cash.p.terminal.core.utils
 
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.wallet.entities.TokenType
+import cash.z.ecc.android.sdk.ext.ZcashSdk.MAX_MEMO_SIZE
 import io.horizontalsystems.core.entities.BlockchainType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -10,6 +11,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.math.BigDecimal
+import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE)
@@ -103,12 +105,45 @@ class AddressUriParserTest {
         assertTrue(tokenResult is AddressUriResult.InvalidTokenType)
     }
     @Test
-    fun parse_singlePaymentZip321Uri_extractsAmountAndMetadata() {
-        val parsed = parser(BlockchainType.Zcash).uri("zcash:zaddress?amount=1.25&memo=Thanks&message=Invoice")
-        assertEquals("zaddress", parsed.address)
+    fun parse_singlePaymentZip321Uri_decodesMemoAndExtractsMetadata() {
+        val parsed = parser(BlockchainType.Zcash).uri(
+            "zcash:zsaddress?amount=1.25&memo=VGhpcyBpcyBhIHVuaWNvZGUgbWVtbyDinKjwn6aE8J-PhvCfjok&message=Invoice"
+        )
+        assertEquals("zsaddress", parsed.address)
         assertEquals(BigDecimal("1.25"), parsed.amount)
-        assertEquals("Thanks", parsed.value<String>(AddressUri.Field.Memo))
+        assertEquals("This is a unicode memo ✨🦄🏆🎉", parsed.value<String>(AddressUri.Field.Memo))
         assertEquals("Invoice", parsed.value<String>(AddressUri.Field.Message))
+    }
+    @Test
+    fun parse_zip321MemoAtByteLimitAndWithPadding_decodesText() {
+        val maxLengthMemo = "a".repeat(MAX_MEMO_SIZE)
+        val maxLengthParsed = parser(BlockchainType.Zcash).uri(
+            "zcash:zsaddress?memo=${encodeMemo(maxLengthMemo.encodeToByteArray())}"
+        )
+        val paddedParsed = parser(BlockchainType.Zcash).uri(
+            "zcash:zsaddress?memo=${encodeMemo("memo".encodeToByteArray() + ByteArray(2))}"
+        )
+        val emptyParsed = parser(BlockchainType.Zcash).uri("zcash:zsaddress?memo=9g")
+
+        assertEquals(maxLengthMemo, maxLengthParsed.value<String>(AddressUri.Field.Memo))
+        assertEquals("memo", paddedParsed.value<String>(AddressUri.Field.Memo))
+        assertEquals("", emptyParsed.value<String>(AddressUri.Field.Memo))
+    }
+    @Test
+    fun parse_invalidZip321Memos_returnsWrongUri() {
+        val parser = parser(BlockchainType.Zcash)
+
+        parser.assertWrongUri("zcash:zsaddress?memo=Thanks")
+        parser.assertWrongUri("zcash:zsaddress?memo=YWJj=")
+        parser.assertWrongUri("zcash:zsaddress?memo=A")
+        parser.assertWrongUri("zcash:zsaddress?memo=%zz")
+        parser.assertWrongUri("zcash:zsaddress?memo")
+        parser.assertWrongUri("zcash:zsaddress?memo=")
+        parser.assertWrongUri("zcash:zsaddress?memo=IA")
+        parser.assertWrongUri("zcash:zsaddress?memo=${encodeMemo(byteArrayOf(0xff.toByte()))}")
+        parser.assertWrongUri("zcash:zsaddress?memo=${encodeMemo(byteArrayOf(0xf6.toByte(), 1))}")
+        parser.assertWrongUri("zcash:zsaddress?memo=${encodeMemo(ByteArray(MAX_MEMO_SIZE + 1))}")
+        parser.assertWrongUri("zcash:t1address?memo=${encodeMemo("memo".encodeToByteArray())}")
     }
     @Test
     fun parse_indexedZip321Payment_returnsWrongUri() {
@@ -154,6 +189,12 @@ class AddressUriParserTest {
         assertTrue(parser(BlockchainType.Solana).parse("solana:recipient?amount=1&spl-token=%zz") is AddressUriResult.WrongUri)
     }
     @Test
+    fun parse_malformedParameterKeys_returnsWrongUri() {
+        parser(BlockchainType.Bitcoin).assertWrongUri("bitcoin:1address?amount=1&req-feature%zz=value")
+        parser(BlockchainType.Zcash).assertWrongUri("zcash:zsaddress?amount=1&req-feature%zz=value")
+        parser(BlockchainType.Bitcoin).assertWrongUri("bitcoin:1address?amount=1&custom%zz=value")
+    }
+    @Test
     fun parse_unknownAndMalformedParameters_keepsValidParameters() {
         val parsed = parser(BlockchainType.Bitcoin).uri("bitcoin:1address?unknown=one%3Dtwo&broken&amount=3&bad=%zz&label=valid")
         assertEquals("one=two", parsed.unhandledParameters["unknown"])
@@ -184,11 +225,35 @@ class AddressUriParserTest {
     }
 
     @Test
+    fun uri_zcashMemo_encodesBase64UrlAndRoundTrips() {
+        val parser = parser(BlockchainType.Zcash)
+        val addressUri = AddressUri("zcash").apply {
+            address = "zsaddress"
+            parameters[AddressUri.Field.Memo] = "Thanks 🙂"
+        }
+        val emptyAddressUri = AddressUri("zcash").apply {
+            address = "zsaddress"
+            parameters[AddressUri.Field.Memo] = ""
+        }
+
+        val encoded = parser.uri(addressUri)
+        assertEquals("zcash:zsaddress?memo=VGhhbmtzIPCfmYI", encoded)
+        assertEquals("Thanks 🙂", parser.uri(encoded).value<String>(AddressUri.Field.Memo))
+        assertEquals("zcash:zsaddress?memo=9g", parser.uri(emptyAddressUri))
+    }
+
+    @Test
     fun parse_malformedAddress_returnsWrongUri() {
         assertTrue(parser(BlockchainType.Bitcoin).parse("bitcoin:%zz") is AddressUriResult.WrongUri)
     }
 
     private fun parser(type: BlockchainType) = AddressUriParser(type, TokenType.Native)
+
+    private fun encodeMemo(bytes: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+
+    private fun AddressUriParser.assertWrongUri(value: String) {
+        assertTrue(parse(value) is AddressUriResult.WrongUri)
+    }
 
     private fun AddressUriParser.uri(value: String): AddressUri {
         return (parse(value) as AddressUriResult.Uri).addressUri

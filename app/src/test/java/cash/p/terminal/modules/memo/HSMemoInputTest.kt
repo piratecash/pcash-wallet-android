@@ -7,10 +7,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.junit4.StateRestorationTester
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.text.AnnotatedString
 import cash.p.terminal.modules.address.MemoPrefill
@@ -74,5 +76,42 @@ class HSMemoInputTest {
         composeTestRule.runOnIdle { visible = true }
         composeTestRule.onNode(hasSetTextAction()).assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
         assertEquals(listOf("stale", "", ""), values); assertEquals(listOf(1L, 1L), handledIds)
+    }
+    @Test fun externalMemo_separatePrefillLimit_preservesLongPrefillAsReadOnly() {
+        val values = mutableListOf<String>()
+        var event by mutableStateOf<MemoUnique?>(MemoUnique("long memo", 1))
+        composeTestRule.setContent {
+            ComposeAppTheme {
+                HSMemoInput(
+                    maxLength = 4,
+                    memoPrefill = MemoPrefill(event) { event = null },
+                    onValueChange = values::add,
+                    prefillMaxLength = 20,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("long memo").assertIsNotEnabled()
+        assertEquals(listOf("long memo"), values)
+    }
+    @Test fun externalMemo_overByteLimit_clearsPrefill() {
+        val values = mutableListOf<String>()
+        var event by mutableStateOf<MemoUnique?>(MemoUnique("🙂🙂🙂", 1))
+        composeTestRule.setContent {
+            ComposeAppTheme {
+                HSMemoInput(
+                    maxLength = 4,
+                    memoPrefill = MemoPrefill(event) { event = null },
+                    onValueChange = values::add,
+                    prefillMaxLength = 20,
+                    prefillMaxBytes = 9,
+                )
+            }
+        }
+
+        composeTestRule.onNode(hasSetTextAction()).assert(
+            SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString(""))
+        )
+        assertEquals(listOf(""), values)
     }
 }

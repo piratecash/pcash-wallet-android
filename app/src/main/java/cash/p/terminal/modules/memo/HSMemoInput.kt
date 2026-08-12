@@ -24,6 +24,8 @@ fun HSMemoInput(
     onValueChange: (String) -> Unit,
     initial: String = "",
     visible: Boolean = true,
+    prefillMaxLength: Int = maxLength,
+    prefillMaxBytes: Int? = null,
 ) {
     var memo by rememberSaveable { mutableStateOf(initial) }
     var isInitialized by rememberSaveable { mutableStateOf(initial.isNotEmpty()) }
@@ -34,7 +36,7 @@ fun HSMemoInput(
         val event = currentMemoPrefill.event
         if (event != null) {
             if (!event.isNavigationPrefill || !isInitialized) {
-                memo = event.memo.takeIf { it.length <= maxLength }.orEmpty()
+                memo = event.memo.takeIf { it.fitsPrefill(prefillMaxLength, prefillMaxBytes) }.orEmpty()
                 isInitialized = true
             }
             if (visible) currentOnValueChange(memo)
@@ -49,6 +51,7 @@ fun HSMemoInput(
     if (!visible) return
     FormsInput(
             modifier = Modifier.padding(horizontal = 16.dp),
+            enabled = memo.length <= maxLength,
             initial = memo,
             hint = stringResource(R.string.Send_DialogMemoHint),
             hintColor = ComposeAppTheme.colors.grey50,
@@ -64,4 +67,8 @@ fun HSMemoInput(
                 onValueChange(it)
             }
     )
+}
+
+private fun String.fitsPrefill(maxLength: Int, maxBytes: Int?): Boolean {
+    return length <= maxLength && (maxBytes == null || encodeToByteArray().size <= maxBytes)
 }
