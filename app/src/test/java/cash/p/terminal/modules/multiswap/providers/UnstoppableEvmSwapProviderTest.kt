@@ -103,7 +103,14 @@ class UnstoppableEvmSwapProviderTest {
         chain = ETH_CHAIN_ID,
         transactions = listOf(
             // Native ETH input of AMOUNT_IN=1 → value must be 1e18 wei (0xde0b6b3a7640000).
-            UnstoppableSignableTx(kind = "evm", to = ROUTER_ADDRESS, from = SENDER_ADDRESS, value = "0xde0b6b3a7640000", data = "0xabcdef", gas = "0x5208"),
+            UnstoppableSignableTx(
+                kind = "evm",
+                to = ROUTER_ADDRESS,
+                from = SENDER_ADDRESS,
+                value = "0xde0b6b3a7640000",
+                data = "0xabcdef",
+                gas = "0x5208",
+            ),
         ),
         approval = UnstoppableApproval(token = null, spender = SPENDER_ADDRESS, amount = null),
         depositAddress = null,

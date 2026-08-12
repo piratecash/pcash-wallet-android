@@ -26,8 +26,8 @@ fun RestoreHeightInput(
     pasteEnabled: Boolean,
     onValueChange: (String) -> Unit,
     onCalendarClick: () -> Unit,
-    numericOnly: Boolean = false,
     modifier: Modifier = Modifier,
+    numericOnly: Boolean = false,
 ) {
     Column(modifier = modifier) {
         FormsInput(

@@ -143,7 +143,7 @@ fun BadgePreview() {
 
 @Preview
 @Composable
-fun NewDotPreview() {
+private fun NewDotPreview() {
     ComposeAppTheme {
         Box(
             modifier = Modifier.padding(16.dp),
