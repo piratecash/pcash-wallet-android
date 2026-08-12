@@ -2126,6 +2126,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">برخی توکن‌ها اضافه نشدند</string>
     <string name="send_error_address_unavailable">آدرس در دسترس نیست</string>
     <string name="send_error_amount_unavailable">مبلغ در دسترس نیست</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash هنوز فایل‌های لازم برای ارسال را دانلود نکرده است. به اینترنت متصل شوید و دوباره تلاش کنید.</string>
     <string name="send_error_fee_rate_unavailable">نرخ کارمزد در دسترس نیست</string>
     <string name="send_error_balance_unavailable">موجودی در دسترس نیست</string>
     <string name="litecoin_mweb_invalid_amount">مبلغ Litecoin MWEB نامعتبر است</string>

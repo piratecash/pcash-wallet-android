@@ -2114,6 +2114,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="error_hardware_wallet_some_tokens_not_found">Einige Token konnten nicht hinzugefügt werden</string>
     <string name="send_error_address_unavailable">Adresse nicht verfügbar</string>
     <string name="send_error_amount_unavailable">Betrag nicht verfügbar</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash hat die zum Senden benötigten Dateien noch nicht heruntergeladen. Stellen Sie eine Internetverbindung her und versuchen Sie es erneut.</string>
     <string name="send_error_fee_rate_unavailable">Gebührensatz nicht verfügbar</string>
     <string name="send_error_balance_unavailable">Guthaben nicht verfügbar</string>
     <string name="litecoin_mweb_invalid_amount">Ungültiger Litecoin-MWEB-Betrag</string>

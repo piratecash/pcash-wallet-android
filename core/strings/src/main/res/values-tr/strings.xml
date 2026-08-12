@@ -2123,6 +2123,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="error_hardware_wallet_some_tokens_not_found">Bazı tokenler eklenemedi</string>
     <string name="send_error_address_unavailable">Adres kullanılamıyor</string>
     <string name="send_error_amount_unavailable">Tutar kullanılamıyor</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash, gönderim için gereken dosyaları henüz indirmedi. İnternete bağlanın ve tekrar deneyin.</string>
     <string name="send_error_fee_rate_unavailable">Ücret oranı kullanılamıyor</string>
     <string name="send_error_balance_unavailable">Bakiye kullanılamıyor</string>
     <string name="litecoin_mweb_invalid_amount">Geçersiz Litecoin MWEB tutarı</string>
