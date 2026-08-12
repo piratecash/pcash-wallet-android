@@ -120,7 +120,7 @@ internal fun MultiSwapExchangeScreen(
                     if (uiState?.presentation == MultiSwapExchangePresentation.RouteInfo) {
                         R.string.multi_swap_route_title
                     } else {
-                        R.string.Swap
+                        R.string.multi_swap_execution_title
                     }
                 ),
                 navigationIcon = { HsBackButton(onClick = onBack) },

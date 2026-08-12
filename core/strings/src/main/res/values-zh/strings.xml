@@ -2049,6 +2049,7 @@
     <string name="multi_swap_continue">继续兑换</string>
     <string name="multi_swap_route_explanation">为获得最优汇率，将使用经由 %2$s 的路径。兑换将分两步连续完成：先 %1$s → %2$s，再 %2$s → %3$s。</string>
     <string name="multi_swap_route_title">兑换路径</string>
+    <string name="multi_swap_execution_title">兑换</string>
     <string name="multi_swap_step">第 %d 步</string>
     <string name="multi_swap_understood_continue">明白，继续</string>
     <string name="multi_swap_unfinished">未完成的兑换</string>

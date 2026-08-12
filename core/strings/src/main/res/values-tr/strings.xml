@@ -2065,6 +2065,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="multi_swap_continue">Takasa devam et</string>
     <string name="multi_swap_route_explanation">En iyi kur için %2$s üzerinden bir rota kullanılır. Takas iki ardışık adımda tamamlanır: önce %1$s → %2$s, ardından %2$s → %3$s.</string>
     <string name="multi_swap_route_title">Takas rotası</string>
+    <string name="multi_swap_execution_title">Takas</string>
     <string name="multi_swap_step">%d. adım</string>
     <string name="multi_swap_understood_continue">Anladım, devam et</string>
     <string name="multi_swap_unfinished">Tamamlanmamış takas</string>

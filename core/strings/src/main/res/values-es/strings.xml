@@ -2056,6 +2056,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="multi_swap_continue">Continuar intercambio</string>
     <string name="multi_swap_route_explanation">Para obtener la mejor tasa, se usa una ruta a través de %2$s. El intercambio se realizará en dos pasos consecutivos: primero %1$s → %2$s y luego %2$s → %3$s.</string>
     <string name="multi_swap_route_title">Ruta de intercambio</string>
+    <string name="multi_swap_execution_title">Intercambio</string>
     <string name="multi_swap_step">Paso %d</string>
     <string name="multi_swap_understood_continue">Entendido, continuar</string>
     <string name="multi_swap_unfinished">Intercambio sin terminar</string>
