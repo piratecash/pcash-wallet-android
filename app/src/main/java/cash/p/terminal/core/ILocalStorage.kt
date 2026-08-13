@@ -7,7 +7,7 @@ import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
-import cash.p.terminal.modules.main.MainModule
+import cash.p.terminal.shared.main.MainDestination
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.softwareupdate.domain.UpdateCheckInterval
@@ -95,7 +95,7 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var calculatorThrottleLastWallClock: Long
     var calculatorAutoLockOption: CalculatorAutoLockOption
     val calculatorAutoLockOptionFlow: StateFlow<CalculatorAutoLockOption>
-    var mainTab: MainModule.MainNavigation?
+    var mainTab: MainDestination?
     var marketFavoritesSorting: WatchlistSorting?
     var marketFavoritesShowSignals: Boolean
     var marketFavoritesManualSortingOrder: List<String>
