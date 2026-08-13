@@ -6,7 +6,6 @@ import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IMarketStorage
-import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.adapters.zcash.ZcashAddressDeriver
@@ -80,7 +79,6 @@ import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.PendingTransactionRegistrarImpl
 import cash.p.terminal.core.managers.PendingTransactionRepository
-import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
@@ -305,7 +303,6 @@ val managerModule = module {
         )
     }
     singleOf(::AccountFactory) bind IAccountFactory::class
-    singleOf(::RateAppManager) bind IRateAppManager::class
     singleOf(::TermsManager) bind ITermsManager::class
     singleOf(::ReleaseNotesManager)
     singleOf(::WCSessionStorage)

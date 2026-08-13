@@ -6,7 +6,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.isTonConnectDeeplink
@@ -40,7 +39,6 @@ import org.koin.java.KoinJavaComponent.inject
 
 class MainViewModel(
     private val pinComponent: IPinComponent,
-    rateAppManager: IRateAppManager,
     private val backupManager: IBackupManager,
     private val termsManager: ITermsManager,
     private val accountManager: IAccountManager,
@@ -85,7 +83,6 @@ class MainViewModel(
     private var selectedTabIndex = getTabIndexToOpen()
     private var deeplinkPage: DeeplinkPage? = null
     private var mainNavItems = navigationItems()
-    private var showRateAppDialog = false
     private var contentHidden = pinComponent.isPinSet
     private var showWhatsNew = false
     private var activeWallet = accountManager.activeAccount
@@ -118,11 +115,6 @@ class MainViewModel(
         wcSessionManager.pendingRequestCountFlow.collectWith(viewModelScope) {
             wcPendingRequestsCount = it
             updateSettingsBadge()
-        }
-
-        rateAppManager.showRateAppFlow.collectWith(viewModelScope) {
-            showRateAppDialog = it
-            emitState()
         }
 
         viewModelScope.launch {
@@ -178,7 +170,6 @@ class MainViewModel(
         selectedTabIndex = selectedTabIndex,
         deeplinkPage = deeplinkPage,
         mainNavItems = mainNavItems,
-        showRateAppDialog = showRateAppDialog,
         contentHidden = contentHidden,
         showWhatsNew = showWhatsNew,
         activeWallet = activeWallet,
@@ -194,11 +185,6 @@ class MainViewModel(
 
     fun whatsNewShown() {
         showWhatsNew = false
-        emitState()
-    }
-
-    fun closeRateDialog() {
-        showRateAppDialog = false
         emitState()
     }
 
