@@ -20,6 +20,12 @@ kotlin {
         withHostTest { }
     }
 
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
     sourceSets {
         commonMain {
             dependencies {
@@ -33,13 +39,17 @@ kotlin {
                 implementation(libs.koin.core)
 
                 implementation(libs.room.runtime)
-                implementation(libs.room.ktx)
             }
         }
         androidMain {
             dependencies {
                 implementation(libs.timber)
                 implementation(libs.koin.android)
+            }
+        }
+        getByName("desktopMain") {
+            dependencies {
+                implementation(libs.sqlite.bundled)
             }
         }
         getByName("androidHostTest") {
@@ -56,4 +66,5 @@ kotlin {
 
 dependencies {
     add("kspAndroid", libs.room.compiler)
+    add("kspDesktop", libs.room.compiler)
 }

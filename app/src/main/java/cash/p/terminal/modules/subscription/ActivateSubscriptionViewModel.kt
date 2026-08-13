@@ -59,7 +59,9 @@ class ActivateSubscriptionViewModel(
                 val accountsMap = accountManager.accounts
                     .filterNot { it.isWatchAccount }
                     .mapNotNull { account ->
-                        evmSignerFactory.resolveAddress(account, BlockchainType.Ethereum, ethChain)?.hex?.let { address ->
+                        evmSignerFactory.resolveAddress(
+                            account, BlockchainType.Ethereum, ethChain
+                        )?.hex?.let { address ->
                             Pair(address, account)
                         }
                     }.associateBy({ it.first }, { it.second })
@@ -84,7 +86,9 @@ class ActivateSubscriptionViewModel(
             } catch (e: Throwable) {
                 fetchingMessage = false
                 fetchingMessageError = if (e is UnknownHostException) {
-                    IllegalStateException(cash.p.terminal.strings.helpers.Translator.getString(R.string.Hud_Text_NoInternet))
+                    IllegalStateException(
+                        cash.p.terminal.strings.helpers.Translator.getString(R.string.Hud_Text_NoInternet)
+                    )
                 } else {
                     e
                 }
@@ -113,7 +117,8 @@ class ActivateSubscriptionViewModel(
             try {
                 val signer = evmSignerFactory.createSigner(account, BlockchainType.Ethereum, ethChain)
                     ?: throw IllegalStateException()
-                val signature = EvmMessageSigning.signPersonalMessage(signer, subscriptionInfo.messageToSign.toByteArray())
+                val signature =
+                    EvmMessageSigning.signPersonalMessage(signer, subscriptionInfo.messageToSign.toByteArray())
                 val token = marketKit.authenticate(signature.to0xHexString(), address).await()
                 subscriptionManager.authToken = token
                 fetchingTokenSuccess = true

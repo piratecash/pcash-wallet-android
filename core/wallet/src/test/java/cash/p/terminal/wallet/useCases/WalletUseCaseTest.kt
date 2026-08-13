@@ -132,7 +132,8 @@ class WalletUseCaseTest {
         every { accountManager.activeAccount } returns account
 
         val zcashTokens = zcashTokens()
-        val unifiedToken = zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
+        val unifiedToken =
+            zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
         val zcashWallets = zcashTokens.map { wallet(it, account) }
 
         every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns zcashTokens
@@ -146,7 +147,7 @@ class WalletUseCaseTest {
         coVerify {
             walletManager.saveSuspended(match { wallets ->
                 wallets.map { it.token.tokenQuery.id }.toSet() ==
-                    zcashTokens.map { it.tokenQuery.id }.toSet()
+                        zcashTokens.map { it.tokenQuery.id }.toSet()
             })
         }
     }
@@ -255,7 +256,11 @@ class WalletUseCaseTest {
             getHardwarePublicKeyForWalletUseCase(any(), token.blockchainType, token.type)
         } returnsMany listOf(null, key)
         coEvery {
-            scanToAddUseCase.addTokensByScan(any(), accountCard(staleAccount).cardId, staleAccount.id)
+            scanToAddUseCase.addTokensByScan(
+                any(),
+                accountCard(staleAccount).cardId,
+                staleAccount.id
+            )
         } answers { scanCompleted = true; true }
 
         val accountSlot = slot<Account>()
@@ -357,7 +362,7 @@ class WalletUseCaseTest {
         coVerify {
             walletManager.saveSuspended(match { wallets ->
                 wallets.map { it.token.tokenQuery.id }.toSet() ==
-                    zcashTokens.map { it.tokenQuery.id }.toSet()
+                        zcashTokens.map { it.tokenQuery.id }.toSet()
             })
         }
     }
@@ -399,7 +404,8 @@ class WalletUseCaseTest {
     fun awaitWallets_zcashAddressSpec_waitsForFullGroup() = runTest {
         val account = softwareAccount()
         val zcashTokens = zcashTokens()
-        val unifiedToken = zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
+        val unifiedToken =
+            zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
         val zcashWallets = zcashTokens.map { wallet(it, account) }
 
         every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns zcashTokens

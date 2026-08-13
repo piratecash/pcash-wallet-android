@@ -56,7 +56,7 @@ style:
     active: false  # too noisy for UI code with dp/sp values
   MaxLineLength:
     active: true
-    maxLineLength: 150
+    maxLineLength: 120
     excludeCommentStatements: true
     excludePackageStatements: true
     excludeImportStatements: true

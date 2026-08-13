@@ -372,7 +372,10 @@ class SendMoneroViewModel(
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))
         is HardwareWalletOperationException ->
             HSCaution(TranslatableString.ResString(error.userMessageRes()))
-        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(sendToken.coin.code, amountState.availableBalance.toPlainString())
+        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(
+            sendToken.coin.code, amountState.availableBalance.toPlainString()
+        )
+
         else -> HSCaution(
             TranslatableString.PlainString(
                 error.cause?.message ?: error.message ?: ""

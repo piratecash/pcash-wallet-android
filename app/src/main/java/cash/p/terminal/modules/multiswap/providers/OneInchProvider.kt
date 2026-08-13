@@ -49,7 +49,7 @@ object OneInchProvider : EvmSwapProvider() {
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
         BlockchainType.ArbitrumOne
-        -> true
+            -> true
 
         else -> false
     }
@@ -99,7 +99,9 @@ object OneInchProvider : EvmSwapProvider() {
             tokenIn,
             tokenOut,
             amountIn,
-            getCreateTokenActionRequired(listOf(tokenIn, tokenOut)) ?: actionApprove(allowance, amountIn, routerAddress, tokenIn)
+            getCreateTokenActionRequired(listOf(tokenIn, tokenOut)) ?: actionApprove(
+                allowance, amountIn, routerAddress, tokenIn
+            )
         )
     }
 
@@ -161,7 +163,9 @@ object OneInchProvider : EvmSwapProvider() {
             amountIn = amountIn,
             amountOut = amountOut,
             amountOutMin = amountOutMin,
-            sendTransactionData = SendTransactionData.Evm(TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit, amount = amountIn),
+            sendTransactionData = SendTransactionData.Evm(
+                TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit, amount = amountIn
+            ),
             priceImpact = null,
             fields = fields
         )

@@ -373,7 +373,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.blockchain("bitcoin") } returns bitcoin
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
+                BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -622,7 +622,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.tokens(any<List<TokenQuery>>()) } returns listOf(tonToken)
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult(TON_MESSAGE_HASH, BroadcastRawTransactionStatus.Submitted)
+                BroadcastRawTransactionResult(TON_MESSAGE_HASH, BroadcastRawTransactionStatus.Submitted)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -669,7 +669,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.blockchain("bitcoin") } returns bitcoin
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Queued)
+                BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Queued)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -693,7 +693,7 @@ class OfflineBroadcastViewModelTest {
         every { payloadEncoder.decode(any()) } returns null
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
+                BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -719,7 +719,7 @@ class OfflineBroadcastViewModelTest {
         every { payloadEncoder.decode(any()) } returns null
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("queued-hash", BroadcastRawTransactionStatus.Queued)
+                BroadcastRawTransactionResult("queued-hash", BroadcastRawTransactionStatus.Queued)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -745,7 +745,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.blockchain("bitcoin") } returns bitcoin
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
+                BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
         // Keep the import insert in flight while the user reaches broadcast.
         val importGate = CompletableDeferred<Unit>()
@@ -779,7 +779,7 @@ class OfflineBroadcastViewModelTest {
         val adapter = mockk<TestOfflineTransactionAdapter>()
         // The payload claimed "hash"; the kit derives the real txid from the raw bytes.
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
+                BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -799,7 +799,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.blockchain("bitcoin") } returns bitcoin
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.AlreadyKnown)
+                BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.AlreadyKnown)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -824,7 +824,7 @@ class OfflineBroadcastViewModelTest {
         every { marketKit.blockchain("bitcoin") } returns bitcoin
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.SeqnoConsumed)
+                BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.SeqnoConsumed)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -848,7 +848,7 @@ class OfflineBroadcastViewModelTest {
         every { payloadEncoder.decode(any()) } returns null
         val adapter = mockk<TestOfflineTransactionAdapter>()
         coEvery { adapter.broadcastRawTransaction(any(), null) } returns
-            BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.AlreadyKnown)
+                BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.AlreadyKnown)
         coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
@@ -1145,7 +1145,8 @@ class OfflineBroadcastViewModelTest {
 
     private companion object {
         const val WATCH_XPUB =
-            "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBVbfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
+            "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBV" +
+                    "bfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"

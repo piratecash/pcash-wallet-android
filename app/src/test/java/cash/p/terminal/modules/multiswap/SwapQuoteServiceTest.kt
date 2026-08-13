@@ -38,15 +38,6 @@ import java.math.BigDecimal
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
-    private val leg1ProviderA = mockk<IMultiSwapProvider>(relaxed = true) {
-        every { id } returns "leg1a"
-    }
-    private val leg1ProviderB = mockk<IMultiSwapProvider>(relaxed = true) {
-        every { id } returns "leg1b"
-    }
-    private val leg1QuoteA = routeQuote(leg1ProviderA)
-    private val leg1QuoteB = routeQuote(leg1ProviderB)
-
     @Test
     fun setTokens_allProvidersSlow_noSupportedSwapProviderError() = runTest {
         val slowProvider = mockk<IMultiSwapProvider>(relaxed = true) {
@@ -396,144 +387,6 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
     }
 
     @Test
-    fun setAmount_noDirectQuotesButRouteFound_exposesLeg1QuotesForSelection() = runTest {
-        val service = createService(
-            providers = listOf(unsupportedDirectProvider()),
-            scheduler = testScheduler,
-            routeResolver = routeResolverWithLeg1Quotes(),
-        )
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        val state = service.stateFlow.value
-        // The provider picker closes on an empty `quotes` list, so a 2-step route must publish
-        // its leg 1 quotes there - otherwise the user cannot switch the first swap provider.
-        assertEquals(listOf("leg1a", "leg1b"), state.quotes.map { it.provider.id })
-        assertEquals("leg1a", state.quote?.provider?.id)
-    }
-
-    @Test
-    fun selectQuote_routeActive_rebuildsRouteWithSelectedLeg1Provider() = runTest {
-        val routeResolver = routeResolverWithLeg1Quotes()
-        val service = createService(
-            providers = listOf(unsupportedDirectProvider()),
-            scheduler = testScheduler,
-            routeResolver = routeResolver,
-        )
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        service.selectQuote(leg1QuoteB)
-        advanceUntilIdle()
-
-        // Leg 2 is quoted for the leg 1 output, so picking another leg 1 provider must re-resolve the route
-        coVerify { routeResolver.findRoute(any(), any(), any(), any(), any(), leg1ProviderB) }
-    }
-
-    @Test
-    fun disabledIdsChange_routeActive_keepsRouteInsteadOfPublishingLeg1QuoteAsDirect() = runTest {
-        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
-        val service = createService(
-            providers = listOf(unsupportedDirectProvider()),
-            scheduler = testScheduler,
-            disabledIdsFlow = disabledIdsFlow,
-            routeResolver = routeResolverWithLeg1Quotes(),
-        )
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        disabledIdsFlow.value = setOf("leg1a")
-        advanceUntilIdle()
-
-        // `quotes` holds leg 1 quotes while a route is active, so treating them as direct quotes
-        // would drop the route and show the intermediate amount as the final one.
-        assertNotNull(service.stateFlow.value.multiSwapRoute)
-    }
-
-    @Test
-    fun selectQuote_directQuoteFromCurrentList_selectsItWithoutRequoting() = runTest {
-        val higher = mockProvider(providerId = "higher", quoteAmountOut = BigDecimal("10"))
-        val lower = mockProvider(providerId = "lower", quoteAmountOut = BigDecimal("5"))
-
-        val service = createService(listOf(higher, lower), testScheduler)
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        val worseQuote = service.stateFlow.value.quotes.first { it.provider.id == "lower" }
-        service.selectQuote(worseQuote)
-
-        // A direct swap keeps the plain path: the picked quote is published right away,
-        // without a refetch and without blocking the swap button.
-        val state = service.stateFlow.value
-        assertEquals("lower", state.quote?.provider?.id)
-        assertFalse(state.quoting)
-    }
-
-    @Test
-    fun selectQuote_routeActive_marksQuotingImmediately() = runTest {
-        val service = createService(
-            providers = listOf(unsupportedDirectProvider()),
-            scheduler = testScheduler,
-            routeResolver = routeResolverWithLeg1Quotes(),
-        )
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        service.selectQuote(leg1QuoteB)
-
-        // The rebuild runs asynchronously, so quoting must be published synchronously - otherwise
-        // the user could confirm the swap on the superseded route right after closing the picker.
-        assertTrue(service.stateFlow.value.quoting)
-    }
-
-    @Test
-    fun selectQuote_quoteMissingFromCurrentQuotes_doesNotPublishStaleQuote() = runTest {
-        val direct = mockProvider(providerId = "direct", quoteAmountOut = BigDecimal("5"))
-        val service = createService(listOf(direct), testScheduler)
-        service.setTokenIn(tokenIn)
-        service.setTokenOut(tokenOut)
-        service.setAmountIn(BigDecimal.ONE)
-        advanceUntilIdle()
-
-        // The picker may hold a snapshot taken while a 2-step route was active. Publishing such a
-        // leg 1 quote as the current one would show the intermediate amount as the final output.
-        service.selectQuote(leg1QuoteB)
-        advanceUntilIdle()
-
-        assertEquals("direct", service.stateFlow.value.quote?.provider?.id)
-    }
-
-    private fun unsupportedDirectProvider(): IMultiSwapProvider = mockk(relaxed = true) {
-        every { id } returns "direct"
-        coEvery { supports(tokenIn, tokenOut) } returns false
-    }
-
-    private fun routeResolverWithLeg1Quotes(): MultiSwapRouteResolver {
-        val route = mockk<MultiSwapRoute>(relaxed = true) {
-            every { leg1Quotes } returns listOf(leg1QuoteA, leg1QuoteB)
-            every { selectedLeg1Quote } returns leg1QuoteA
-        }
-        return mockk(relaxed = true) {
-            coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns route
-        }
-    }
-
-    private fun routeQuote(quoteProvider: IMultiSwapProvider): SwapProviderQuote =
-        mockk(relaxed = true) {
-            every { provider } returns quoteProvider
-        }
-
-    @Test
     fun switchPairs_exactIn_movesQuotedOutputToInput() = runTest {
         val provider = mockProvider("provider", quoteAmountOut = BigDecimal("5"))
         val service = createService(listOf(provider), testScheduler)
@@ -623,6 +476,181 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         assertNull(state.amountInMax)
     }
 
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class SwapQuoteServiceRouteSelectionTest : SwapQuoteServiceTestFixture() {
+    private val leg1ProviderA = mockk<IMultiSwapProvider>(relaxed = true) {
+        every { id } returns "leg1a"
+    }
+    private val leg1ProviderB = mockk<IMultiSwapProvider>(relaxed = true) {
+        every { id } returns "leg1b"
+    }
+    private val leg1QuoteA = routeQuote(leg1ProviderA)
+    private val leg1QuoteB = routeQuote(leg1ProviderB)
+
+    @Test
+    fun setAmount_noDirectQuotesButRouteFound_exposesLeg1QuotesForSelection() = runTest {
+        val service = createService(
+            providers = listOf(unsupportedDirectProvider()),
+            scheduler = testScheduler,
+            routeResolver = routeResolverWithLeg1Quotes(),
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        // The provider picker closes on an empty `quotes` list, so a 2-step route must publish
+        // its leg 1 quotes there - otherwise the user cannot switch the first swap provider.
+        assertEquals(listOf("leg1a", "leg1b"), state.quotes.map { it.provider.id })
+        assertEquals("leg1a", state.quote?.provider?.id)
+    }
+
+    @Test
+    fun selectQuote_routeActive_rebuildsRouteWithSelectedLeg1Provider() = runTest {
+        val routeResolver = routeResolverWithLeg1Quotes()
+        val service = createService(
+            providers = listOf(unsupportedDirectProvider()),
+            scheduler = testScheduler,
+            routeResolver = routeResolver,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        service.selectQuote(leg1QuoteB, SwapQuoteSelectionTarget.Primary)
+        advanceUntilIdle()
+
+        // Leg 2 is quoted for the leg 1 output, so picking another leg 1 provider must re-resolve the route
+        coVerify { routeResolver.findRoute(any(), any(), any(), any(), any(), leg1ProviderB) }
+    }
+
+    @Test
+    fun disabledIdsChange_routeActive_keepsRouteInsteadOfPublishingLeg1QuoteAsDirect() = runTest {
+        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
+        val service = createService(
+            providers = listOf(unsupportedDirectProvider()),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+            routeResolver = routeResolverWithLeg1Quotes(),
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        disabledIdsFlow.value = setOf("leg1a")
+        advanceUntilIdle()
+
+        // `quotes` holds leg 1 quotes while a route is active, so treating them as direct quotes
+        // would drop the route and show the intermediate amount as the final one.
+        assertNotNull(service.stateFlow.value.multiSwapRoute)
+    }
+
+    @Test
+    fun selectQuote_directQuoteFromCurrentList_selectsItWithoutRequoting() = runTest {
+        val higher = mockProvider(providerId = "higher", quoteAmountOut = BigDecimal("10"))
+        val lower = mockProvider(providerId = "lower", quoteAmountOut = BigDecimal("5"))
+
+        val service = createService(listOf(higher, lower), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val worseQuote = service.stateFlow.value.quotes.first { it.provider.id == "lower" }
+        service.selectQuote(worseQuote, SwapQuoteSelectionTarget.Primary)
+
+        // A direct swap keeps the plain path: the picked quote is published right away,
+        // without a refetch and without blocking the swap button.
+        val state = service.stateFlow.value
+        assertEquals("lower", state.quote?.provider?.id)
+        assertFalse(state.quoting)
+    }
+
+    @Test
+    fun selectQuote_routeActive_marksQuotingImmediately() = runTest {
+        val service = createService(
+            providers = listOf(unsupportedDirectProvider()),
+            scheduler = testScheduler,
+            routeResolver = routeResolverWithLeg1Quotes(),
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        service.selectQuote(leg1QuoteB, SwapQuoteSelectionTarget.Primary)
+
+        // The rebuild runs asynchronously, so quoting must be published synchronously - otherwise
+        // the user could confirm the swap on the superseded route right after closing the picker.
+        assertTrue(service.stateFlow.value.quoting)
+    }
+
+    @Test
+    fun selectQuote_quoteMissingFromCurrentQuotes_doesNotPublishStaleQuote() = runTest {
+        val direct = mockProvider(providerId = "direct", quoteAmountOut = BigDecimal("5"))
+        val service = createService(listOf(direct), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        // The picker may hold a snapshot taken while a 2-step route was active. Publishing such a
+        // leg 1 quote as the current one would show the intermediate amount as the final output.
+        service.selectQuote(leg1QuoteB, SwapQuoteSelectionTarget.Primary)
+        advanceUntilIdle()
+
+        assertEquals("direct", service.stateFlow.value.quote?.provider?.id)
+    }
+
+    @Test
+    fun selectQuote_routeLeg2CurrentRouteQuote_updatesSelectedQuote() = runTest {
+        val leg1Quote = routeQuote(mockProvider("leg1"))
+        val leg2Quote = routeQuote(mockProvider("leg2"))
+        val route = routeWithLeg2Quotes(leg1Quote, leg2Quote)
+        val service = createRouteService(route, testScheduler)
+
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        assertTrue(service.selectQuote(leg2Quote, SwapQuoteSelectionTarget.RouteLeg2))
+        assertEquals(leg2Quote, service.stateFlow.value.multiSwapRoute?.selectedLeg2Quote)
+    }
+
+    @Test
+    fun selectQuote_routeLeg2StaleQuote_doesNotUpdateRoute() = runTest {
+        val leg1Quote = routeQuote(mockProvider("leg1"))
+        val route = routeWithLeg2Quotes(leg1Quote, routeQuote(mockProvider("current")))
+        val service = createRouteService(route, testScheduler)
+
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        assertFalse(service.selectQuote(routeQuote(mockProvider("stale")), SwapQuoteSelectionTarget.RouteLeg2))
+        assertEquals(route.selectedLeg2Quote, service.stateFlow.value.multiSwapRoute?.selectedLeg2Quote)
+    }
+
+    private fun routeResolverWithLeg1Quotes(): MultiSwapRouteResolver {
+        val route = mockk<MultiSwapRoute>(relaxed = true) {
+            every { leg1Quotes } returns listOf(leg1QuoteA, leg1QuoteB)
+            every { selectedLeg1Quote } returns leg1QuoteA
+        }
+        return mockk(relaxed = true) {
+            coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns route
+        }
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class SwapQuoteServiceExactOutTest : SwapQuoteServiceTestFixture() {
     @Test
     fun setAmountOut_disabledProvider_isNotRequested() = runTest {
         val enabled = mockProvider("enabled")
@@ -660,9 +688,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         val reEnabledQuote = providerQuote(reEnabled, BigDecimal("3"), BigDecimal.ONE)
         val disabledIdsFlow = MutableStateFlow(setOf("re-enabled"))
         val fetch = mockk<FetchSwapQuotesUseCase> {
-            coEvery {
-                this@mockk(any(), any(), any(), any(), any(), any(), any())
-            } coAnswers {
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } coAnswers {
                 firstArg<List<IMultiSwapProvider>>().mapNotNull { provider ->
                     when (provider.id) {
                         "selected" -> selectedQuote
@@ -686,9 +712,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         disabledIdsFlow.value = emptySet()
         advanceUntilIdle()
 
-        coVerify(exactly = 2) {
-            fetch(any(), any(), any(), any(), any(), any(), any())
-        }
+        coVerify(exactly = 2) { fetch(any(), any(), any(), any(), any(), any(), any()) }
         assertEquals("selected", service.stateFlow.value.quote?.provider?.id)
     }
 
@@ -698,9 +722,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         val quote = providerQuote(provider, BigDecimal("2"), BigDecimal.ONE)
         val disabledIdsFlow = MutableStateFlow(emptySet<String>())
         val fetch = mockk<FetchSwapQuotesUseCase> {
-            coEvery {
-                this@mockk(any(), any(), any(), any(), any(), any(), any())
-            } returns listOf(quote)
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } returns listOf(quote)
         }
         val service = createService(
             providers = listOf(provider),
@@ -716,9 +738,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         disabledIdsFlow.value = setOf(provider.id)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) {
-            fetch(any(), any(), any(), any(), any(), any(), any())
-        }
+        coVerify(exactly = 1) { fetch(any(), any(), any(), any(), any(), any(), any()) }
         assertNull(service.stateFlow.value.quote)
         assertTrue(service.stateFlow.value.error is NoExactOutSwapProvider)
     }
@@ -734,9 +754,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         val fetchResult = CompletableDeferred<List<SwapProviderQuote>>()
         var fetchCount = 0
         val fetch = mockk<FetchSwapQuotesUseCase> {
-            coEvery {
-                this@mockk(any(), any(), any(), any(), any(), any(), any())
-            } coAnswers {
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } coAnswers {
                 fetchCount++
                 if (fetchCount == 1) {
                     listOf(selectedQuote)
@@ -783,9 +801,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         val quote = providerQuote(provider, BigDecimal("2"), BigDecimal.ONE)
         val disabledIdsFlow = MutableStateFlow(setOf(provider.id))
         val fetch = mockk<FetchSwapQuotesUseCase> {
-            coEvery {
-                this@mockk(any(), any(), any(), any(), any(), any(), any())
-            } returns listOf(quote)
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } returns listOf(quote)
         }
         val service = createService(
             providers = listOf(provider),
@@ -801,9 +817,7 @@ class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
         disabledIdsFlow.value = emptySet()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) {
-            fetch(any(), any(), any(), any(), any(), any(), any())
-        }
+        coVerify(exactly = 1) { fetch(any(), any(), any(), any(), any(), any(), any()) }
     }
 }
 
@@ -864,6 +878,37 @@ abstract class SwapQuoteServiceTestFixture {
             every { this@mockk.amountInMax } returns amountInMax
         },
     )
+
+    protected fun routeQuote(provider: IMultiSwapProvider): SwapProviderQuote = mockk(relaxed = true) {
+        every { this@mockk.provider } returns provider
+    }
+
+    protected fun routeWithLeg2Quotes(
+        leg1Quote: SwapProviderQuote,
+        leg2Quote: SwapProviderQuote,
+    ) = MultiSwapRoute(
+        intermediateCoin = mockk(),
+        leg1Quotes = listOf(leg1Quote),
+        leg2Quotes = listOf(leg2Quote),
+        commissionReserve = BigDecimal.ZERO,
+        selectedLeg1Quote = leg1Quote,
+        selectedLeg2Quote = leg2Quote,
+    )
+
+    protected fun createRouteService(
+        route: MultiSwapRoute,
+        scheduler: TestCoroutineScheduler,
+    ): SwapQuoteService {
+        val resolver = mockk<MultiSwapRouteResolver> {
+            coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns route
+        }
+        return createService(listOf(unsupportedDirectProvider()), scheduler, routeResolver = resolver)
+    }
+
+    protected fun unsupportedDirectProvider(): IMultiSwapProvider = mockk(relaxed = true) {
+        every { id } returns "direct"
+        coEvery { supports(tokenIn, tokenOut) } returns false
+    }
 
     protected fun createService(
         providers: List<IMultiSwapProvider>,

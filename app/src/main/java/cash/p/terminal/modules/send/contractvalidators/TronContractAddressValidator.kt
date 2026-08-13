@@ -9,11 +9,12 @@ internal class TronContractAddressValidator(
     private val tronRpcApi: TronRpcApi
 ) : ContractAddressValidator {
 
-    override suspend fun isContract(address: String, blockchainType: BlockchainType): Boolean? = withContext(Dispatchers.IO) {
-        return@withContext runCatching {
-            val contractInfo = tronRpcApi.getContractInfo(address)
-            
-            contractInfo?.contractMap?.isNotEmpty() == true
-        }.getOrElse { null }
-    }
+    override suspend fun isContract(address: String, blockchainType: BlockchainType): Boolean? =
+        withContext(Dispatchers.IO) {
+            return@withContext runCatching {
+                val contractInfo = tronRpcApi.getContractInfo(address)
+
+                contractInfo?.contractMap?.isNotEmpty() == true
+            }.getOrElse { null }
+        }
 }

@@ -324,7 +324,9 @@ private fun AnalyticsPreviewBlock(
                 StackedBarChart(lockedSlices, modifier = Modifier.padding(horizontal = 16.dp))
             } else {
                 AnalyticsChart(
-                    CoinAnalyticsModule.zigzagPlaceholderAnalyticChart(chartType == CoinAnalyticsModule.PreviewChartType.Line),
+                    CoinAnalyticsModule.zigzagPlaceholderAnalyticChart(
+                        chartType == CoinAnalyticsModule.PreviewChartType.Line
+                    ),
                 )
             }
         }

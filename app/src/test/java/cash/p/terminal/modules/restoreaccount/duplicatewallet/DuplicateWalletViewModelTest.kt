@@ -1,5 +1,7 @@
 package cash.p.terminal.modules.restoreaccount.duplicatewallet
 
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.RestoreSettings
@@ -28,6 +30,7 @@ import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -62,6 +65,8 @@ class DuplicateWalletViewModelTest {
     private val restoreSettingsManager: RestoreSettingsManager = mockk(relaxed = true)
     private val localStorage: ILocalStorage = mockk(relaxed = true)
     private val marketKit: MarketKitWrapper = mockk(relaxed = true)
+    private val viewModelStore = ViewModelStore()
+    private var createdViewModel: DuplicateWalletViewModel? = null
 
     private val usdtQuery = TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xusdt"))
     private val scamQuery = TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20("0xscam"))
@@ -95,6 +100,13 @@ class DuplicateWalletViewModelTest {
 
     @After
     fun tearDown() {
+        // copyAccount uses real IO; let its parent job resume on test Main before resetting Main.
+        runBlocking {
+            withTimeout(SAVE_TIMEOUT_MS) {
+                createdViewModel?.viewModelScope?.coroutineContext?.get(Job)?.children?.forEach { it.join() }
+            }
+        }
+        viewModelStore.clear()
         Dispatchers.resetMain()
     }
 
@@ -413,7 +425,10 @@ class DuplicateWalletViewModelTest {
         restoreSettingsManager = restoreSettingsManager,
         localStorage = localStorage,
         marketKit = marketKit
-    )
+    ).also {
+        createdViewModel = it
+        viewModelStore.put("duplicate-wallet", it)
+    }
 
     private fun enabledWallet(query: TokenQuery) = EnabledWallet(
         tokenQueryId = query.id,

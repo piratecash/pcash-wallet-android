@@ -90,7 +90,9 @@ class ShowExtendedKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
                 null
             }
 
-        constructor(extendedRootKey: HDExtendedKey, displayKeyType: DisplayKeyType) : this(extendedRootKey.serialize(), displayKeyType)
+        constructor(extendedRootKey: HDExtendedKey, displayKeyType: DisplayKeyType) : this(
+            extendedRootKey.serialize(), displayKeyType
+        )
     }
 }
 
@@ -101,7 +103,8 @@ private fun ShowExtendedKeyScreen(
     extendedKey: HDExtendedKey,
     displayKeyType: DisplayKeyType
 ) {
-    val viewModel = viewModel<ShowExtendedKeyViewModel>(factory = ShowExtendedKeyModule.Factory(extendedKey, displayKeyType))
+    val viewModel =
+        viewModel<ShowExtendedKeyViewModel>(factory = ShowExtendedKeyModule.Factory(extendedKey, displayKeyType))
 
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
@@ -176,7 +179,10 @@ private fun ShowExtendedKeyScreen(
                             MenuItem(
                                 title = stringResource(R.string.ExtendedKey_Purpose),
                                 value = viewModel.purpose.name,
-                                onClick = if (viewModel.displayKeyType == DisplayKeyType.Bip32RootKey || viewModel.displayKeyType.isDerivable) {
+                                onClick = if (
+                                    viewModel.displayKeyType == DisplayKeyType.Bip32RootKey ||
+                                    viewModel.displayKeyType.isDerivable
+                                ) {
                                     { showPurposeSelectorDialog = true }
                                 } else {
                                     null

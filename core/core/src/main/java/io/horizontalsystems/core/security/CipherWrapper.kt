@@ -29,7 +29,9 @@ class CipherWrapper {
 
     fun decrypt(data: String, key: Key): String {
         val split = data.split(IV_SEPARATOR.toRegex())
-        if (split.size != 2) throw IllegalArgumentException("Passed data is incorrect. There was no IV specified with it.")
+        if (split.size != 2) {
+            throw IllegalArgumentException("Passed data is incorrect. There was no IV specified with it.")
+        }
 
         val ivString = split[0]
         val encodedString = split[1]

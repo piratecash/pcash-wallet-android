@@ -277,6 +277,44 @@ class MultiSwapExchangeViewModelTest {
     }
 
     @Test
+    fun fetchLeg2Quotes_persistedProviderAvailable_prefersIt() = runTest(dispatcher) {
+        setupTokenResolution()
+        val bestProvider = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "best"
+        }
+        val selectedProvider = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "selected"
+        }
+        every { swapQuoteService.providers } returns listOf(bestProvider, selectedProvider)
+        coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(
+            createQuote(bestProvider), createQuote(selectedProvider),
+        )
+
+        val vm = createViewModel()
+        swapsFlow.value = listOf(completedLeg1Swap().copy(leg2ProviderId = "selected"))
+        advanceUntilIdle()
+
+        assertEquals("selected", vm.selectedLeg2Quote?.provider?.id)
+    }
+
+    @Test
+    fun fetchLeg2Quotes_persistedProviderUnavailable_usesBestQuote() = runTest(dispatcher) {
+        setupTokenResolution()
+        val provider = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "best"
+        }
+        every { swapQuoteService.providers } returns listOf(provider)
+        coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns
+            listOf(createQuote(provider))
+
+        val vm = createViewModel()
+        swapsFlow.value = listOf(completedLeg1Swap().copy(leg2ProviderId = "missing"))
+        advanceUntilIdle()
+
+        assertEquals("best", vm.selectedLeg2Quote?.provider?.id)
+    }
+
+    @Test
     fun fetchLeg2Quotes_leg1NotCompleted_doesNotCallStart() = runTest(dispatcher) {
         val vm = createViewModel()
 

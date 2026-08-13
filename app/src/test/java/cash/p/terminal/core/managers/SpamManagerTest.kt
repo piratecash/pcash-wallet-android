@@ -72,25 +72,26 @@ class SpamManagerTest {
     // --- subscribeToAdapters — adapter subscription lifecycle ---
 
     @Test
-    fun subscribeToAdapters_existingAdapterOnAdditionalSourceEmission_doesNotDuplicateSubscription() = runTest(UnconfinedTestDispatcher()) {
-        val adaptersFlow = MutableStateFlow<Map<TransactionSource, ITransactionsAdapter>>(emptyMap())
-        createSpamManager(adaptersFlow, backgroundScope)
+    fun subscribeToAdapters_existingAdapterOnAdditionalSourceEmission_doesNotDuplicateSubscription() =
+        runTest(UnconfinedTestDispatcher()) {
+            val adaptersFlow = MutableStateFlow<Map<TransactionSource, ITransactionsAdapter>>(emptyMap())
+            createSpamManager(adaptersFlow, backgroundScope)
 
-        val firstSource = transactionSource(BlockchainType.Ethereum)
-        val secondSource = transactionSource(BlockchainType.Solana)
-        val firstSubscriptionCount = AtomicInteger()
-        val secondSubscriptionCount = AtomicInteger()
-        val firstAdapter = transactionsAdapter(subscriptionCount = firstSubscriptionCount)
-        val secondAdapter = transactionsAdapter(subscriptionCount = secondSubscriptionCount)
+            val firstSource = transactionSource(BlockchainType.Ethereum)
+            val secondSource = transactionSource(BlockchainType.Solana)
+            val firstSubscriptionCount = AtomicInteger()
+            val secondSubscriptionCount = AtomicInteger()
+            val firstAdapter = transactionsAdapter(subscriptionCount = firstSubscriptionCount)
+            val secondAdapter = transactionsAdapter(subscriptionCount = secondSubscriptionCount)
 
-        adaptersFlow.value = mapOf(firstSource to firstAdapter)
-        assertEquals(1, firstSubscriptionCount.get())
+            adaptersFlow.value = mapOf(firstSource to firstAdapter)
+            assertEquals(1, firstSubscriptionCount.get())
 
-        adaptersFlow.value = mapOf(firstSource to firstAdapter, secondSource to secondAdapter)
+            adaptersFlow.value = mapOf(firstSource to firstAdapter, secondSource to secondAdapter)
 
-        assertEquals(1, firstSubscriptionCount.get())
-        assertEquals(1, secondSubscriptionCount.get())
-    }
+            assertEquals(1, firstSubscriptionCount.get())
+            assertEquals(1, secondSubscriptionCount.get())
+        }
 
     @Test
     fun subscribeToAdapters_removedAdapter_cancelsSubscription() = runTest(UnconfinedTestDispatcher()) {

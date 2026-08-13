@@ -81,7 +81,9 @@ class SelectBlockchainsViewModel(
     private fun coinViewItemForToken(token: Token, label: String?): CoinViewItem<Token> {
         return CoinViewItem(
             item = token,
-            imageSource = ImageSource.Remote(token.fullCoin.coin.imageUrl, R.drawable.coin_placeholder, token.fullCoin.coin.alternativeImageUrl),
+            imageSource = ImageSource.Remote(
+                token.fullCoin.coin.imageUrl, R.drawable.coin_placeholder, token.fullCoin.coin.alternativeImageUrl
+            ),
             title = token.fullCoin.coin.code,
             subtitle = token.fullCoin.coin.name,
             enabled = false,

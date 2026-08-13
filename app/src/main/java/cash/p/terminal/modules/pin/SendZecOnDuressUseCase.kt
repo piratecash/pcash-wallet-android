@@ -4,11 +4,13 @@ import android.content.Context
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.toLocalizedString
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
@@ -92,6 +94,7 @@ class SendZecOnDuressUseCase(
         data class Winner(val adapterInfo: AdapterInfo) : SyncRaceResult()
         data object AllSyncedInsufficientBalance : SyncRaceResult()
     }
+
     /**
      * Sends ZEC transaction if SMS notification is enabled for the previous level.
      * This operation runs asynchronously using application-scoped coroutine to ensure
@@ -170,7 +173,8 @@ class SendZecOnDuressUseCase(
 
         // Check if wallet belongs to active account - if yes, wait for adapter initialization
         val isActiveAccountWallet = wallet.account.id == accountManager.activeAccount?.id &&
-                walletManager.getWallets(wallet.account).find { it.token.blockchainType == BlockchainType.Zcash } != null
+                walletManager.getWallets(wallet.account)
+                    .find { it.token.blockchainType == BlockchainType.Zcash } != null
 
         val existingShieldedAdapter: ISendZcashAdapter? = getExistingAdapter(shieldedWallet, isActiveAccountWallet)
         val existingUnifiedAdapter: ISendZcashAdapter? = getExistingAdapter(unifiedWallet, isActiveAccountWallet)
@@ -185,6 +189,7 @@ class SendZecOnDuressUseCase(
                 is SyncRaceResult.Winner -> {
                     sendWithAdapter(wallet, result.adapterInfo.adapter, address, memo)
                 }
+
                 is SyncRaceResult.AllSyncedInsufficientBalance -> {
                     Timber.w("All existing adapters synced but have insufficient balance")
                     SendZecResult.InsufficientBalance
@@ -223,6 +228,7 @@ class SendZecOnDuressUseCase(
                 is SyncRaceResult.Winner -> {
                     sendWithAdapter(wallet, result.adapterInfo.adapter, address, memo)
                 }
+
                 is SyncRaceResult.AllSyncedInsufficientBalance -> {
                     Timber.w("All adapters synced but have insufficient balance")
                     SendZecResult.InsufficientBalance
@@ -277,7 +283,10 @@ class SendZecOnDuressUseCase(
             SendZecResult.Success
         } catch (e: Exception) {
             Timber.e(e, "Failed to send ZEC transaction")
-            SendZecResult.TransactionFailed(e.message ?: "Transaction failed")
+            val message = (e as? LocalizedException)?.toLocalizedString()
+                ?: e.message
+                ?: "Transaction failed"
+            SendZecResult.TransactionFailed(message)
         }
     }
 
@@ -417,7 +426,7 @@ class SendZecOnDuressUseCase(
             walletManager.getWallets(account)
         }?.find { wallet ->
             wallet.token.blockchainType == BlockchainType.Zcash &&
-                isShieldedOrUnified(wallet.token.type)
+                    isShieldedOrUnified(wallet.token.type)
         }
     }
 
@@ -425,8 +434,9 @@ class SendZecOnDuressUseCase(
         return when (tokenType) {
             is TokenType.AddressSpecTyped -> {
                 tokenType.type == TokenType.AddressSpecType.Shielded ||
-                    tokenType.type == TokenType.AddressSpecType.Unified
+                        tokenType.type == TokenType.AddressSpecType.Unified
             }
+
             else -> false
         }
     }

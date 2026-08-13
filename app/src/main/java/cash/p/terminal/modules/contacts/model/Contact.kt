@@ -18,7 +18,9 @@ data class ContactAddress(
     val address: String
 ) : Parcelable {
     override fun equals(other: Any?): Boolean {
-        return other is ContactAddress && other.blockchain == blockchain && other.address.equals(address, ignoreCase = true)
+        return other is ContactAddress && other.blockchain == blockchain && other.address.equals(
+            address, ignoreCase = true
+        )
     }
 
     override fun hashCode(): Int {

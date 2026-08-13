@@ -63,7 +63,9 @@ object ContactsModule {
 
     sealed class ContactValidationException(override val message: String?) : Throwable() {
         object DuplicateContactName :
-            ContactValidationException(cash.p.terminal.strings.helpers.Translator.getString(R.string.Contacts_Error_DefinedName))
+            ContactValidationException(
+                cash.p.terminal.strings.helpers.Translator.getString(R.string.Contacts_Error_DefinedName)
+            )
 
         class DuplicateAddress(val contact: Contact) :
             ContactValidationException(

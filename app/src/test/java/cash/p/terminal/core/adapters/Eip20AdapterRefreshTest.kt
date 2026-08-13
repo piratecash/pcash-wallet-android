@@ -36,7 +36,9 @@ class Eip20AdapterRefreshTest {
     private val tokenBalance = BigDecimal.ONE
 
     private fun stubCommon() {
-        every { evmTransactionRepository.transactionSyncSourceStorage } returns mockk<TransactionSyncSourceStorage>(relaxed = true)
+        every { evmTransactionRepository.transactionSyncSourceStorage } returns mockk<TransactionSyncSourceStorage>(
+            relaxed = true
+        )
         every { evmTransactionRepository.buildErc20Kit(context, any()) } returns eip20Kit
         every { repositoryReceiveAddress.eip55 } returns receiveAddress
         every { evmTransactionRepository.receiveAddress } returns repositoryReceiveAddress

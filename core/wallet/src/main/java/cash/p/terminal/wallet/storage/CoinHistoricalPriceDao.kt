@@ -8,8 +8,15 @@ import cash.p.terminal.wallet.models.CoinHistoricalPrice
 
 @Dao
 interface CoinHistoricalPriceDao {
-    @Query("SELECT * FROM CoinHistoricalPrice WHERE coinUid=:coinUid AND currencyCode=:currencyCode AND timestamp = :timestamp LIMIT 1")
-    fun getCoinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): CoinHistoricalPrice?
+    @Query(
+        "SELECT * FROM CoinHistoricalPrice WHERE coinUid=:coinUid AND currencyCode=:currencyCode AND " +
+                "timestamp = :timestamp LIMIT 1"
+    )
+    fun getCoinHistoricalPrice(
+        coinUid: String,
+        currencyCode: String,
+        timestamp: Long
+    ): CoinHistoricalPrice?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(coinHistoricalPrice: CoinHistoricalPrice)

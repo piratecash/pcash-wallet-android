@@ -22,7 +22,8 @@ class WCWalletRequestHandler(
             return when (request.method) {
                 "wallet_addEthereumChain",
                 "wallet_switchEthereumChain" -> {
-                    val blockchain = chain.chainId.hexStringToIntOrNull()?.let { evmBlockchainManager.getBlockchain(it) }
+                    val blockchain =
+                        chain.chainId.hexStringToIntOrNull()?.let { evmBlockchainManager.getBlockchain(it) }
                     if (blockchain != null) {
                         val response = Wallet.Params.SessionRequestResponse(
                             sessionTopic = sessionRequest.topic,
@@ -47,7 +48,8 @@ class WCWalletRequestHandler(
                                 message = "Unrecognized chain ID"
                             )
                         )
-                        WalletKit.respondSessionRequest(result,
+                        WalletKit.respondSessionRequest(
+                            result,
                             onSuccess = {},
                             onError = { error ->
                                 Log.e("WCWalletHandler", "${request.method} response error: $error")

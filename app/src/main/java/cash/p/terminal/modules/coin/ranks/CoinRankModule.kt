@@ -15,7 +15,9 @@ object CoinRankModule {
     class Factory(private val rankType: CoinAnalyticsModule.RankType) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CoinRankViewModel(rankType, App.currencyManager.baseCurrency, App.marketKit, App.numberFormatter) as T
+            return CoinRankViewModel(
+                rankType, App.currencyManager.baseCurrency, App.marketKit, App.numberFormatter
+            ) as T
         }
     }
 

@@ -21,7 +21,8 @@ import java.time.Instant
 class RateAppManager(
     private val walletManager: IWalletManager,
     private val adapterManager: IAdapterManager,
-    private val localStorage: ILocalStorage) : IRateAppManager {
+    private val localStorage: ILocalStorage
+) : IRateAppManager {
 
     private val _showRateFlow = MutableStateFlow(false)
     override val showRateAppFlow = _showRateFlow
@@ -82,7 +83,7 @@ class RateAppManager(
             return
         }
 
-        if(!isCountdownPassed){
+        if (!isCountdownPassed) {
             startCountdownChecker()
         }
     }
@@ -119,7 +120,10 @@ class RateAppManager(
             val uri =
                 Uri.parse("market://details?id=cash.p.terminal")  //context.packageName
             val goToMarketIntent = Intent(Intent.ACTION_VIEW, uri)
-            goToMarketIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_MULTIPLE_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+            val flags = Intent.FLAG_ACTIVITY_NO_HISTORY or
+                    Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
+                    Intent.FLAG_ACTIVITY_NEW_DOCUMENT
+            goToMarketIntent.addFlags(flags)
             return goToMarketIntent
         }
 

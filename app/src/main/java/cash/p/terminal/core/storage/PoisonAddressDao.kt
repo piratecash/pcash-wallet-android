@@ -9,16 +9,21 @@ import cash.p.terminal.entities.PoisonAddress
 
 @Dao
 interface PoisonAddressDao {
-    @Query("SELECT * FROM PoisonAddress WHERE address = :address AND blockchainTypeUid = :blockchainTypeUid AND accountId = :accountId")
+    @Query(
+        "SELECT * FROM PoisonAddress WHERE address = :address AND blockchainTypeUid = :blockchainTypeUid AND " +
+                "accountId = :accountId"
+    )
     fun get(address: String, blockchainTypeUid: String, accountId: String): PoisonAddress?
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM PoisonAddress
         WHERE type = 'KNOWN'
           AND blockchainTypeUid = :blockchainTypeUid
           AND accountId = :accountId
           AND sendCount >= :minSendCount
-    """)
+    """
+    )
     fun getWhitelisted(
         blockchainTypeUid: String,
         accountId: String,
@@ -28,24 +33,28 @@ interface PoisonAddressDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertIgnore(poisonAddress: PoisonAddress)
 
-    @Query("""
+    @Query(
+        """
         UPDATE PoisonAddress
         SET sendCount = sendCount + 1
         WHERE address = :address
           AND blockchainTypeUid = :blockchainTypeUid
           AND accountId = :accountId
           AND type = 'KNOWN'
-    """)
+    """
+    )
     fun incrementKnownSendCount(
         address: String,
         blockchainTypeUid: String,
         accountId: String,
     ): Int
 
-    @Query("""
+    @Query(
+        """
         INSERT OR REPLACE INTO PoisonAddress(address, blockchainTypeUid, accountId, type, sendCount)
         VALUES (:address, :blockchainTypeUid, :accountId, 'KNOWN', 1)
-    """)
+    """
+    )
     fun insertFirstKnown(
         address: String,
         blockchainTypeUid: String,

@@ -157,7 +157,9 @@ class MarketWidget : GlanceAppWidget() {
                 Column {
                     Spacer(modifier = GlanceModifier.height(8.dp))
                     Text(
-                        text = "Updated: " + SimpleDateFormat("HH:mm:ss, dd-MM-yyyy", Locale.US).format(Date(state.updateTimestampMillis)),
+                        text = "Updated: " + SimpleDateFormat("HH:mm:ss, dd-MM-yyyy", Locale.US).format(
+                            Date(state.updateTimestampMillis)
+                        ),
                         style = AppWidgetTheme.textStyles.micro()
                     )
                 }
@@ -166,20 +168,21 @@ class MarketWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun getDeeplinkUri(item: MarketWidgetItem, type: MarketWidgetType, deeplinkScheme: String): Uri = when (type) {
-        MarketWidgetType.Watchlist,
-        MarketWidgetType.TopGainers -> {
-            "pcash://coin-page?uid=${item.uid}".toUri()
-        }
+    private fun getDeeplinkUri(item: MarketWidgetItem, type: MarketWidgetType, deeplinkScheme: String): Uri =
+        when (type) {
+            MarketWidgetType.Watchlist,
+            MarketWidgetType.TopGainers -> {
+                "pcash://coin-page?uid=${item.uid}".toUri()
+            }
 
-        MarketWidgetType.TopNfts -> {
-            "pcash://nft-collection?uid=${item.uid}&blockchainTypeUid=${item.blockchainTypeUid}".toUri()
-        }
+            MarketWidgetType.TopNfts -> {
+                "pcash://nft-collection?uid=${item.uid}&blockchainTypeUid=${item.blockchainTypeUid}".toUri()
+            }
 
-        MarketWidgetType.TopPlatforms -> {
-            "pcash://top-platforms?uid=${item.uid}&title=${item.title}".toUri()
+            MarketWidgetType.TopPlatforms -> {
+                "pcash://top-platforms?uid=${item.uid}&title=${item.title}".toUri()
+            }
         }
-    }
 
     @Composable
     private fun Item(item: MarketWidgetItem, type: MarketWidgetType) {
@@ -189,9 +192,10 @@ class MarketWidget : GlanceAppWidget() {
                 .padding(horizontal = 16.dp),
             verticalAlignment = CenterVertically
         ) {
-           val modifier =  when(type) {
+            val modifier = when (type) {
                 MarketWidgetType.Watchlist,
                 MarketWidgetType.TopGainers -> GlanceModifier.size(32.dp).cornerRadius(16.dp)
+
                 MarketWidgetType.TopNfts,
                 MarketWidgetType.TopPlatforms -> GlanceModifier.size(32.dp)
             }

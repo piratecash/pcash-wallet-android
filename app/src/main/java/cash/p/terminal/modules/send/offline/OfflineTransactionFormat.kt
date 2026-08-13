@@ -15,7 +15,9 @@ internal fun OfflineTransactionFormat.content(transaction: OfflineSignedTransact
         OfflineTransactionFormat.Raw -> transaction.rawHex
     }
 
-internal fun OfflineTransactionFormat.preferredTransferFormat(transaction: OfflineSignedTransaction): OfflineTransactionFormat =
+internal fun OfflineTransactionFormat.preferredTransferFormat(
+    transaction: OfflineSignedTransaction
+): OfflineTransactionFormat =
     when (this) {
         OfflineTransactionFormat.Raw -> OfflineTransactionFormat.Raw
         OfflineTransactionFormat.Pcash -> {
@@ -27,6 +29,7 @@ internal fun OfflineTransactionFormat.preferredTransferFormat(transaction: Offli
                 pcashContent.canEncodeAsOfflineQr() -> OfflineTransactionFormat.Pcash
                 rawContent.length < pcashContent.length && rawContent.canEncodeAsOfflineQr() ->
                     OfflineTransactionFormat.Raw
+
                 animatedQrFrames(pcashContent) != null -> OfflineTransactionFormat.Pcash
                 animatedQrFrames(rawContent) != null -> OfflineTransactionFormat.Raw
                 else -> OfflineTransactionFormat.Pcash

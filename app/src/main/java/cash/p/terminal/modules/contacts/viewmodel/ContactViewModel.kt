@@ -24,12 +24,13 @@ class ContactViewModel(
         TranslatableString.PlainString(existingContact.name)
 
     private var contactName = contact.name
-    private var addresses: MutableMap<Blockchain, ContactAddress> = contact.addresses.associateBy { it.blockchain }.toMutableMap()
+    private var addresses: MutableMap<Blockchain, ContactAddress> =
+        contact.addresses.associateBy { it.blockchain }.toMutableMap()
     private var addressViewItems: List<AddressViewItem> = addressViewItems()
     private val isNewContact = existingContact == null
     private var closeAfterSave = false
     private var error: ContactValidationException? = null
-    
+
     init {
         newAddress?.let {
             setAddress(it)
@@ -97,7 +98,8 @@ class ContactViewModel(
     private fun hasChanges(): Boolean {
         val savedAddresses = contact.addresses.toSet()
         val newAddresses = addresses.values.toSet()
-        val addressesChanged = savedAddresses.size != newAddresses.size || (savedAddresses.toMutableSet() + newAddresses) != savedAddresses
+        val addressesChanged =
+            savedAddresses.size != newAddresses.size || (savedAddresses.toMutableSet() + newAddresses) != savedAddresses
 
         return contactName != contact.name || addressesChanged
     }
@@ -109,9 +111,10 @@ class ContactViewModel(
     private fun addressViewItems(): List<AddressViewItem> {
         val sortedAddresses = addresses.values.sortedBy { it.blockchain.type.order }
         val savedAddresses = contact.addresses.associateBy { it.blockchain }
-        return sortedAddresses.map { AddressViewItem(it, edited = it != savedAddresses[it.blockchain]) }.sortedByDescending {
-            it.edited
-        }
+        return sortedAddresses.map { AddressViewItem(it, edited = it != savedAddresses[it.blockchain]) }
+            .sortedByDescending {
+                it.edited
+            }
     }
 
     data class UiState(

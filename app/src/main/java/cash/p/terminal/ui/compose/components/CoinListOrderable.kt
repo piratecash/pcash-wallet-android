@@ -104,7 +104,10 @@ fun CoinListOrderable(
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .background(if (item.favorited) cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian else cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob)
+                            .background(
+                                if (item.favorited) cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian
+                                else cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob
+                            )
                             .align(Alignment.CenterEnd)
                             .width(100.dp)
                             .clickable {
@@ -121,9 +124,13 @@ fun CoinListOrderable(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            painter = painterResource(id = if (item.favorited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24),
+                            painter = painterResource(
+                                id = if (item.favorited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24
+                            ),
                             tint = ComposeAppTheme.colors.claude,
-                            contentDescription = stringResource(if (item.favorited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite),
+                            contentDescription = stringResource(
+                                if (item.favorited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
+                            ),
                         )
                     }
                     DraggableCardSimple(

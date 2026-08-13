@@ -27,7 +27,9 @@ class SilentCameraManager(
 ) : ISilentPhotoCapture {
 
     private fun getPhotosDir(): File {
-        return File(context.filesDir, "${ILoginRecordRepository.PHOTOS_DIR}${File.separator}${userManager.getUserLevel()}").apply { mkdirs() }
+        return File(
+            context.filesDir, "${ILoginRecordRepository.PHOTOS_DIR}${File.separator}${userManager.getUserLevel()}"
+        ).apply { mkdirs() }
     }
 
     override fun hasCameraPermission(): Boolean {

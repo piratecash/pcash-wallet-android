@@ -13,7 +13,10 @@ interface HardwarePublicKeyDao {
     @Query("SELECT * FROM HardwarePublicKey WHERE accountId = :accountId")
     fun getAllPublicKeys(accountId: String): List<HardwarePublicKey>
 
-    @Query("SELECT * FROM HardwarePublicKey WHERE accountId = :accountId AND blockchainType = :blockchainType AND tokenType = :tokenType")
+    @Query(
+        "SELECT * FROM HardwarePublicKey WHERE accountId = :accountId AND blockchainType = :blockchainType AND " +
+                "tokenType = :tokenType"
+    )
     suspend fun getPublicKey(accountId: String, blockchainType: String, tokenType: TokenType): HardwarePublicKey?
 
     @Query("SELECT * FROM HardwarePublicKey WHERE accountId = :accountId AND blockchainType = :blockchainType LIMIT 1")

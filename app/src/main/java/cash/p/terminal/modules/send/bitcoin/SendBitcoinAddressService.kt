@@ -3,6 +3,7 @@ package cash.p.terminal.modules.send.bitcoin
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.toLocalizedString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.entities.Address
 import io.horizontalsystems.bitcoincore.core.IPluginData
@@ -66,7 +67,7 @@ class SendBitcoinAddressService(private val adapter: ISendBitcoinAdapter) {
         val message = when (error) {
             is HodlerPlugin.UnsupportedAddressType -> Translator.getString(R.string.Send_Error_UnsupportedAddress)
             is AddressFormatException -> Translator.getString(R.string.SwapSettings_Error_InvalidAddress)
-            is LocalizedException -> Translator.getString(error.errorTextRes, *error.formatArgs)
+            is LocalizedException -> error.toLocalizedString()
             else -> error.message ?: error.javaClass.simpleName
         }
 

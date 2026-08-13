@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +45,10 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
@@ -55,6 +58,7 @@ import cash.p.terminal.modules.multiswap.PriceField
 import cash.p.terminal.modules.multiswap.PriceImpactField
 import cash.p.terminal.modules.multiswap.ProviderRiskBadge
 import cash.p.terminal.modules.multiswap.providers.ProviderRiskType
+import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.ui.compose.components.HSRow
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
@@ -112,7 +116,13 @@ internal fun MultiSwapExchangeScreen(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
-                title = stringResource(R.string.Swap),
+                title = stringResource(
+                    if (uiState?.presentation == MultiSwapExchangePresentation.RouteInfo) {
+                        R.string.multi_swap_route_title
+                    } else {
+                        R.string.multi_swap_execution_title
+                    }
+                ),
                 navigationIcon = { HsBackButton(onClick = onBack) },
                 menuItems = buildList {
                     timeRemainingProgress()?.let { progress ->
@@ -135,13 +145,16 @@ internal fun MultiSwapExchangeScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(height = 12.dp)
+                if (uiState.presentation == MultiSwapExchangePresentation.RouteInfo) {
+                    RouteInfoHeader(uiState)
+                }
                 // Leg1 header center = 24dp, Leg2 header center = 20dp
                 val dotStartPadding = 8.dp
                 val cardStartPadding = dotStartPadding + 8.dp + 8.dp // dot area + gap
                 val leg1DotOffset = 24.dp - 4.dp // header center - half dot
                 var leg1CardHeight by remember { mutableIntStateOf(0) }
                 val density = LocalDensity.current
-                val gapBetweenCards = 40.dp
+                val gapBetweenCards = 23.dp
                 val leg2HeaderCenter = 20.dp
                 val leg2DotOffset = with(density) {
                     leg1CardHeight.toDp() + gapBetweenCards + leg2HeaderCenter - 4.dp
@@ -155,6 +168,10 @@ internal fun MultiSwapExchangeScreen(
                     Column(
                         modifier = Modifier.padding(start = cardStartPadding)
                     ) {
+                        StepLabel(
+                            index = 1,
+                            visible = uiState.presentation == MultiSwapExchangePresentation.RouteInfo
+                        )
                         LegCard(
                             leg = uiState.leg1,
                             borderColor = ComposeAppTheme.colors.grey,
@@ -167,12 +184,21 @@ internal fun MultiSwapExchangeScreen(
                                     coinIconUrlIn = uiState.leg1.coinIconUrlIn,
                                     coinIconUrlOut = uiState.leg1.coinIconUrlOut,
                                     riskType = uiState.leg1.riskType,
+                                    estimationTime = uiState.leg1.estimationTime,
                                     onClick = if (uiState.leg1Clickable) onClickLeg1 else null,
                                 )
-                                LegContent(uiState.leg1)
+                                LegContent(
+                                    leg = uiState.leg1,
+                                    providerName = uiState.leg1.providerName,
+                                    providerIcon = uiState.leg1.providerIcon,
+                                )
                             }
                         )
                         VSpacer(height = gapBetweenCards)
+                        StepLabel(
+                            index = 2,
+                            visible = uiState.presentation == MultiSwapExchangePresentation.RouteInfo
+                        )
                         LegCard(
                             leg = uiState.leg2,
                             borderColor = ComposeAppTheme.colors.steel20,
@@ -190,31 +216,39 @@ internal fun MultiSwapExchangeScreen(
                             }
                         )
                     }
-                    // Dots + line overlay
-                    StatusDot(
-                        status = uiState.leg1.status,
-                        modifier = Modifier
-                            .padding(start = dotStartPadding)
-                            .offset(y = leg1DotOffset),
-                    )
-                    StatusDot(
-                        status = uiState.leg2.status,
-                        modifier = Modifier
-                            .padding(start = dotStartPadding)
-                            .offset(y = leg2DotOffset),
-                    )
-                    VerticalLine(
-                        isDotted = uiState.leg1.status != LegStatus.Completed,
-                        modifier = Modifier
-                            .padding(start = dotStartPadding + 4.5.dp)
-                            .offset(y = leg1DotOffset + 15.dp)
-                            .height(leg2DotOffset - leg1DotOffset - 20.dp),
-                    )
+                    if (uiState.presentation == MultiSwapExchangePresentation.Execution) {
+                        StatusDot(
+                            status = uiState.leg1.status,
+                            modifier = Modifier
+                                .padding(start = dotStartPadding)
+                                .offset(y = leg1DotOffset),
+                        )
+                        StatusDot(
+                            status = uiState.leg2.status,
+                            modifier = Modifier
+                                .padding(start = dotStartPadding)
+                                .offset(y = leg2DotOffset),
+                        )
+                        VerticalLine(
+                            isDotted = uiState.leg1.status != LegStatus.Completed,
+                            modifier = Modifier
+                                .padding(start = dotStartPadding + 4.5.dp)
+                                .offset(y = leg1DotOffset + 15.dp)
+                                .height(leg2DotOffset - leg1DotOffset - 20.dp),
+                        )
+                    }
                 }
                 VSpacer(height = 24.dp)
             }
 
-            BottomButtons(
+            if (uiState.presentation == MultiSwapExchangePresentation.RouteInfo) {
+                RouteInfoButtons(
+                    buttonState = uiState.buttonState,
+                    onContinue = onSwap,
+                    onRefresh = onRefresh,
+                    onCancel = onBack,
+                )
+            } else BottomButtons(
                 buttonState = uiState.buttonState,
                 showContinueLater = uiState.showContinueLater,
                 swapButtonTitle = swapButtonTitle,
@@ -224,6 +258,79 @@ internal fun MultiSwapExchangeScreen(
                 onDeleteAndClose = { showCancelConfirmation = true },
             )
         }
+    }
+}
+
+@Composable
+private fun RouteInfoHeader(uiState: MultiSwapExchangeUiState) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        uiState.routeExplanationTokens.takeIf { it.size == 3 }?.let { tokens ->
+            val routeExplanation = stringResource(
+                R.string.multi_swap_route_explanation,
+                tokens[0],
+                tokens[1],
+                tokens[2],
+            )
+            TextImportantWarning(
+                text = remember(routeExplanation) { routeExplanation.withCenteredRouteArrows() },
+            )
+        }
+        VSpacer(height = 16.dp)
+    }
+}
+
+private fun String.withCenteredRouteArrows(): AnnotatedString = buildAnnotatedString {
+    append(this@withCenteredRouteArrows)
+    this@withCenteredRouteArrows.forEachIndexed { index, char ->
+        if (char == '→') {
+            addStyle(
+                style = SpanStyle(baselineShift = BaselineShift(0.12f)),
+                start = index,
+                end = index + 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RouteInfoButtons(
+    buttonState: ButtonState,
+    onContinue: () -> Unit,
+    onRefresh: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    val buttonModifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+    ButtonsGroupWithShade {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            SwapPrimaryButton(
+                buttonState = buttonState,
+                modifier = buttonModifier,
+                title = stringResource(R.string.multi_swap_understood_continue),
+                onSwap = onContinue,
+                onRefresh = onRefresh,
+                onClose = onCancel,
+            )
+            VSpacer(height = 8.dp)
+            ButtonPrimaryTransparent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                title = stringResource(R.string.Button_Cancel),
+                onClick = onCancel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun StepLabel(index: Int, visible: Boolean) {
+    if (visible) {
+        subhead1_grey(
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+            text = stringResource(R.string.multi_swap_step, index),
+        )
     }
 }
 
@@ -279,7 +386,11 @@ private fun LegCard(
 }
 
 @Composable
-private fun LegContent(leg: LegUiState) {
+private fun LegContent(
+    leg: LegUiState,
+    providerName: String? = null,
+    providerIcon: Int? = null,
+) {
     // You Send
     AmountRow(
         title = stringResource(R.string.swap_you_send),
@@ -298,6 +409,9 @@ private fun LegContent(leg: LegUiState) {
         currency = leg.currency,
         amountColor = ComposeAppTheme.colors.remus,
     )
+    if (providerName != null && providerIcon != null) {
+        SwapProviderField(providerName, providerIcon)
+    }
     // Price
     val tokenIn = leg.tokenIn
     val tokenOut = leg.tokenOut
@@ -364,6 +478,7 @@ private fun Leg1Header(
     coinIconUrlIn: String?,
     coinIconUrlOut: String?,
     riskType: ProviderRiskType? = null,
+    estimationTime: Long? = null,
     onClick: (() -> Unit)? = null,
 ) {
     CellUniversal(
@@ -406,10 +521,11 @@ private fun Leg1Header(
                 providerName == null -> stringResource(R.string.Swap)
                 status == LegStatus.Completed ->
                     stringResource(R.string.multi_swap_completed_via, providerName)
+
                 else -> stringResource(R.string.multi_swap_via, providerName)
             }
             subhead1_leah(text = titleText)
-            ProviderBadges(riskType = riskType, estimationTime = null)
+            ProviderBadges(riskType = riskType, estimationTime = estimationTime)
         }
     }
 }
@@ -431,26 +547,17 @@ private fun Leg2Header(
         verticalAlignment = Alignment.CenterVertically,
         borderBottom = true,
     ) {
-        if (clickable) {
-            Selector(
-                icon = {
-                    if (providerIcon != null) {
-                        Image(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(providerIcon),
-                            contentDescription = null
-                        )
-                    }
-                },
-                text = {
-                    Column {
-                        subhead1_leah(text = providerName ?: "")
-                        ProviderBadges(riskType = riskType, estimationTime = estimationTime)
-                    }
-                },
-                onClickSelect = onClickProvider
-            )
-        } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    enabled = clickable,
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClickProvider,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (providerIcon != null) {
                 Image(
                     modifier = Modifier.size(24.dp),
@@ -461,39 +568,22 @@ private fun Leg2Header(
             }
             when {
                 providerName != null -> Column {
-                    subhead1_leah(text = providerName)
+                    subhead1_leah(text = stringResource(R.string.multi_swap_via, providerName))
                     ProviderBadges(riskType = riskType, estimationTime = estimationTime)
                 }
+
                 quoting -> subhead1_grey(text = stringResource(R.string.multi_swap_finding_best_provider))
                 else -> subhead1_grey(text = stringResource(R.string.multi_swap_no_providers))
             }
+            if (clickable) {
+                HFillSpacer(minWidth = 16.dp)
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_right),
+                    contentDescription = null,
+                    tint = ComposeAppTheme.colors.grey,
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun Selector(
-    icon: @Composable (RowScope.() -> Unit),
-    text: @Composable (RowScope.() -> Unit),
-    onClickSelect: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = onClickSelect,
-        ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        icon.invoke(this)
-        HSpacer(width = 8.dp)
-        text.invoke(this)
-        HSpacer(width = 8.dp)
-        Icon(
-            painter = painterResource(R.drawable.ic_arrow_big_down_20),
-            contentDescription = "",
-            tint = ComposeAppTheme.colors.grey
-        )
     }
 }
 
@@ -513,47 +603,14 @@ private fun BottomButtons(
 
     ButtonsGroupWithShade {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            when (buttonState) {
-                ButtonState.Close -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = stringResource(R.string.Button_Close),
-                    onClick = onClose,
-                )
-
-                ButtonState.Enabled -> {
-                    ButtonPrimaryYellow(
-                        modifier = buttonModifier,
-                        title = swapButtonTitle,
-                        onClick = onSwap,
-                    )
-                }
-
-                ButtonState.Refresh -> {
-                    ButtonPrimaryDefault(
-                        modifier = buttonModifier,
-                        title = stringResource(R.string.Button_Refresh),
-                        onClick = onRefresh,
-                    )
-                }
-
-                ButtonState.Quoting -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = stringResource(R.string.Swap_Quoting),
-                    enabled = false,
-                    loadingIndicator = true,
-                    onClick = {},
-                )
-
-                ButtonState.Hidden -> { /* no primary button */
-                }
-
-                ButtonState.Disabled -> ButtonPrimaryYellow(
-                    modifier = buttonModifier,
-                    title = swapButtonTitle,
-                    onClick = {},
-                    enabled = false,
-                )
-            }
+            SwapPrimaryButton(
+                buttonState = buttonState,
+                modifier = buttonModifier,
+                title = swapButtonTitle,
+                onSwap = onSwap,
+                onRefresh = onRefresh,
+                onClose = onClose,
+            )
 
             if (showContinueLater) {
                 VSpacer(height = 8.dp)
@@ -576,6 +633,45 @@ private fun BottomButtons(
             }
         }
     }
+}
+
+@Composable
+private fun SwapPrimaryButton(
+    buttonState: ButtonState,
+    title: String,
+    onSwap: () -> Unit,
+    onRefresh: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (buttonState == ButtonState.Hidden) return
+    if (buttonState == ButtonState.Refresh) {
+        ButtonPrimaryDefault(
+            modifier = modifier,
+            title = stringResource(R.string.Button_Refresh),
+            onClick = onRefresh,
+        )
+        return
+    }
+
+    val enabled = buttonState == ButtonState.Enabled || buttonState == ButtonState.Close
+    val buttonTitle = when (buttonState) {
+        ButtonState.Close -> stringResource(R.string.Button_Close)
+        ButtonState.Quoting -> stringResource(R.string.Swap_Quoting)
+        else -> title
+    }
+    val onClick: () -> Unit = when (buttonState) {
+        ButtonState.Close -> onClose
+        ButtonState.Enabled -> onSwap
+        else -> ({})
+    }
+    ButtonPrimaryYellow(
+        modifier = modifier,
+        title = buttonTitle,
+        enabled = enabled,
+        loadingIndicator = buttonState == ButtonState.Quoting,
+        onClick = onClick,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -653,7 +749,7 @@ internal fun PayCoreDeleteRestrictedBottomSheet(
             VSpacer(12.dp)
             val warningText = if (requiresBankSelection) {
                 stringResource(R.string.paycore_delete_restricted_warning) + " " +
-                    stringResource(R.string.paycore_delete_to_complete_select_bank)
+                        stringResource(R.string.paycore_delete_to_complete_select_bank)
             } else {
                 stringResource(R.string.paycore_delete_restricted_warning)
             }
@@ -717,39 +813,51 @@ private fun Leg1HeaderPreview() {
     }
 }
 
-@Preview
+@Preview(name = "Route info")
+@Composable
+private fun MultiSwapRouteInfoPreview() {
+    MultiSwapScreenPreviewContent(
+        presentation = MultiSwapExchangePresentation.RouteInfo,
+        leg1Status = LegStatus.Pending,
+        buttonState = ButtonState.Enabled,
+    )
+}
+
+@Preview(name = "Execution")
 @Composable
 private fun MultiSwapExchangeScreenPreview() {
-    ComposeAppTheme {
+    MultiSwapScreenPreviewContent(
+        presentation = MultiSwapExchangePresentation.Execution,
+        leg1Status = LegStatus.Executing,
+        buttonState = ButtonState.Disabled,
+        showContinueLater = true,
+    )
+}
+
+@Preview(name = "Completed execution")
+@Composable
+private fun MultiSwapExchangeScreenCompletedPreview() {
+    MultiSwapScreenPreviewContent(
+        presentation = MultiSwapExchangePresentation.Execution,
+        leg1Status = LegStatus.Completed,
+        buttonState = ButtonState.Enabled,
+        showContinueLater = true,
+        timeRemainingProgress = 0.7f,
+    )
+}
+
+@Composable
+private fun MultiSwapScreenPreviewContent(
+    presentation: MultiSwapExchangePresentation,
+    leg1Status: LegStatus,
+    buttonState: ButtonState,
+    showContinueLater: Boolean = false,
+    timeRemainingProgress: Float? = null,
+) {
+    ComposeAppTheme(darkTheme = true) {
         MultiSwapExchangeScreen(
-            uiState = MultiSwapExchangeUiState(
-                leg1 = LegUiState(
-                    status = LegStatus.Executing,
-                    providerName = "STON.fi",
-                    coinIn = "PIRATE",
-                    coinOut = "TONCOIN",
-                    amountInFormatted = "50.8762",
-                    amountOutFormatted = "7.2235",
-                    fiatAmountIn = BigDecimal("0.99"),
-                    fiatAmountOut = BigDecimal("0.95"),
-                    riskType = ProviderRiskType.Flexible,
-                ),
-                leg2 = LegUiState(
-                    status = LegStatus.Pending,
-                    providerName = "ChangeNow",
-                    coinIn = "TONCOIN",
-                    coinOut = "BNB",
-                    amountInFormatted = "0.7576",
-                    amountOutFormatted = "0.001476",
-                    fiatAmountIn = BigDecimal("0.99"),
-                    fiatAmountOut = BigDecimal("0.95"),
-                    riskType = ProviderRiskType.Controlled,
-                    estimationTime = 793L,
-                ),
-                buttonState = ButtonState.Disabled,
-                showContinueLater = true,
-            ),
-            timeRemainingProgress = { null },
+            uiState = previewUiState(presentation, leg1Status, buttonState, showContinueLater),
+            timeRemainingProgress = { timeRemainingProgress },
             onSwap = {},
             onRefresh = {},
             onContinueLater = {},
@@ -760,45 +868,45 @@ private fun MultiSwapExchangeScreenPreview() {
     }
 }
 
-@Preview
-@Composable
-private fun MultiSwapExchangeScreenCompletedPreview() {
-    ComposeAppTheme {
-        MultiSwapExchangeScreen(
-            uiState = MultiSwapExchangeUiState(
-                leg1 = LegUiState(
-                    status = LegStatus.Completed,
-                    providerName = "STON.fi",
-                    coinIn = "PIRATE",
-                    coinOut = "TONCOIN",
-                    amountInFormatted = "50.8762",
-                    amountOutFormatted = "7.2235",
-                    fiatAmountIn = BigDecimal("0.99"),
-                    fiatAmountOut = BigDecimal("0.95"),
-                    riskType = ProviderRiskType.Auto,
-                ),
-                leg2 = LegUiState(
-                    status = LegStatus.Pending,
-                    providerName = "ChangeNow",
-                    coinIn = "TONCOIN",
-                    coinOut = "BNB",
-                    amountInFormatted = "0.7576",
-                    amountOutFormatted = "0.001476",
-                    fiatAmountIn = BigDecimal("0.99"),
-                    fiatAmountOut = BigDecimal("0.95"),
-                    riskType = ProviderRiskType.Controlled,
-                    estimationTime = 793L,
-                ),
-                buttonState = ButtonState.Enabled,
-                showContinueLater = true,
-            ),
-            timeRemainingProgress = { 0.7f },
-            onSwap = {},
-            onRefresh = {},
-            onContinueLater = {},
-            onDeleteAndClose = {},
-            onBack = {},
-            onClickProvider = {},
-        )
-    }
-}
+private fun previewUiState(
+    presentation: MultiSwapExchangePresentation,
+    leg1Status: LegStatus,
+    buttonState: ButtonState,
+    showContinueLater: Boolean,
+) = MultiSwapExchangeUiState(
+    leg1 = previewLeg1(leg1Status),
+    leg2 = previewLeg2(),
+    buttonState = buttonState,
+    showContinueLater = showContinueLater,
+    leg2ProviderClickable = presentation == MultiSwapExchangePresentation.RouteInfo,
+    presentation = presentation,
+    routeExplanationTokens = listOf("PIRATE", "TONCOIN", "BNB"),
+)
+
+private fun previewLeg1(status: LegStatus) = LegUiState(
+    status = status,
+    providerName = "STON.fi",
+    providerIcon = R.drawable.ic_ston_fi,
+    coinIn = "PIRATE",
+    coinOut = "TONCOIN",
+    amountInFormatted = "100",
+    amountOutFormatted = "12.5",
+    badgeIn = "BTC",
+    badgeOut = "TON",
+    riskType = ProviderRiskType.Auto,
+    estimationTime = 797L,
+)
+
+private fun previewLeg2() = LegUiState(
+    status = LegStatus.Pending,
+    providerName = "ChangeNow",
+    providerIcon = R.drawable.ic_change_now,
+    coinIn = "TONCOIN",
+    coinOut = "BNB",
+    amountInFormatted = "12.5",
+    amountOutFormatted = "0.8",
+    badgeIn = "TON",
+    badgeOut = "BSC",
+    riskType = ProviderRiskType.Controlled,
+    estimationTime = 793L,
+)

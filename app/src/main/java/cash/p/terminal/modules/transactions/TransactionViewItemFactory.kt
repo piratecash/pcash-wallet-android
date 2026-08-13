@@ -104,7 +104,8 @@ class TransactionViewItemFactory(
         )
 
         cache[transactionItem.record.uid]?.get(cacheKey)?.let { cached ->
-            return if (cached.showAmount != perItemShowAmount || cached.addressPoisoningViewMode != addressPoisoningViewMode) {
+            return if (cached.showAmount != perItemShowAmount || cached.addressPoisoningViewMode !=
+                addressPoisoningViewMode) {
                 cached.copy(
                     showAmount = perItemShowAmount,
                     addressPoisoningViewMode = addressPoisoningViewMode,
@@ -133,7 +134,7 @@ class TransactionViewItemFactory(
         TransactionRecordType.EVM_UNKNOWN_SWAP -> true
 
         else -> this is TonTransactionRecord &&
-            actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Swap
+                actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Swap
     }
 
     private fun singleValueIconType(
@@ -1688,29 +1689,30 @@ class TransactionViewItemFactory(
                 incomingEvents!!,
                 outgoingEvents!!
             )
-            val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
-                // Use matchedSwap if provided, otherwise fall back to DB lookup
-                val swap = matchedSwap ?: incomingValues.firstOrNull()?.let { firstIncomingValue ->
-                    getSwapProviderTransactionForIncoming(
-                        recordUid = transactionItem.record.uid,
-                        amount = firstIncomingValue.decimalValue,
-                        timestamp = timestamp,
-                        addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
-                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: baseToken
-                    )
+            val transactionViewItem =
+                if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
+                    // Use matchedSwap if provided, otherwise fall back to DB lookup
+                    val swap = matchedSwap ?: incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                        getSwapProviderTransactionForIncoming(
+                            recordUid = transactionItem.record.uid,
+                            amount = firstIncomingValue.decimalValue,
+                            timestamp = timestamp,
+                            addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
+                            token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: baseToken
+                        )
+                    }
+                    swap?.let {
+                        createViewItemFromUserSwapProviderRecord(
+                            transaction = it,
+                            recordUid = transactionItem.record.uid,
+                            timestamp = timestamp,
+                            direct = false,
+                            onChainProgress = progress,
+                        )
+                    }
+                } else {
+                    null
                 }
-                swap?.let {
-                    createViewItemFromUserSwapProviderRecord(
-                        transaction = it,
-                        recordUid = transactionItem.record.uid,
-                        timestamp = timestamp,
-                        direct = false,
-                        onChainProgress = progress,
-                    )
-                }
-            } else {
-                null
-            }
             transactionViewItem ?: createViewItemFromExternalContractCallTransactionRecord(
                 uid = uid,
                 incomingValues = incomingValues,

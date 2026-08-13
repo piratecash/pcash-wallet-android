@@ -236,7 +236,9 @@ fun ReceiveAddressScreen(
                                             VSpacer(12.dp)
                                             subhead2_grey(
                                                 modifier = Modifier.padding(horizontal = 32.dp),
-                                                text = stringResource(R.string.Balance_Network) + ": " + blockchainName + testNetBadge,
+                                                text = stringResource(
+                                                    R.string.Balance_Network
+                                                ) + ": " + blockchainName + testNetBadge,
                                                 textAlign = TextAlign.Center,
                                             )
                                         }
@@ -244,7 +246,9 @@ fun ReceiveAddressScreen(
                                             VSpacer(12.dp)
                                             subhead2_grey(
                                                 modifier = Modifier.padding(horizontal = 32.dp),
-                                                text = stringResource(R.string.Balance_Format) + ": " + addressFormat + testNetBadge,
+                                                text = stringResource(
+                                                    R.string.Balance_Format
+                                                ) + ": " + addressFormat + testNetBadge,
                                                 textAlign = TextAlign.Center,
                                             )
                                         }

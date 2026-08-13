@@ -114,6 +114,7 @@ class SpamManager(
                 TransactionRecordType.MONERO_OUTGOING,
                 TransactionRecordType.STELLAR_INCOMING,
                 TransactionRecordType.STELLAR_OUTGOING -> true
+
                 TransactionRecordType.TON -> isTonTransferLikeAction(record)
                 else -> false
             }
@@ -129,6 +130,7 @@ class SpamManager(
                 is TonTransactionRecord.Action.Type.Receive,
                 is TonTransactionRecord.Action.Type.Burn,
                 is TonTransactionRecord.Action.Type.Mint -> true
+
                 is TonTransactionRecord.Action.Type.ContractCall,
                 is TonTransactionRecord.Action.Type.ContractDeploy,
                 is TonTransactionRecord.Action.Type.Swap,
@@ -157,7 +159,10 @@ class SpamManager(
                 }
             }
 
-            if (totalNativeTransactionValue != null && isSpam(totalNativeTransactionValue) && nativeSenders.isNotEmpty()) {
+            if (totalNativeTransactionValue != null && isSpam(
+                    totalNativeTransactionValue
+                ) && nativeSenders.isNotEmpty()
+            ) {
                 spamTokenSenders.addAll(nativeSenders)
             }
 

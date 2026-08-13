@@ -3,7 +3,9 @@ package cash.p.terminal.entities.nft
 import io.horizontalsystems.core.entities.BlockchainType
 
 sealed class NftUid(val contractAddress: String, val tokenId: String, val blockchainType: BlockchainType) {
-    class Evm(blockchainType: BlockchainType, contractAddress: String, tokenId: String) : NftUid(contractAddress, tokenId, blockchainType)
+    class Evm(blockchainType: BlockchainType, contractAddress: String, tokenId: String) :
+        NftUid(contractAddress, tokenId, blockchainType)
+
     class Solana(mintAccountAddress: String) : NftUid("", mintAccountAddress, BlockchainType.Solana)
 
     val uid: String
@@ -29,9 +31,11 @@ sealed class NftUid(val contractAddress: String, val tokenId: String, val blockc
                     "evm" -> {
                         Evm(BlockchainType.fromUid(parts[1]), parts[2], parts[3])
                     }
+
                     "solana" -> {
                         Solana(parts[1])
                     }
+
                     else -> {
                         throw IllegalStateException()
                     }

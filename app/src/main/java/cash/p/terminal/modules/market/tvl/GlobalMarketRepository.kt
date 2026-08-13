@@ -31,7 +31,8 @@ class GlobalMarketRepository(
                         MetricsType.TvlInDefi -> point.tvl
                     }
 
-                    val dominance = if (metricsType == MetricsType.TotalMarketCap) point.btcDominance.toFloat() else null
+                    val dominance =
+                        if (metricsType == MetricsType.TotalMarketCap) point.btcDominance.toFloat() else null
                     ChartPoint(value = value.toFloat(), timestamp = point.timestamp, dominance = dominance)
                 }
             }
@@ -45,7 +46,7 @@ class GlobalMarketRepository(
         return marketKit.marketInfoGlobalTvlSingle(chain, currencyCode, chartInterval)
             .map { list ->
                 list.map { point ->
-                      ChartPoint(point.value.toFloat(), point.timestamp)
+                    ChartPoint(point.value.toFloat(), point.timestamp)
                 }
             }
     }

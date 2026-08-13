@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">Chave Privada</string>
     <string name="Restore_PrivateKeyHint">Insira a Chave Privada EVM, a Chave Raiz BIP32 ou a Chave Privada Estendida de Conta</string>
     <string name="Restore_PhraseHint">Insira 12, 15, 18, 21 ou 24 palavras</string>
+    <string name="monero_restore_seed">Frase de recuperação do Monero</string>
     <string name="Restore_NonStandardRestore">Restauração Não-Padrão</string>
     <string name="Restore_NonStandard_Description">Esta página fornece um mecanismo especial de restauração de carteira para usuários do P.CASH que possuem uma carteira fora do padrão. Essas carteiras podem ter sido criadas na versão P.CASH 0.27 - 0.28 usando uma frase de recuperação diferente do inglês e/ou um caractere especial na senha da carteira (ou seja, símbolo diacrítico).\n\nSe você for um usuário afetado, o saldo da sua carteira será ser mostrado 0 após restaurar tal carteira na versão 0.29 ou superior. Esta página permitirá que você restaure o acesso à sua carteira não padrão. Uma vez restaurado, é recomendável criar uma nova carteira (que será compatível com o padrão) e mover fundos para lá.</string>
     <string name="Restore_Bip_Recommended">(recomendado)</string>
@@ -2072,6 +2073,11 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="multi_swap_no_providers">Nenhum provedor disponível</string>
     <string name="multi_swap_finding_best_provider">Procurando o melhor provedor…</string>
     <string name="multi_swap_continue">Continuar troca</string>
+    <string name="multi_swap_route_explanation">Para obter a melhor taxa, é usada uma rota via %2$s. A troca será realizada em duas etapas consecutivas: primeiro %1$s → %2$s, depois %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Rota de troca</string>
+    <string name="multi_swap_execution_title">Troca</string>
+    <string name="multi_swap_step">Passo %d</string>
+    <string name="multi_swap_understood_continue">Entendi, continuar</string>
     <string name="multi_swap_unfinished">Troca não finalizada</string>
     <string name="multi_swap_unfinished_plural">Trocas não finalizadas (%d)</string>
     <string name="duration_short_hours">%1$dh</string>
@@ -2131,6 +2137,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="error_hardware_wallet_some_tokens_not_found">Não foi possível adicionar alguns tokens</string>
     <string name="send_error_address_unavailable">Endereço indisponível</string>
     <string name="send_error_amount_unavailable">Valor indisponível</string>
+    <string name="send_error_zcash_params_not_downloaded">O Zcash ainda não baixou os arquivos necessários para enviar. Conecte-se à internet e tente novamente.</string>
     <string name="send_error_fee_rate_unavailable">Taxa de comissão indisponível</string>
     <string name="send_error_balance_unavailable">Saldo indisponível</string>
     <string name="litecoin_mweb_invalid_amount">Valor de Litecoin MWEB inválido</string>
@@ -2200,6 +2207,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ocultar ao virar</string>
     <string name="balance_hide_on_flip_description">Vire a tela do dispositivo para baixo para ocultar e mostrar rapidamente seu saldo.</string>
+    <string name="balance_hide_on_flip_unsupported">Este dispositivo não oferece suporte a Ocultar ao virar.</string>
     <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
     <string name="balance_hide_on_flip_info_description">Para ocultar ou mostrar seu saldo, basta virar a tela do dispositivo para baixo ou desativá-lo nas configurações de segurança.</string>
     <string name="balance_hide_on_flip_dont_show_again">Não mostrar novamente</string>

@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">Gizli Anahtar</string>
     <string name="Restore_PrivateKeyHint">EVM Özel Anahtarını, BIP32 Root Key veya Account Extended Private Key girin</string>
     <string name="Restore_PhraseHint">12, 15, 18, 21 veya 24 kelime girin</string>
+    <string name="monero_restore_seed">Monero kurtarma cümlesi</string>
     <string name="Restore_NonStandardRestore">Standart Olmayan Geri Yükleme</string>
     <string name="Restore_NonStandard_Description">Bu sayfa, standart olmayan bir cüzdanı olan P.CASH kullanıcıları için özel geri yükleme mekanizması sağlar. Genel olarak, bu tür cüzdanlar, İngilizce olmayan bir anımsatma kelimeleri listesi ve/veya cüzdan şifresinde özel bir karakter (yani aksan simgesi) kullanılarak P.CASH 0.27 - 0.28 sürümünde oluşturulmuş olabilir.\n\n Bu durumdan etkilenen bir kullanıcıysanız, 0.29 sürümüne güncelledikten sonra cüzdan bakiyeniz 0 olarak görüntülenir. Bu sayfa, standart olmayan cüzdanınıza erişimi geri yüklemenizi sağlayacaktır. Geri yüklendikten sonra, yeni bir cüzdan oluşturmanız (standartlarla uyumlu) ve paranızı oraya taşımanız önerilir.</string>
     <string name="Restore_Bip_Recommended">(ortalama)</string>
@@ -2073,6 +2074,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="multi_swap_no_providers">Kullanılabilir sağlayıcı yok</string>
     <string name="multi_swap_finding_best_provider">En iyi sağlayıcı aranıyor…</string>
     <string name="multi_swap_continue">Takasa devam et</string>
+    <string name="multi_swap_route_explanation">En iyi kur için %2$s üzerinden bir rota kullanılır. Takas iki ardışık adımda tamamlanır: önce %1$s → %2$s, ardından %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Takas rotası</string>
+    <string name="multi_swap_execution_title">Takas</string>
+    <string name="multi_swap_step">%d. adım</string>
+    <string name="multi_swap_understood_continue">Anladım, devam et</string>
     <string name="multi_swap_unfinished">Tamamlanmamış takas</string>
     <string name="multi_swap_unfinished_plural">Tamamlanmamış takaslar (%d)</string>
     <string name="duration_short_hours">%1$dsa</string>
@@ -2132,6 +2138,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="error_hardware_wallet_some_tokens_not_found">Bazı tokenler eklenemedi</string>
     <string name="send_error_address_unavailable">Adres kullanılamıyor</string>
     <string name="send_error_amount_unavailable">Tutar kullanılamıyor</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash, gönderim için gereken dosyaları henüz indirmedi. İnternete bağlanın ve tekrar deneyin.</string>
     <string name="send_error_fee_rate_unavailable">Ücret oranı kullanılamıyor</string>
     <string name="send_error_balance_unavailable">Bakiye kullanılamıyor</string>
     <string name="litecoin_mweb_invalid_amount">Geçersiz Litecoin MWEB tutarı</string>
@@ -2200,6 +2207,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
     <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>
+    <string name="balance_hide_on_flip_unsupported">Bu cihaz Ters çevirince gizle özelliğini desteklemiyor.</string>
     <string name="balance_hide_on_flip_info_title">Bakiye gizlendi</string>
     <string name="balance_hide_on_flip_info_description">Bakiyenizi gizlemek veya göstermek için cihazın ekranını aşağı çevirin ya da güvenlik ayarlarından kapatın.</string>
     <string name="balance_hide_on_flip_dont_show_again">Tekrar gösterme</string>

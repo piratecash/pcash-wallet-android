@@ -70,7 +70,9 @@ private fun IntroScreen(viewModel: IntroViewModel, nightMode: Boolean, closeActi
     ComposeAppTheme {
         Box {
             Image(
-                painter = painterResource(if (nightMode) R.drawable.ic_intro_background else R.drawable.ic_intro_background_light),
+                painter = painterResource(
+                    if (nightMode) R.drawable.ic_intro_background else R.drawable.ic_intro_background_light
+                ),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

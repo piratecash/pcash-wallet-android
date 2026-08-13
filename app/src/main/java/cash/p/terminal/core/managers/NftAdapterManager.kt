@@ -63,7 +63,8 @@ class NftAdapterManager(
 
                 val nftKit = evmKitWrapper.nftKit
                 if (nftKit != null) {
-                    adaptersMap[nftKey] = EvmNftAdapter(nftKey.blockchainType, nftKit, evmKitWrapper.evmKit.receiveAddress)
+                    adaptersMap[nftKey] =
+                        EvmNftAdapter(nftKey.blockchainType, nftKit, evmKitWrapper.evmKit.receiveAddress)
                 } else {
                     evmKitManager.unlink(nftKey.account)
                 }

@@ -18,7 +18,8 @@ object TronAddressParser {
         val decodedXpubWithChecksum = Base58.decode(xPubKey)
         if (decodedXpubWithChecksum.size != XPUB_EXPECTED_DECODED_LENGTH_WITH_CHECKSUM) {
             throw IllegalArgumentException(
-                "Invalid decoded xPub length. Expected ${XPUB_EXPECTED_DECODED_LENGTH_WITH_CHECKSUM}, got ${decodedXpubWithChecksum.size}"
+                "Invalid decoded xPub length. Expected ${XPUB_EXPECTED_DECODED_LENGTH_WITH_CHECKSUM}, got " +
+                        "${decodedXpubWithChecksum.size}"
             )
         }
 

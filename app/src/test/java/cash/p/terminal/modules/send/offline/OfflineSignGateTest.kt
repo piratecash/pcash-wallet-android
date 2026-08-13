@@ -77,22 +77,34 @@ class OfflineSignGateTest {
 
     @Test
     fun isOfflineRetryInProgress_localRetrying_returnsTrue() {
-        assertTrue(isOfflineRetryInProgress(retrying = true, syncRetrying = false, isConnected = false, hasAdapterError = true))
+        assertTrue(
+            isOfflineRetryInProgress(retrying = true, syncRetrying = false, isConnected = false, hasAdapterError = true)
+        )
     }
 
     @Test
     fun isOfflineRetryInProgress_syncRetryingConnectedNoError_returnsTrue() {
-        assertTrue(isOfflineRetryInProgress(retrying = false, syncRetrying = true, isConnected = true, hasAdapterError = false))
+        assertTrue(
+            isOfflineRetryInProgress(retrying = false, syncRetrying = true, isConnected = true, hasAdapterError = false)
+        )
     }
 
     @Test
     fun isOfflineRetryInProgress_syncRetryingButOffline_returnsFalse() {
-        assertFalse(isOfflineRetryInProgress(retrying = false, syncRetrying = true, isConnected = false, hasAdapterError = false))
+        assertFalse(
+            isOfflineRetryInProgress(
+                retrying = false, syncRetrying = true, isConnected = false, hasAdapterError = false
+            )
+        )
     }
 
     @Test
     fun isOfflineRetryInProgress_idle_returnsFalse() {
-        assertFalse(isOfflineRetryInProgress(retrying = false, syncRetrying = false, isConnected = true, hasAdapterError = false))
+        assertFalse(
+            isOfflineRetryInProgress(
+                retrying = false, syncRetrying = false, isConnected = true, hasAdapterError = false
+            )
+        )
     }
 
     // endregion

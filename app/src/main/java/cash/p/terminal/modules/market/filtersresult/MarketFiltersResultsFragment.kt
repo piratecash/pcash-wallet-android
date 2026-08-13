@@ -48,7 +48,9 @@ class MarketFiltersResultsFragment : BaseComposeFragment() {
 
     private fun getViewModel(): MarketFiltersResultViewModel? {
         return try {
-            val marketSearchFilterViewModel by navGraphViewModels<MarketFiltersViewModel>(R.id.marketAdvancedSearchFragment)
+            val marketSearchFilterViewModel by navGraphViewModels<MarketFiltersViewModel>(
+                R.id.marketAdvancedSearchFragment
+            )
             val viewModel by viewModels<MarketFiltersResultViewModel> {
                 MarketFiltersResultsModule.Factory(marketSearchFilterViewModel.service)
             }

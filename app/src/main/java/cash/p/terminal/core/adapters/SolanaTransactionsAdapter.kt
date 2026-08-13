@@ -21,8 +21,8 @@ import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
 
 class SolanaTransactionsAdapter(
-        solanaKitWrapper: SolanaKitWrapper,
-        private val solanaTransactionConverter: SolanaTransactionConverter
+    solanaKitWrapper: SolanaKitWrapper,
+    private val solanaTransactionConverter: SolanaTransactionConverter
 ) : ITransactionsAdapter {
 
     private val kit = solanaKitWrapper.solanaKit
@@ -73,7 +73,10 @@ class SolanaTransactionsAdapter(
             when {
                 token == null -> kit.getAllTransactions(incoming, from?.transactionHash, limit)
                 token.type is TokenType.Native -> kit.getSolTransactions(incoming, from?.transactionHash, limit)
-                token.type is TokenType.Spl -> kit.getSplTransactions((token.type as TokenType.Spl).address, incoming, from?.transactionHash, limit)
+                token.type is TokenType.Spl -> kit.getSplTransactions(
+                    (token.type as TokenType.Spl).address, incoming, from?.transactionHash, limit
+                )
+
                 else -> listOf()
             }
         }
@@ -92,7 +95,9 @@ class SolanaTransactionsAdapter(
         else -> emptyFlow()
     }
 
-    private fun getTransactionRecordsFlowable(token: Token?, transactionType: FilterTransactionType): Flowable<List<TransactionRecord>> {
+    private fun getTransactionRecordsFlowable(
+        token: Token?, transactionType: FilterTransactionType
+    ): Flowable<List<TransactionRecord>> {
         val incoming: Boolean? = when (transactionType) {
             FilterTransactionType.All -> null
             FilterTransactionType.Incoming -> true
@@ -100,7 +105,7 @@ class SolanaTransactionsAdapter(
             else -> return Flowable.just(listOf())
         }
 
-        val transactionsFlow =  when {
+        val transactionsFlow = when {
             token == null -> kit.allTransactionsFlow(incoming)
             token.type is TokenType.Native -> kit.solTransactionsFlow(incoming)
             token.type is TokenType.Spl -> kit.splTransactionsFlow((token.type as TokenType.Spl).address, incoming)
@@ -113,11 +118,11 @@ class SolanaTransactionsAdapter(
     }
 
     private fun convertToAdapterState(syncState: SolanaKit.SyncState): AdapterState =
-            when (syncState) {
-                is SolanaKit.SyncState.Synced -> AdapterState.Synced
-                is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
-                is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
-            }
+        when (syncState) {
+            is SolanaKit.SyncState.Synced -> AdapterState.Synced
+            is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
+            is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
+        }
 
     companion object {
         const val decimal = 9

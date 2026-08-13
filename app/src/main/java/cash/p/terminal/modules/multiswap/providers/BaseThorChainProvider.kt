@@ -74,7 +74,9 @@ abstract class BaseThorChainProvider(
     private var assets = listOf<Asset>()
     override val mevProtectionAvailable: Boolean = false
     override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
-    private val swapProviderTransactionFactory: SwapProviderTransactionFactory by inject(SwapProviderTransactionFactory::class.java)
+    private val swapProviderTransactionFactory: SwapProviderTransactionFactory by inject(
+        SwapProviderTransactionFactory::class.java
+    )
 
     private val swapProvider: SwapProvider
         get() = if (id == "mayachain") SwapProvider.MAYA else SwapProvider.THORCHAIN
@@ -455,7 +457,9 @@ interface ThornodeAPI {
 //  "streaming_slippage_bps": 9,
             val expiry: Long,
 //  "warning": "Do not cache this response. Do not send funds after the expiry.",
-//  "notes": "First output should be to inbound_address, second output should be change back to self, third output should be OP_RETURN, limited to 80 bytes. Do not send below the dust threshold. Do not use exotic spend scripts, locks or address formats (P2WSH with Bech32 address format preferred).",
+//  "notes": "First output should be to inbound_address, second output should be change back to self, third output
+//  should be OP_RETURN, limited to 80 bytes. Do not send below the dust threshold. Do not use exotic spend scripts,
+//  locks or address formats (P2WSH with Bech32 address format preferred).",
             val dust_threshold: String?,
 //  "recommended_min_amount_in": "10760",
             val recommended_gas_rate: String,
@@ -524,6 +528,7 @@ interface ThornodeAPI {
                 @SerializedName("to_address") val toAddress: String?,
                 val coins: List<Coin>?,
             )
+
             data class PlannedOutTx(
                 val refund: Boolean?,
                 val chain: String?,

@@ -44,8 +44,13 @@ enum class AppIcon(
     Main(R.drawable.launcher_pcash_foreground, R.drawable.launcher_pcash_background, "P.CASH", AppIconCategory.OUR),
     Pirate(R.drawable.launcher_pirate_foreground, R.drawable.launcher_pirate_background, "PIRATE", AppIconCategory.OUR),
     Cosa(R.drawable.launcher_cosa_foreground, R.drawable.launcher_cosa_background, "COSA", AppIconCategory.OUR),
+
     // OUR PREMIUM (calculator stealth)
-    Calculator(R.drawable.launcher_calculator_foreground, R.drawable.launcher_calculator_background, "Calculator", AppIconCategory.OUR_PREMIUM),
+    Calculator(
+        R.drawable.launcher_calculator_foreground, R.drawable.launcher_calculator_background, "Calculator",
+        AppIconCategory.OUR_PREMIUM
+    ),
+
     // OTHER (crypto icons)
     Btc(R.drawable.launcher_btc_foreground, R.drawable.launcher_btc_background, "BTC", AppIconCategory.OTHER),
     Eth(R.drawable.launcher_eth_foreground, R.drawable.launcher_eth_background, "ETH", AppIconCategory.OTHER),
@@ -86,10 +91,11 @@ enum class AppIcon(
     }
 }
 
-enum class PriceChangeInterval(val raw: String, override val title: TranslatableString):
+enum class PriceChangeInterval(val raw: String, override val title: TranslatableString) :
     WithTranslatableTitle {
     @SerializedName("hour_24")
     LAST_24H("hour_24", TranslatableString.ResString(R.string.Market_PriceChange_24H)),
+
     @SerializedName("midnight_utc")
     FROM_UTC_MIDNIGHT("midnight_utc", TranslatableString.ResString(R.string.Market_PriceChange_Utc));
 

@@ -166,7 +166,9 @@ class RestoreLocalViewModel(
                 if (decrypted == null) {
                     // No data found for this password - could be wrong password
                     // or this password's slot is empty (deniable encryption)
-                    passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                    passphraseState = DataState.Error(
+                        Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword))
+                    )
                 } else if (isSingleWalletBackup(decrypted)) {
                     // Single wallet backup - restore directly like V3
                     val walletItem = decrypted.wallets.first()
@@ -175,7 +177,8 @@ class RestoreLocalViewModel(
                     if (walletItem.enabledWallets.isEmpty()) {
                         showSelectCoins = walletItem.account.type
                     } else {
-                        // isSingleWalletBackup guarantees no watchlist/settings/contacts, so Full's restore is exactly this wallet.
+                        // isSingleWalletBackup guarantees no watchlist/settings/contacts, so Full's restore is
+                        // exactly this wallet.
                         val outcome = backupProvider.restoreSingleWalletBackup(walletItem)
                         handleOutcome(outcome, PendingRestore.Full(decrypted))
                     }
@@ -247,7 +250,8 @@ class RestoreLocalViewModel(
                     manualBackup = parsedWalletBackup.manualBackup
 
                     // Use cached key to avoid another Scrypt call (with kdfParams check)
-                    val type = backupProvider.accountTypeWithKey(parsedWalletBackup, cachedKey, cachedKdfParams, passphrase)
+                    val type =
+                        backupProvider.accountTypeWithKey(parsedWalletBackup, cachedKey, cachedKdfParams, passphrase)
 
                     if (parsedWalletBackup.enabledWallets.isNullOrEmpty()) {
                         showSelectCoins = type
@@ -255,7 +259,8 @@ class RestoreLocalViewModel(
                         requireNotNull(type) {
                             "This account type is not supported for restoration."
                         }
-                        // Same V3 ciphertext as the full-backup branch: decimals are authenticated, but a manually-added row can still need approval.
+                        // Same V3 ciphertext as the full-backup branch: decimals are authenticated, but a
+                        // manually-added row can still need approval.
                         val outcome = backupProvider.restoreSingleWalletBackup(
                             type, accountName, parsedWalletBackup, BackupSource.Authenticated
                         )
@@ -268,7 +273,8 @@ class RestoreLocalViewModel(
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
             } catch (invalidPassword: RestoreException.InvalidPasswordException) {
-                passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                passphraseState =
+                    DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
             } catch (e: Exception) {
                 parseError = e
             }
@@ -280,7 +286,10 @@ class RestoreLocalViewModel(
         }
     }
 
-    /** [parsedFullBackup] came from the same MAC'd V3 ciphertext already verified above, hence [BackupSource.Authenticated]. */
+    /**
+     * [parsedFullBackup] came from the same MAC'd V3 ciphertext already verified above, hence
+     * [BackupSource.Authenticated].
+     */
     private suspend fun showV3FullBackupItems(
         parsedFullBackup: FullBackup,
         cachedKey: ByteArray,
@@ -318,7 +327,8 @@ class RestoreLocalViewModel(
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
             } catch (invalidPassword: RestoreException.InvalidPasswordException) {
-                passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                passphraseState =
+                    DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
             } catch (e: Exception) {
                 parseError = e
             }
@@ -352,7 +362,8 @@ class RestoreLocalViewModel(
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
             } catch (invalidPassword: RestoreException.InvalidPasswordException) {
-                passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                passphraseState =
+                    DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
             } catch (e: Exception) {
                 parseError = e
             }
@@ -390,7 +401,8 @@ class RestoreLocalViewModel(
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
             } catch (invalidPassword: RestoreException.InvalidPasswordException) {
-                passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                passphraseState =
+                    DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
             } catch (e: Exception) {
                 parseError = e
             }
@@ -460,6 +472,8 @@ class RestoreLocalViewModel(
 
 /** Restore call parked while the user reviews declined tokens; every restore path can produce one. */
 private sealed interface PendingRestore {
-    data class SingleWallet(val backup: WalletBackup, val accountName: String, val source: BackupSource) : PendingRestore
+    data class SingleWallet(val backup: WalletBackup, val accountName: String, val source: BackupSource) :
+        PendingRestore
+
     data class Full(val backup: DecryptedFullBackup) : PendingRestore
 }

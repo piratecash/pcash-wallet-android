@@ -18,7 +18,8 @@ import kotlin.let
 import kotlin.toBigDecimal
 import io.horizontalsystems.tronkit.models.Address as TronAddress
 
-class SendTronFeeService(private val adapter: ISendTronAdapter, private val feeToken: Token) : ServiceState<SendTronFeeService.State>() {
+class SendTronFeeService(private val adapter: ISendTronAdapter, private val feeToken: Token) :
+    ServiceState<SendTronFeeService.State>() {
     private val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
 
     private var amount: BigDecimal? = null

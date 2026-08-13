@@ -145,6 +145,7 @@
     <string name="Restore_PrivateKey">Clave privada</string>
     <string name="Restore_PrivateKeyHint">Introduzca la clave privada EVM, BIP32 Root Key o Account Extended Private Key</string>
     <string name="Restore_PhraseHint">Introduzca 12, 15, 18, 21 o 24 palabras</string>
+    <string name="monero_restore_seed">Frase de recuperación de Monero</string>
     <string name="Restore_NonStandardRestore">Restauración no estándar</string>
     <string name="Restore_NonStandard_Description">Esta página proporciona un mecanismo especial de restauración de monedero para usuarios de P.CASH que tienen un monedero no estándar. Por lo general, dichos monederos se podrían haber creado en la versión 0.27 - 0.28 de P.CASH utilizando una lista de palabras mnemotécnicas que no están en inglés y/o un carácter especial en la frase de contraseña del monedero (es decir, un símbolo diacrítico).\n\nSi es un usuario afectado, el saldo de su billetera se mostrará en 0 después de restaurar dicha billetera en la versión 0.29 o superior. Esta página te permitirá restaurar el acceso a tu monedero no estándar. Una vez restaurado, se recomienda crear un nuevo monedero (que cumplirá con los estándares) y mover todos los fondos allí.</string>
     <string name="Restore_Bip_Recommended">(promedio)</string>
@@ -2064,6 +2065,11 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="multi_swap_no_providers">No hay proveedores disponibles</string>
     <string name="multi_swap_finding_best_provider">Buscando el mejor proveedor…</string>
     <string name="multi_swap_continue">Continuar intercambio</string>
+    <string name="multi_swap_route_explanation">Para obtener la mejor tasa, se usa una ruta a través de %2$s. El intercambio se realizará en dos pasos consecutivos: primero %1$s → %2$s y luego %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Ruta de intercambio</string>
+    <string name="multi_swap_execution_title">Intercambio</string>
+    <string name="multi_swap_step">Paso %d</string>
+    <string name="multi_swap_understood_continue">Entendido, continuar</string>
     <string name="multi_swap_unfinished">Intercambio sin terminar</string>
     <string name="multi_swap_unfinished_plural">Intercambios sin terminar (%d)</string>
     <string name="duration_short_hours">%1$dh</string>
@@ -2123,6 +2129,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="error_hardware_wallet_some_tokens_not_found">No se pudieron agregar algunos tokens</string>
     <string name="send_error_address_unavailable">Dirección no disponible</string>
     <string name="send_error_amount_unavailable">Importe no disponible</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash aún no ha descargado los archivos necesarios para enviar. Conéctate a Internet e inténtalo de nuevo.</string>
     <string name="send_error_fee_rate_unavailable">Tarifa de comisión no disponible</string>
     <string name="send_error_balance_unavailable">Saldo no disponible</string>
     <string name="litecoin_mweb_invalid_amount">Importe de Litecoin MWEB no válido</string>
@@ -2192,6 +2199,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ocultar al voltear</string>
     <string name="balance_hide_on_flip_description">Gira la pantalla del dispositivo hacia abajo para ocultar y mostrar tu saldo rápidamente.</string>
+    <string name="balance_hide_on_flip_unsupported">Este dispositivo no admite Ocultar al voltear.</string>
     <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
     <string name="balance_hide_on_flip_info_description">Para ocultar o mostrar tu saldo, simplemente gira la pantalla del dispositivo hacia abajo o desactívalo en los ajustes de seguridad.</string>
     <string name="balance_hide_on_flip_dont_show_again">No volver a mostrar</string>

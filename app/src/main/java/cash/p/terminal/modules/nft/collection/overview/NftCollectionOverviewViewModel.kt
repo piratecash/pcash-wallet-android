@@ -116,7 +116,11 @@ class NftCollectionOverviewViewModel(
                 description = collection.description,
                 ownersCount = collection.ownerCount?.let { shortenValue(it.toBigDecimal()) } ?: "",
                 totalSupply = collection.totalSupply?.toBigDecimal()?.let { shortenValue(it) } ?: "",
-                floorPrice = collection.floorPrice?.let { PriceViewItem(formatNftPrice(it), formatCurrencyValue(it.value, rate)) },
+                floorPrice = collection.floorPrice?.let {
+                    PriceViewItem(
+                        formatNftPrice(it), formatCurrencyValue(it.value, rate)
+                    )
+                },
                 oneDayVolume = collection.stats1d?.volume?.let { formatNftPrice(it) },
                 oneDayVolumeDiff = collection.stats1d?.change,
                 oneDaySellersCount = collection.stats1d?.sales,

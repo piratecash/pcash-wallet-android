@@ -33,6 +33,7 @@ class PrivateKeysViewModel(
                 val chain = evmBlockchainManager.getChain(BlockchainType.Ethereum)
                 toHexString(Signer.privateKey(accountType.words, accountType.passphrase, chain))
             }
+
             is AccountType.EvmPrivateKey -> toHexString(accountType.key)
             else -> null
         }
@@ -40,7 +41,9 @@ class PrivateKeysViewModel(
         val hdExtendedKey = (account.type as? AccountType.HdExtendedKey)?.hdExtendedKey
 
         val bip32RootKey = if (account.type is AccountType.Mnemonic) {
-            val seed = Mnemonic().toSeed((account.type as AccountType.Mnemonic).words, (account.type as AccountType.Mnemonic).passphrase)
+            val seed = Mnemonic().toSeed(
+                (account.type as AccountType.Mnemonic).words, (account.type as AccountType.Mnemonic).passphrase
+            )
             HDExtendedKey(seed, HDWallet.Purpose.BIP44)
         } else if (hdExtendedKey?.derivedType == HDExtendedKey.DerivedType.Master) {
             hdExtendedKey
