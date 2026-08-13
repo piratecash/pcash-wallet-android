@@ -50,8 +50,14 @@ class SendZCashAddressService(
 
     private fun getError(error: Throwable): Throwable {
         val message = when (error) {
-            is ZcashAdapter.ZcashError.SendToSelfNotAllowed -> Translator.getString(R.string.Send_Error_SendToSelf, "ZEC")
-            is ZcashAdapter.ZcashError.InvalidAddress -> Translator.getString(R.string.SwapSettings_Error_InvalidAddress)
+            is ZcashAdapter.ZcashError.SendToSelfNotAllowed -> Translator.getString(
+                R.string.Send_Error_SendToSelf, "ZEC"
+            )
+
+            is ZcashAdapter.ZcashError.InvalidAddress -> Translator.getString(
+                R.string.SwapSettings_Error_InvalidAddress
+            )
+
             else -> error.message ?: error.javaClass.simpleName
         }
 

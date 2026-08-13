@@ -138,6 +138,7 @@ class Eip1559GasPriceService(
                 tip < riskOfStuckBound.calculate(recommendedGasPrice.maxPriorityFeePerGas) -> {
                     warnings.add(FeeSettingsWarning.RiskOfGettingStuck)
                 }
+
                 tip > overpricingBound.calculate(recommendedGasPrice.maxPriorityFeePerGas) -> {
                     warnings.add(FeeSettingsWarning.Overpricing)
                 }
@@ -155,7 +156,8 @@ class Eip1559GasPriceService(
 
     private suspend fun syncRecommended() {
         try {
-            val feeHistory = gasProvider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
+            val feeHistory =
+                gasProvider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
             handle(feeHistory)
         } catch (error: Throwable) {
             handle(error)

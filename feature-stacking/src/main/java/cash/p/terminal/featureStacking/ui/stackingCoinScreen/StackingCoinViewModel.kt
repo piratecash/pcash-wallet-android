@@ -72,9 +72,8 @@ internal abstract class StackingCoinViewModel(
     abstract val minStackingAmount: Int
     abstract val stackingType: StackingType
 
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject<GetHardwarePublicKeyForWalletUseCase>(
-        GetHardwarePublicKeyForWalletUseCase::class.java
-    )
+    private val getHardwarePublicKeyForWalletUseCase:
+        GetHardwarePublicKeyForWalletUseCase by inject(GetHardwarePublicKeyForWalletUseCase::class.java)
     private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
     private val _uiState = mutableStateOf(
@@ -366,17 +365,14 @@ internal abstract class StackingCoinViewModel(
     }
 
     private fun formatDate(date: Date): String {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-
-        val today = Calendar.getInstance()
-        if (calendar[Calendar.YEAR] == today[Calendar.YEAR] && calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR]) {
+        val today = Date()
+        if (DateHelper.isSameDay(date, today)) {
             return Translator.getString(R.string.Timestamp_Today)
         }
 
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_MONTH, -1)
-        if (calendar[Calendar.YEAR] == yesterday[Calendar.YEAR] && calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR]) {
+        if (DateHelper.isSameDay(date, yesterday.time)) {
             return Translator.getString(R.string.Timestamp_Yesterday)
         }
 

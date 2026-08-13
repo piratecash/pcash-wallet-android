@@ -151,7 +151,9 @@ fun ChooseContactScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        navController.setNavigationResultX(ChooseContactFragment.Result(contact.address))
+                                        navController.setNavigationResultX(
+                                            ChooseContactFragment.Result(contact.address)
+                                        )
                                         navController.popBackStackSafely()
                                     }
                                     .padding(horizontal = 16.dp, vertical = 12.dp)

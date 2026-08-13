@@ -2048,6 +2048,11 @@
     <string name="multi_swap_no_providers">没有可用的提供商</string>
     <string name="multi_swap_finding_best_provider">正在查找最佳提供商…</string>
     <string name="multi_swap_continue">继续兑换</string>
+    <string name="multi_swap_route_explanation">为获得最优汇率，将使用经由 %2$s 的路径。兑换将分两步连续完成：先 %1$s → %2$s，再 %2$s → %3$s。</string>
+    <string name="multi_swap_route_title">兑换路径</string>
+    <string name="multi_swap_execution_title">兑换</string>
+    <string name="multi_swap_step">第 %d 步</string>
+    <string name="multi_swap_understood_continue">明白，继续</string>
     <string name="multi_swap_unfinished">未完成的兑换</string>
     <string name="multi_swap_unfinished_plural">未完成的兑换 (%d)</string>
     <string name="duration_short_hours">%1$d小时</string>
@@ -2175,6 +2180,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">翻转隐藏</string>
     <string name="balance_hide_on_flip_description">将设备屏幕朝下翻转，即可快速隐藏和显示余额。</string>
+    <string name="balance_hide_on_flip_unsupported">此设备不支持翻转隐藏。</string>
     <string name="balance_hide_on_flip_info_title">余额已隐藏</string>
     <string name="balance_hide_on_flip_info_description">若要隐藏或显示余额，只需将设备屏幕朝下翻转，或在安全设置中将其关闭。</string>
     <string name="balance_hide_on_flip_dont_show_again">不再显示</string>

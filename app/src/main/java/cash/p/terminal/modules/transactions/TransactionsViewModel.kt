@@ -97,12 +97,16 @@ class TransactionsViewModel(
     private var viewState: ViewState = ViewState.Loading
     private var syncing = service.syncingFlow.value
     private var hasHiddenTransactions: Boolean = false
+
     @Volatile
     private var filterVersion = 0
+
     @Volatile
     private var accountVersion = 0
+
     @Volatile
     private var cachedConvertedItems: List<TransactionViewItem> = emptyList()
+
     @Volatile
     private var awaitingAdaptersAfterSwitch = false
     private var currentFilterType: FilterTransactionType = FilterTransactionType.All
@@ -748,13 +752,16 @@ data class TransactionViewItem(
         calendar.time = date
 
         val today = Calendar.getInstance()
-        if (calendar[Calendar.YEAR] == today[Calendar.YEAR] && calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR]) {
+        val isToday = calendar[Calendar.YEAR] == today[Calendar.YEAR] &&
+                calendar[Calendar.DAY_OF_YEAR] == today[Calendar.DAY_OF_YEAR]
+        if (isToday) {
             return Translator.getString(R.string.Timestamp_Today)
         }
 
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_MONTH, -1)
-        if (calendar[Calendar.YEAR] == yesterday[Calendar.YEAR] && calendar[Calendar.DAY_OF_YEAR] == yesterday[Calendar.DAY_OF_YEAR]) {
+        if (calendar[Calendar.YEAR] == yesterday[Calendar.YEAR] && calendar[Calendar.DAY_OF_YEAR] ==
+            yesterday[Calendar.DAY_OF_YEAR]) {
             return Translator.getString(R.string.Timestamp_Yesterday)
         }
 

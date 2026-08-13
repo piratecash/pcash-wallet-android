@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.coin.analytics
 
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.helpers.DateHelper
 import cash.p.terminal.wallet.models.Analytics.TechnicalAdvice
@@ -28,14 +29,14 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
     private fun mainAdvice(technicalAdvice: TechnicalAdvice): String {
         val (overtype, direction, rsiLine) = when (technicalAdvice.advice ?: Advice.Neutral) {
             Advice.Oversold, Advice.StrongBuy, Advice.Buy -> Triple(
-                cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverSold),
-                cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Down),
+                Translator.getString(R.string.TechnicalAdvice_OverSold),
+                Translator.getString(R.string.TechnicalAdvice_Down),
                 "30%"
             )
 
             Advice.Overbought, Advice.StrongSell, Advice.Sell, Advice.Neutral -> Triple(
-                cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverBought),
-                cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Up),
+                Translator.getString(R.string.TechnicalAdvice_OverBought),
+                Translator.getString(R.string.TechnicalAdvice_Up),
                 "70%"
             )
         }
@@ -48,19 +49,25 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
             val date = Date(timestamp * 1000)
             DateHelper.shortDate(date)
         }?.let { date ->
-            cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverIndicators_SignalDate, date)
+            Translator.getString(
+                R.string.TechnicalAdvice_OverIndicators_SignalDate, date
+            )
         }
 
         val adviceString = when (technicalAdvice.advice) {
             Advice.Oversold, Advice.Overbought -> {
-                val advice = cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverMain)
+                val advice = Translator.getString(R.string.TechnicalAdvice_OverMain)
 
                 val rsi = rsiValue?.let { value ->
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverRsi, value, overtype)
+                    Translator.getString(
+                        R.string.TechnicalAdvice_OverRsi, value, overtype
+                    )
                 } ?: ""
 
                 val indicators = listOf(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OverIndicators, overtype),
+                    Translator.getString(
+                        R.string.TechnicalAdvice_OverIndicators, overtype
+                    ),
                     rsi
                 ).joinToString(" ")
 
@@ -73,7 +80,7 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
                     indicators
                 }
 
-                val resultAdvice = cash.p.terminal.strings.helpers.Translator.getString(
+                val resultAdvice = Translator.getString(
                     R.string.TechnicalAdvice_OverAdvice,
                     direction
                 )
@@ -83,7 +90,7 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
 
             Advice.StrongBuy, Advice.StrongSell -> {
                 val rsi = rsiValue?.let {
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(
                         R.string.TechnicalAdvice_StrongRsi,
                         it,
                         overtype
@@ -91,7 +98,9 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
                 } ?: ""
 
                 val indicators = listOf(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_StrongIndicators, overtype),
+                    Translator.getString(
+                        R.string.TechnicalAdvice_StrongIndicators, overtype
+                    ),
                     rsi
                 ).joinToString(" ")
 
@@ -106,13 +115,15 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
 
                 listOf(
                     combinedIndicators,
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_StrongAdvice, direction)
+                    Translator.getString(
+                        R.string.TechnicalAdvice_StrongAdvice, direction
+                    )
                 ).joinToString(" ")
             }
 
             Advice.Buy, Advice.Sell -> {
                 val rsi = rsiValue?.let {
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(
                         R.string.TechnicalAdvice_StableRsi,
                         it,
                         rsiLine
@@ -120,7 +131,9 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
                 } ?: ""
 
                 val indicators = listOf(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_StrongIndicators, overtype),
+                    Translator.getString(
+                        R.string.TechnicalAdvice_StrongIndicators, overtype
+                    ),
                     rsi
                 ).joinToString(" ")
 
@@ -135,17 +148,25 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
 
                 listOf(
                     combinedIndicators,
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_StrongAdvice, direction)
+                    Translator.getString(
+                        R.string.TechnicalAdvice_StrongAdvice, direction
+                    )
                 ).joinToString(" ")
             }
 
             Advice.Neutral, null -> {
                 val rsi =
-                    rsiValue?.let { cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_StableRsi, it) }
+                    rsiValue?.let {
+                        Translator.getString(
+                            R.string.TechnicalAdvice_StableRsi, it
+                        )
+                    }
                         ?: ""
 
                 val indicators = listOf(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_NeutralIndicators, overtype),
+                    Translator.getString(
+                        R.string.TechnicalAdvice_NeutralIndicators, overtype
+                    ),
                     rsi
                 ).joinToString(" ")
 
@@ -160,7 +181,7 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
 
                 listOf(
                     combinedIndicators,
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_NeutralAdvice)
+                    Translator.getString(R.string.TechnicalAdvice_NeutralAdvice)
                 ).joinToString(" ")
             }
         }
@@ -172,25 +193,37 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
         val price = technicalAdvice.price ?: return null
 
         val emaAdvice = technicalAdvice.ema?.let { ema ->
-            val direction = cash.p.terminal.strings.helpers.Translator.getString(
+            val direction = Translator.getString(
                 if (price >= ema) R.string.TechnicalAdvice_EmaAbove else R.string.TechnicalAdvice_EmaBelow
             )
-            val action = cash.p.terminal.strings.helpers.Translator.getString(
+            val action = Translator.getString(
                 if (price >= ema) R.string.TechnicalAdvice_EmaGrowth else R.string.TechnicalAdvice_EmaDecrease
             )
             val emaValue = numberFormatter.format(ema, 0, 4)
-            cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_EmaAdvice, direction, emaValue, action)
+            Translator.getString(
+                R.string.TechnicalAdvice_EmaAdvice, direction, emaValue, action
+            )
         }
 
         val macdAdvice = technicalAdvice.macd?.let { macd ->
-            val direction = cash.p.terminal.strings.helpers.Translator.getString(
-                if (macd >= BigDecimal.ZERO) R.string.TechnicalAdvice_MacdPositive else R.string.TechnicalAdvice_MacdNegative
-            )
-            val action =
-                cash.p.terminal.strings.helpers.Translator.getString(if (macd >= BigDecimal.ZERO) R.string.TechnicalAdvice_Up else R.string.TechnicalAdvice_Down)
-            val sign = if (macd >= BigDecimal.ZERO) "" else "-"
+            val isPositive = macd >= BigDecimal.ZERO
+            val directionRes = if (isPositive) {
+                R.string.TechnicalAdvice_MacdPositive
+            } else {
+                R.string.TechnicalAdvice_MacdNegative
+            }
+            val actionRes = if (isPositive) {
+                R.string.TechnicalAdvice_Up
+            } else {
+                R.string.TechnicalAdvice_Down
+            }
+            val direction = Translator.getString(directionRes)
+            val action = Translator.getString(actionRes)
+            val sign = if (isPositive) "" else "-"
             val macdValue = numberFormatter.format(macd, 0, 4, prefix = sign)
-            cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_MacdAdvice, direction, macdValue, action)
+            Translator.getString(
+                R.string.TechnicalAdvice_MacdAdvice, direction, macdValue, action
+            )
         }
 
         val advices = listOf(emaAdvice, macdAdvice).filterNotNull()
@@ -199,7 +232,7 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
         }
 
         return buildString {
-            append(cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_OtherTitle))
+            append(Translator.getString(R.string.TechnicalAdvice_OtherTitle))
             advices.forEach {
                 append("\n\n")
                 append(it)
@@ -211,13 +244,30 @@ class TechnicalAdviceViewItemFactory(private val numberFormatter: IAppNumberForm
 val Advice.title: String
     get() {
         return when (this) {
-            Advice.Oversold -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_RiskyToTrade)
-            Advice.StrongSell -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_StrongSell)
-            Advice.Sell -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_Sell)
-            Advice.Neutral -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_Neutral)
-            Advice.Buy -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_Buy)
-            Advice.StrongBuy -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_StrongBuy)
-            Advice.Overbought -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TechnicalAdvice_Indicators_RiskyToTrade)
+            Advice.Oversold -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_RiskyToTrade
+            )
+
+            Advice.StrongSell -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_StrongSell
+            )
+
+            Advice.Sell -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_Sell
+            )
+
+            Advice.Neutral -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_Neutral
+            )
+
+            Advice.Buy -> Translator.getString(R.string.TechnicalAdvice_Indicators_Buy)
+            Advice.StrongBuy -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_StrongBuy
+            )
+
+            Advice.Overbought -> Translator.getString(
+                R.string.TechnicalAdvice_Indicators_RiskyToTrade
+            )
         }
     }
 

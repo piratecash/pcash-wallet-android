@@ -145,11 +145,13 @@ class TokenTransactionsServiceSearchTest : KoinTest {
         service.setSearchQuery("needle")
 
         repositoryItemsFlow.emit(RecordsBatch(listOf(spamRecord1), searchCompleted = true, searchExhausted = false))
-        assertTrue("loadNext was not called after the first spam-only page", waitUntilTrue { loadNextCallCount.get() >= 1 })
+        assertTrue(
+            "loadNext was not called after the first spam-only page", waitUntilTrue { loadNextCallCount.get() >= 1 })
         assertEquals(SearchScanState.Scanning, service.searchScanStateFlow.value)
 
         repositoryItemsFlow.emit(RecordsBatch(listOf(spamRecord2), searchCompleted = true, searchExhausted = false))
-        assertTrue("loadNext was not called after the second spam-only page", waitUntilTrue { loadNextCallCount.get() >= 2 })
+        assertTrue(
+            "loadNext was not called after the second spam-only page", waitUntilTrue { loadNextCallCount.get() >= 2 })
         assertEquals(SearchScanState.Scanning, service.searchScanStateFlow.value)
         assertTrue(service.transactionItemsFlow.value.isEmpty())
 

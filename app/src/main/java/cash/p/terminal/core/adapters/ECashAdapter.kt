@@ -23,7 +23,8 @@ class ECashAdapter(
     backgroundManager: BackgroundManager,
     wallet: Wallet,
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold, 2, feeRateProvider), ECashKit.Listener, ISendBitcoinAdapter {
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold, 2, feeRateProvider),
+    ECashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
@@ -82,7 +83,8 @@ class ECashAdapter(
     override val blockchainType = BlockchainType.ECash
 
     override fun usedAddresses(change: Boolean): List<UsedAddress> =
-        kit.usedAddresses(change).map { UsedAddress(it.index, it.address, "https://blockchair.com/ecash/address/${it.address}") }
+        kit.usedAddresses(change)
+            .map { UsedAddress(it.index, it.address, "https://blockchair.com/ecash/address/${it.address}") }
 
     companion object {
         private const val confirmationsThreshold = 1
@@ -100,6 +102,7 @@ class ECashAdapter(
                         confirmationsThreshold = confirmationsThreshold
                     )
                 }
+
                 is AccountType.Mnemonic -> {
                     return ECashKit(
                         context = App.instance,
@@ -111,6 +114,7 @@ class ECashAdapter(
                         confirmationsThreshold = confirmationsThreshold
                     )
                 }
+
                 is AccountType.BitcoinAddress -> {
                     return ECashKit(
                         context = App.instance,
@@ -121,6 +125,7 @@ class ECashAdapter(
                         confirmationsThreshold = confirmationsThreshold
                     )
                 }
+
                 else -> throw UnsupportedAccountException()
             }
 

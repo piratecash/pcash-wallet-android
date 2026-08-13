@@ -82,7 +82,8 @@ private fun SelectBlockchainsScreen(
     popUpToInclusiveId: Int,
     inclusive: Boolean
 ) {
-    val viewModel = viewModel<SelectBlockchainsViewModel>(factory = SelectBlockchainsModule.Factory(accountType, accountName))
+    val viewModel =
+        viewModel<SelectBlockchainsViewModel>(factory = SelectBlockchainsModule.Factory(accountType, accountName))
 
     val view = LocalView.current
     val uiState = viewModel.uiState

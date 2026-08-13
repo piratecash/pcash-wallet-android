@@ -171,8 +171,15 @@ class HardwareWalletTronSigner(
     }
 
     fun isPubKeyCompressed(encoded: ByteArray): Boolean {
-        return if (encoded.size == 32 || (encoded.size == 33 && (encoded[0].toInt() == 0x02 || encoded[0].toInt() == 0x03))) true
-        else if (encoded.size == 65 && encoded[0].toInt() == 0x04) false
-        else throw java.lang.IllegalArgumentException(Hex.toHexString(encoded))
+        return if (
+            encoded.size == 32 ||
+            (encoded.size == 33 && (encoded[0].toInt() == 0x02 || encoded[0].toInt() == 0x03))
+        ) {
+            true
+        } else if (encoded.size == 65 && encoded[0].toInt() == 0x04) {
+            false
+        } else {
+            throw IllegalArgumentException(Hex.toHexString(encoded))
+        }
     }
 }

@@ -69,14 +69,19 @@ class LegacyFeeSettingsViewModel(
             DataState.Loading -> {
                 feeSummaryViewItem = FeeSummaryViewItem(null, notAvailable, ViewState.Loading)
             }
+
             is DataState.Error -> {
                 feeSummaryViewItem = FeeSummaryViewItem(null, notAvailable, ViewState.Error(transactionStatus.error))
             }
+
             is DataState.Success -> {
                 val transaction = transactionStatus.data
                 val viewState = transaction.errors.firstOrNull()?.let { ViewState.Error(it) } ?: ViewState.Success
-                val feeAmountData = coinService.amountData(transactionStatus.data.gasData.estimatedFee, transactionStatus.data.gasData.isSurcharged)
-                val feeItem = FeeItem(feeAmountData.primary.getFormattedPlain(), feeAmountData.secondary?.getFormattedPlain())
+                val feeAmountData = coinService.amountData(
+                    transactionStatus.data.gasData.estimatedFee, transactionStatus.data.gasData.isSurcharged
+                )
+                val feeItem =
+                    FeeItem(feeAmountData.primary.getFormattedPlain(), feeAmountData.secondary?.getFormattedPlain())
                 val gasLimit = App.numberFormatter.format(transactionStatus.data.gasData.gasLimit.toBigDecimal(), 0, 0)
 
                 feeSummaryViewItem = FeeSummaryViewItem(feeItem, gasLimit, viewState)
@@ -86,7 +91,10 @@ class LegacyFeeSettingsViewModel(
 
     private fun sync(state: DataState<GasPriceInfo>) {
         if (state is DataState.Success) {
-            feeViewItem = FeeViewItem(weiValue = state.data.gasPrice.max, scale = scale, warnings = state.data.warnings, errors = state.data.errors)
+            feeViewItem = FeeViewItem(
+                weiValue = state.data.gasPrice.max, scale = scale, warnings = state.data.warnings,
+                errors = state.data.errors
+            )
         }
     }
 

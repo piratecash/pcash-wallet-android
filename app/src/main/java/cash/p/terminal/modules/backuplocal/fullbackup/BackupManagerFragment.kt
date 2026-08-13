@@ -145,7 +145,12 @@ private fun BackupManagerScreen(
                 CellUniversalLawrenceSection(
                     buildList {
                         add {
-                            RowUniversal(onClick = { restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*")) }) {
+                            RowUniversal(
+                                onClick = {
+                                    restoreLauncher.launch(
+                                        arrayOf("application/json", "application/octet-stream", "*/*")
+                                    )
+                                }) {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     painter = painterResource(R.drawable.ic_download_20),

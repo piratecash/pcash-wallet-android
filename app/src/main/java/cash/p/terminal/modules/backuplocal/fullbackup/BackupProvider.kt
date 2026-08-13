@@ -92,10 +92,17 @@ class BackupFileValidator {
 
         @Suppress("SENSELESS_COMPARISON")
         val isSingleWalletBackup =
-            fullBackup.settings == null && walletBackup.crypto != null && walletBackup.type != null && walletBackup.version in 1..2
+            fullBackup.settings == null &&
+                    walletBackup.crypto != null &&
+                    walletBackup.type != null &&
+                    walletBackup.version in 1..2
+
         @Suppress("SENSELESS_COMPARISON")
         val isFullBackup =
-            fullBackup.settings != null && fullBackup.version == 2 && walletBackup.crypto == null && walletBackup.type == null
+            fullBackup.settings != null &&
+                    fullBackup.version == 2 &&
+                    walletBackup.crypto == null &&
+                    walletBackup.type == null
 
         if (!isSingleWalletBackup && !isFullBackup) {
             throw Exception("Invalid json format")
@@ -238,7 +245,10 @@ class BackupProvider(
                 a.salt == b.salt
     }
 
-    /** [source] decides only whether a manually-added row's stored decimals may be trusted — never whether the user is asked. */
+    /**
+     * [source] decides only whether a manually-added row's stored decimals may be trusted — never whether the user
+     * is asked.
+     */
     private suspend fun trustedEnabledWallets(
         accountId: String,
         backups: List<BackupLocalModule.EnabledWalletBackup>,
@@ -370,7 +380,10 @@ class BackupProvider(
             val tokenQuery = TokenQuery.fromId(enabledWalletBackup.tokenQueryId) ?: return@forEach
             val accountType = account.type
             val restoreSettings = enabledWalletBackup.restoreSettings(tokenQuery)
-                ?: if (accountType is AccountType.MnemonicMonero && tokenQuery.blockchainType == BlockchainType.Monero) {
+                ?: if (
+                    accountType is AccountType.MnemonicMonero &&
+                    tokenQuery.blockchainType == BlockchainType.Monero
+                ) {
                     // Monero-only accounts carry no settings in the backup — take the height from the account
                     RestoreSettings().apply { birthdayHeight = accountType.height }
                 } else {
@@ -504,7 +517,10 @@ class BackupProvider(
         chartIndicatorSettingsDao.insertAll(rsiChartSettings + maChartSettings + macdChartSettings)
     }
 
-    /** All accounts are curated before anything is written, so a late decline can't leave earlier accounts partially written. */
+    /**
+     * All accounts are curated before anything is written, so a late decline can't leave earlier accounts partially
+     * written.
+     */
     @Throws
     suspend fun restoreFullBackup(
         fullBackup: DecryptedFullBackup,
@@ -654,7 +670,9 @@ class BackupProvider(
         )
 
     fun shouldShowReplaceWarning(decryptedFullBackup: DecryptedFullBackup?): Boolean {
-        return decryptedFullBackup != null && decryptedFullBackup.contacts.isNotEmpty() && contactsRepository.contacts.isNotEmpty()
+        return decryptedFullBackup != null &&
+                decryptedFullBackup.contacts.isNotEmpty() &&
+                contactsRepository.contacts.isNotEmpty()
     }
 
     @Throws
@@ -764,7 +782,8 @@ class BackupProvider(
      * @param accountIds2 Hidden wallet IDs (optional, deniable)
      * @param passphrase2 Hidden password (required if accountIds2 provided)
      * @return Binary backup file contents
-     * @throws DeniableEncryptionManager.PasswordCollisionException if passwords derive overlapping offsets after all retries
+     * @throws DeniableEncryptionManager.PasswordCollisionException if passwords derive overlapping offsets after all
+     * retries
      */
     @Throws(DeniableEncryptionManager.PasswordCollisionException::class)
     fun createFullBackupV4Binary(
@@ -803,7 +822,9 @@ class BackupProvider(
             throw IllegalArgumentException("Hardware wallets cannot be backed up")
         }
 
-        val backup = buildSingleWalletFullBackup(account, passphrase) ?: throw IllegalArgumentException("Failed to build wallet backup")
+        val backup = buildSingleWalletFullBackup(account, passphrase) ?: throw IllegalArgumentException(
+            "Failed to build wallet backup"
+        )
         val payload = buildV4Payload(backup)
 
         return createDeniableContainerWithRetry(payload, passphrase, null, null)
@@ -1414,5 +1435,7 @@ data class Settings(
 sealed class RestoreException(message: String) : Exception(message) {
     object EncryptionKeyException : RestoreException("Couldn't get key from passphrase.")
     object InvalidPasswordException :
-        RestoreException(cash.p.terminal.strings.helpers.Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword))
+        RestoreException(
+            cash.p.terminal.strings.helpers.Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)
+        )
 }

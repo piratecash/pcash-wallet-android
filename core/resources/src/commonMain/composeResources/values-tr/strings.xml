@@ -2064,6 +2064,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="multi_swap_no_providers">Kullanılabilir sağlayıcı yok</string>
     <string name="multi_swap_finding_best_provider">En iyi sağlayıcı aranıyor…</string>
     <string name="multi_swap_continue">Takasa devam et</string>
+    <string name="multi_swap_route_explanation">En iyi kur için %2$s üzerinden bir rota kullanılır. Takas iki ardışık adımda tamamlanır: önce %1$s → %2$s, ardından %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Takas rotası</string>
+    <string name="multi_swap_execution_title">Takas</string>
+    <string name="multi_swap_step">%d. adım</string>
+    <string name="multi_swap_understood_continue">Anladım, devam et</string>
     <string name="multi_swap_unfinished">Tamamlanmamış takas</string>
     <string name="multi_swap_unfinished_plural">Tamamlanmamış takaslar (%d)</string>
     <string name="duration_short_hours">%1$dsa</string>
@@ -2192,6 +2197,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
     <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>
+    <string name="balance_hide_on_flip_unsupported">Bu cihaz Ters çevirince gizle özelliğini desteklemiyor.</string>
     <string name="balance_hide_on_flip_info_title">Bakiye gizlendi</string>
     <string name="balance_hide_on_flip_info_description">Bakiyenizi gizlemek veya göstermek için cihazın ekranını aşağı çevirin ya da güvenlik ayarlarından kapatın.</string>
     <string name="balance_hide_on_flip_dont_show_again">Tekrar gösterme</string>

@@ -173,9 +173,9 @@ fun ButtonSecondaryTransparent(
         ),
         content = {
             if (iconRight != null) {
-                Row (
+                Row(
                     verticalAlignment = Alignment.CenterVertically
-                ){
+                ) {
                     Text(
                         text = title,
                         maxLines = 1,
@@ -214,7 +214,8 @@ fun <T : WithTranslatableTitle> ButtonSecondaryToggle(
         onClick = {
             val options = select.options
             val selectedItemIndex = options.indexOf(select.selected)
-            val nextSelectedItemIndex = if (selectedItemIndex == options.size - 1) 0 else selectedItemIndex + 1
+            val nextSelectedItemIndex =
+                if (selectedItemIndex == options.size - 1) 0 else selectedItemIndex + 1
 
             onSelect(options[nextSelectedItemIndex])
         },
@@ -240,7 +241,13 @@ fun <T : WithTranslatableTitle> ButtonSecondaryToggle(
                             modifier = Modifier
                                 .size(3.dp)
                                 .clip(CircleShape)
-                                .background(if (select.selected == it) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey)
+                                .background(
+                                    if (select.selected == it) {
+                                        ComposeAppTheme.colors.jacob
+                                    } else {
+                                        ComposeAppTheme.colors.grey
+                                    }
+                                )
                         )
                     }
                 }

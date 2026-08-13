@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsModule.getState
@@ -44,11 +45,15 @@ class SwapDeadlineViewModel(
 
             return listOf(
                 InputButton(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.SwapSettings_DeadlineMinute, lowerMinutes),
+                    Translator.getString(
+                        R.string.SwapSettings_DeadlineMinute, lowerMinutes
+                    ),
                     lowerMinutes
                 ),
                 InputButton(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.SwapSettings_DeadlineMinute, upperMinutes),
+                    Translator.getString(
+                        R.string.SwapSettings_DeadlineMinute, upperMinutes
+                    ),
                     upperMinutes
                 )
             )

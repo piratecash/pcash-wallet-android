@@ -32,7 +32,9 @@ class BalanceHideOnFlipManager(
     private val pinComponent: IPinComponent,
     dispatcherProvider: DispatcherProvider,
 ) {
-    private val _enabled = MutableStateFlow(localStorage.balanceHideOnFlipEnabled)
+    val isSupported = deviceFlipDetector.isSupported
+
+    private val _enabled = MutableStateFlow(false)
     val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
 
     private val _pendingInfo = MutableStateFlow(false)
@@ -41,6 +43,12 @@ class BalanceHideOnFlipManager(
     private val scope = CoroutineScope(dispatcherProvider.default)
 
     init {
+        val enabled = localStorage.balanceHideOnFlipEnabled && isSupported
+        if (!isSupported) {
+            localStorage.balanceHideOnFlipEnabled = false
+        }
+        _enabled.value = enabled
+
         scope.launch {
             combine(
                 backgroundManager.stateFlow.map { it == BackgroundManagerState.EnterForeground },
@@ -70,9 +78,10 @@ class BalanceHideOnFlipManager(
     }
 
     fun setEnabled(enabled: Boolean) {
-        localStorage.balanceHideOnFlipEnabled = enabled
-        _enabled.value = enabled
-        if (!enabled) _pendingInfo.value = false
+        val newEnabled = enabled && isSupported
+        localStorage.balanceHideOnFlipEnabled = newEnabled
+        _enabled.value = newEnabled
+        if (!newEnabled) _pendingInfo.value = false
     }
 
     fun consumeInfo() {

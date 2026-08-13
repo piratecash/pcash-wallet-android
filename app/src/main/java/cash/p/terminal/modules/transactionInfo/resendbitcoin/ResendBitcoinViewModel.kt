@@ -132,11 +132,19 @@ class ResendBitcoinViewModel(
 
     private fun createCaution(error: Throwable) = when (error) {
         BuildError.FeeTooLow -> HSCaution(TranslatableString.ResString(R.string.TransactionInfoOptions_Rbf_FeeTooLow))
-        BuildError.RbfNotEnabled -> HSCaution(TranslatableString.ResString(R.string.TransactionInfoOptions_Rbf_NotEnabled))
+        BuildError.RbfNotEnabled -> HSCaution(
+            TranslatableString.ResString(R.string.TransactionInfoOptions_Rbf_NotEnabled)
+        )
+
         is BuildError.InvalidTransaction,
         BuildError.UnableToReplace,
-        BuildError.NoPreviousOutput -> HSCaution(TranslatableString.ResString(R.string.TransactionInfoOptions_Rbf_UnableToReplace))
-        AccountPublicKeyManager.Error.InvalidPath -> HSCaution(TranslatableString.ResString(R.string.transaction_error_invalid_derivation_path))
+        BuildError.NoPreviousOutput -> HSCaution(
+            TranslatableString.ResString(R.string.TransactionInfoOptions_Rbf_UnableToReplace)
+        )
+
+        AccountPublicKeyManager.Error.InvalidPath -> HSCaution(
+            TranslatableString.ResString(R.string.transaction_error_invalid_derivation_path)
+        )
 
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))

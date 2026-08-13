@@ -70,7 +70,11 @@ class BtcBlockchainStatusProvider(
 
     override val kitStarted: Boolean
         get() = walletManager.activeWallets
-            .any { it.token.blockchainType == blockchain.type && adapterManager.getAdapterForWallet<BitcoinBaseAdapter>(it) != null }
+            .any {
+                it.token.blockchainType == blockchain.type && adapterManager.getAdapterForWallet<BitcoinBaseAdapter>(
+                    it
+                ) != null
+            }
 
     override fun getStatus(): BlockchainStatus {
         val pairs = getWalletStatusPairs()
@@ -236,7 +240,11 @@ class ZcashBlockchainStatusProvider(
 
     override val kitStarted: Boolean
         get() = walletManager.activeWallets
-            .any { it.token.blockchainType == BlockchainType.Zcash && adapterManager.getAdapterForWallet<ZcashAdapter>(it) != null }
+            .any {
+                it.token.blockchainType == BlockchainType.Zcash && adapterManager.getAdapterForWallet<ZcashAdapter>(
+                    it
+                ) != null
+            }
 
     override fun getStatus(): BlockchainStatus {
         val adapter = walletManager.activeWallets

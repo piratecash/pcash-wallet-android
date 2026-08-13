@@ -3,6 +3,7 @@ package cash.p.terminal.modules.coin.analytics
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.brandColor
@@ -174,7 +175,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.CexVolumeInfo,
                     value = getFormattedSum(data.points.map { it.volume }, currency),
                     valuePeriod = getValuePeriod(false),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.CexVolume),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.CexVolume
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -199,7 +202,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.DexVolumeInfo,
                     value = getFormattedSum(data.points.map { it.volume }, currency),
                     valuePeriod = getValuePeriod(false),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.DexVolume),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.DexVolume
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -227,7 +232,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.TvlInfo,
                     value = getFormattedValue(data.points.last().tvl, currency),
                     valuePeriod = getValuePeriod(true),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.Tvl),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.Tvl
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -253,7 +260,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.DexLiquidityInfo,
                     value = getFormattedValue(data.points.last().volume, currency),
                     valuePeriod = getValuePeriod(true),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.DexLiquidity),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.DexLiquidity
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -285,7 +294,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.AddressesInfo,
                     value = chartValue,
                     valuePeriod = getValuePeriod(true),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.AddressesCount),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Line, ProChartModule.ChartType.AddressesCount
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -316,7 +327,9 @@ class CoinAnalyticsViewModel(
                     info = AnalyticInfo.TransactionCountInfo,
                     value = getFormattedSum(data.points.map { it.count.toBigDecimal() }),
                     valuePeriod = getValuePeriod(false),
-                    analyticChart = getChartViewItem(data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.TxCount),
+                    analyticChart = getChartViewItem(
+                        data.chartPoints(), ChartViewType.Bar, ProChartModule.ChartType.TxCount
+                    ),
                     footerItems = footerItems
                 )
             )
@@ -441,7 +454,7 @@ class CoinAnalyticsViewModel(
                             TranslatableString.PlainString(blockchainTitle)
                         ),
                         value = Value(
-                            cash.p.terminal.strings.helpers.Translator.getString(
+                            Translator.getString(
                                 R.string.CoinAnalytics_CountItems,
                                 blockchainIssues.issues.size
                             )
@@ -473,12 +486,20 @@ class CoinAnalyticsViewModel(
                     info = null,
                     analyticChart = null,
                     footerItems = detectorFooterItems,
-                    sectionDescription = cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinAnalytics_PoweredByDeFi)
+                    sectionDescription = Translator.getString(
+                        R.string.CoinAnalytics_PoweredByDeFi
+                    )
                 )
             )
         }
 
-        if (analytics.reports != null || analytics.fundsInvested != null || analytics.treasuries != null || analytics.audits != null) {
+        val hasFundamentalData = listOf(
+            analytics.reports,
+            analytics.fundsInvested,
+            analytics.treasuries,
+            analytics.audits,
+        ).any { it != null }
+        if (hasFundamentalData) {
             val footerItems = mutableListOf<FooterItem>()
             analytics.reports?.let { reportsCount ->
                 footerItems.add(
@@ -553,10 +574,13 @@ class CoinAnalyticsViewModel(
                 when (issueItem.impact) {
                     "Critical",
                     "High" -> innerHigh++
+
                     "Medium" -> innerMedium++
                     "Low",
                     "Informational" -> innerLow++
-                    "Optimization" -> { /* ignore */}
+
+                    "Optimization" -> { /* ignore */
+                    }
                 }
             }
             if (innerHigh > 0) {
@@ -606,7 +630,9 @@ class CoinAnalyticsViewModel(
     private fun getRatingFooterItem(ratingString: String?, scoreCategory: ScoreCategory): FooterItem? {
         return CoinAnalyticsModule.OverallScore.fromString(ratingString)?.let { rating ->
             FooterItem(
-                title = TitleWithInfo(ResString(R.string.Coin_Analytics_OverallScore), ActionType.OpenOverallScoreInfo(scoreCategory)),
+                title = TitleWithInfo(
+                    ResString(R.string.Coin_Analytics_OverallScore), ActionType.OpenOverallScoreInfo(scoreCategory)
+                ),
                 value = OverallScoreValue(rating),
             )
         }
@@ -634,7 +660,9 @@ class CoinAnalyticsViewModel(
     }
 
     private fun getValuePeriod(isMovement: Boolean): String {
-        return cash.p.terminal.strings.helpers.Translator.getString(if (isMovement) R.string.Coin_Analytics_Current else R.string.Coin_Analytics_Last30d)
+        return Translator.getString(
+            if (isMovement) R.string.Coin_Analytics_Current else R.string.Coin_Analytics_Last30d
+        )
     }
 
     private fun getRank(rank: Int) = "#$rank"
@@ -967,7 +995,10 @@ class CoinAnalyticsViewModel(
     }
 
     private val ratingPreviewFooterItem = FooterItem(
-        title = TitleWithInfo(ResString(R.string.Coin_Analytics_OverallScore), ActionType.OpenOverallScoreInfo(ScoreCategory.HoldersScoreCategory)),
+        title = TitleWithInfo(
+            ResString(R.string.Coin_Analytics_OverallScore),
+            ActionType.OpenOverallScoreInfo(ScoreCategory.HoldersScoreCategory)
+        ),
         value = BoxItem.Dots,
         action = null
     )

@@ -111,7 +111,10 @@ class MarketSearchViewModel(
     )
 
     sealed class Page {
-        data class Discovery(val recent: List<MarketSearchModule.CoinItem>, val popular: List<MarketSearchModule.CoinItem>) : Page()
+        data class Discovery(
+            val recent: List<MarketSearchModule.CoinItem>, val popular: List<MarketSearchModule.CoinItem>
+        ) : Page()
+
         data class SearchResults(val items: List<MarketSearchModule.CoinItem>) : Page()
     }
 }

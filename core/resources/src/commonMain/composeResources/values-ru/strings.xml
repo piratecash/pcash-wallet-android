@@ -2266,6 +2266,11 @@
     <string name="multi_swap_no_providers">Нет доступных провайдеров</string>
     <string name="multi_swap_finding_best_provider">Поиск лучшего провайдера…</string>
     <string name="multi_swap_continue">Продолжить обмен</string>
+    <string name="multi_swap_route_explanation">Для получения наиболее выгодного курса используется маршрут через %2$s. Обмен будет выполнен в два последовательных шага: сначала %1$s → %2$s, затем %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Маршрут обмена</string>
+    <string name="multi_swap_execution_title">Обмен</string>
+    <string name="multi_swap_step">%d шаг</string>
+    <string name="multi_swap_understood_continue">Понятно, продолжить</string>
     <string name="multi_swap_unfinished">Незавершенный обмен</string>
     <string name="multi_swap_unfinished_plural">Незавершенные обмены (%d)</string>
     <!--PayCore-->
@@ -2370,6 +2375,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Скрытие переворотом</string>
     <string name="balance_hide_on_flip_description">Переверните экран устройства вниз, чтобы быстро спрятать и отобразить баланс.</string>
+    <string name="balance_hide_on_flip_unsupported">Это устройство не поддерживает скрытие переворотом.</string>
     <string name="balance_hide_on_flip_info_title">Баланс скрыт</string>
     <string name="balance_hide_on_flip_info_description">Чтобы скрыть или показать свой баланс, просто переверните экран устройства вниз или выключите его в настройках безопасности.</string>
     <string name="balance_hide_on_flip_dont_show_again">Больше не показывать</string>

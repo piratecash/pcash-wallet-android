@@ -87,7 +87,9 @@ class JettonAdapter(
     // INativeBalanceProvider
 
     override val nativeBalanceData: BalanceData
-        get() = BalanceData(tonKit.account?.balance?.toBigDecimal()?.movePointLeft(nativeToken.decimals) ?: BigDecimal.ZERO)
+        get() = BalanceData(
+            tonKit.account?.balance?.toBigDecimal()?.movePointLeft(nativeToken.decimals) ?: BigDecimal.ZERO
+        )
 
     override val nativeBalanceUpdatedFlow: Flow<Unit>
         get() = tonKit.accountFlow.map { }
@@ -124,7 +126,7 @@ class JettonAdapter(
         )
     }
 
-    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)  {
+    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String) {
         sendWithPayloadBoc(amount, address, payload)
     }
 

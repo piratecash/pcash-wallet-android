@@ -205,99 +205,100 @@ private fun MainScreen(
     }
 
     Scaffold(
-            containerColor = ComposeAppTheme.colors.tyler,
-            bottomBar = {
-                Column {
-                    ConnectionStatusView()
-                    HsBottomNavigation(
-                        backgroundColor = ComposeAppTheme.colors.tyler,
-                        elevation = 10.dp
-                    ) {
-                        uiState.mainNavItems.forEach { item ->
-                            HsBottomNavigationItem(
-                                icon = {
-                                    BadgedIcon(item.badge) {
-                                        MainDestinationIcon(
-                                            destination = item.mainNavItem,
-                                            contentDescription = MainDestinationTitle(item.mainNavItem),
-                                        )
-                                    }
-                                },
-                                selected = item.selected,
-                                enabled = item.enabled,
-                                selectedContentColor = ComposeAppTheme.colors.jacob,
-                                unselectedContentColor = if (item.enabled) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.grey50,
-                                onClick = {
-                                    viewModel.onSelect(item.mainNavItem)
-                                },
-                                onLongClick = {
-                                    if (item.mainNavItem == MainDestination.Balance) {
-                                        showWalletSheet = true
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        ) { paddingValues ->
+        containerColor = ComposeAppTheme.colors.tyler,
+        bottomBar = {
             Column {
-                LaunchedEffect(key1 = selectedPage, block = {
-                    if (uiState.mainNavItems[selectedPage].mainNavItem != MainDestination.Transactions) {
-                        transactionsViewModel.showAllTransactions(false)
-                    }
-                    pagerState.scrollToPage(selectedPage)
-                })
-
-                HorizontalPager(
-                    modifier = Modifier.weight(1f),
-                    state = pagerState,
-                    userScrollEnabled = false,
-                    verticalAlignment = Alignment.Top
-                ) { page ->
-                    when (uiState.mainNavItems[page].mainNavItem) {
-                        MainDestination.Market -> MarketScreen(fragmentNavController, paddingValues)
-                        MainDestination.Balance -> BalanceScreen(
-                            navController = fragmentNavController,
-                            paddingValues = paddingValues,
-                            onOpenTransactionInfo = { item ->
-                                transactionsViewModel.tmpItemToShow = item
-                                fragmentNavController.slideFromBottom(R.id.transactionInfoFragment)
-                            },
-                        )
-
-                        MainDestination.Transactions -> TransactionsScreen(
-                            navController = fragmentNavController,
-                            paddingValues = paddingValues,
-                            viewModel = transactionsViewModel,
-                            onShowAllTransactionsClicked = {
-                                fragmentNavController.authorizedAction(
-                                    ConfirmPinFragment.InputConfirm(
-                                        descriptionResId = R.string.Unlock_EnterPasscode_Transactions_Hide,
-                                        pinType = PinType.TRANSACTIONS_HIDE
+                ConnectionStatusView()
+                HsBottomNavigation(
+                    backgroundColor = ComposeAppTheme.colors.tyler,
+                    elevation = 10.dp
+                ) {
+                    uiState.mainNavItems.forEach { item ->
+                        HsBottomNavigationItem(
+                            icon = {
+                                BadgedIcon(item.badge) {
+                                    MainDestinationIcon(
+                                        destination = item.mainNavItem,
+                                        contentDescription = MainDestinationTitle(item.mainNavItem),
                                     )
-                                ) {
-                                    transactionsViewModel.showAllTransactions(true)
+                                }
+                            },
+                            selected = item.selected,
+                            enabled = item.enabled,
+                            selectedContentColor = ComposeAppTheme.colors.jacob,
+                            unselectedContentColor = if (item.enabled) ComposeAppTheme.colors.grey else
+                                ComposeAppTheme.colors.grey50,
+                            onClick = {
+                                viewModel.onSelect(item.mainNavItem)
+                            },
+                            onLongClick = {
+                                if (item.mainNavItem == MainDestination.Balance) {
+                                    showWalletSheet = true
                                 }
                             }
-                        )
-
-                        MainDestination.Settings -> SettingsScreen(
-                            fragmentNavController,
-                            paddingValues
                         )
                     }
                 }
             }
         }
-        // Losing activity-window focus happens both when a modal opens (foreground) and when the
-        // app enters the recent-apps switcher. A foreground modal reports its own window focus via
-        // hasForegroundModal, which stays true only while the modal is genuinely up front; on
-        // entering recents the modal window loses focus too. So hide the content whenever the
-        // activity window is unfocused and no modal holds focus — covering plain and modal cases.
-        val hideForRecents =
-            !windowInfo.isWindowFocused && !ModalOverlayTracker.hasForegroundModal
-        HideContentBox(uiState.contentHidden || hideForRecents)
+    ) { paddingValues ->
+        Column {
+            LaunchedEffect(key1 = selectedPage, block = {
+                if (uiState.mainNavItems[selectedPage].mainNavItem != MainDestination.Transactions) {
+                    transactionsViewModel.showAllTransactions(false)
+                }
+                pagerState.scrollToPage(selectedPage)
+            })
+
+            HorizontalPager(
+                modifier = Modifier.weight(1f),
+                state = pagerState,
+                userScrollEnabled = false,
+                verticalAlignment = Alignment.Top
+            ) { page ->
+                when (uiState.mainNavItems[page].mainNavItem) {
+                    MainDestination.Market -> MarketScreen(fragmentNavController, paddingValues)
+                    MainDestination.Balance -> BalanceScreen(
+                        navController = fragmentNavController,
+                        paddingValues = paddingValues,
+                        onOpenTransactionInfo = { item ->
+                            transactionsViewModel.tmpItemToShow = item
+                            fragmentNavController.slideFromBottom(R.id.transactionInfoFragment)
+                        },
+                    )
+
+                    MainDestination.Transactions -> TransactionsScreen(
+                        navController = fragmentNavController,
+                        paddingValues = paddingValues,
+                        viewModel = transactionsViewModel,
+                        onShowAllTransactionsClicked = {
+                            fragmentNavController.authorizedAction(
+                                ConfirmPinFragment.InputConfirm(
+                                    descriptionResId = R.string.Unlock_EnterPasscode_Transactions_Hide,
+                                    pinType = PinType.TRANSACTIONS_HIDE
+                                )
+                            ) {
+                                transactionsViewModel.showAllTransactions(true)
+                            }
+                        }
+                    )
+
+                    MainDestination.Settings -> SettingsScreen(
+                        fragmentNavController,
+                        paddingValues
+                    )
+                }
+            }
+        }
+    }
+    // Losing activity-window focus happens both when a modal opens (foreground) and when the
+    // app enters the recent-apps switcher. A foreground modal reports its own window focus via
+    // hasForegroundModal, which stays true only while the modal is genuinely up front; on
+    // entering recents the modal window loses focus too. So hide the content whenever the
+    // activity window is unfocused and no modal holds focus — covering plain and modal cases.
+    val hideForRecents =
+        !windowInfo.isWindowFocused && !ModalOverlayTracker.hasForegroundModal
+    HideContentBox(uiState.contentHidden || hideForRecents)
 
     // Wallet Selection Bottom Sheet
     if (showWalletSheet) {

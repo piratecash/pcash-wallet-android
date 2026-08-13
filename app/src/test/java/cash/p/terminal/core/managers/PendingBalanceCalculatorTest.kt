@@ -167,30 +167,31 @@ class PendingBalanceCalculatorTest {
     }
 
     @Test
-    fun adjustBalance_mwebSdkTemporarilyReportsZeroBeforeChangeSnapshot_returnsExpectedRemainingBalance() = runTest(dispatcher) {
-        val calculator = PendingBalanceCalculator(pendingRepository, dispatcherProvider)
-        calculator.onPendingInserted(
-            createMwebLitecoinPendingEntity(
-                id = "ltc-mweb-pending",
-                amountAtomic = "1000000",
-                feeAtomic = "100000",
-                sdkBalanceAtCreationAtomic = "2600000"
+    fun adjustBalance_mwebSdkTemporarilyReportsZeroBeforeChangeSnapshot_returnsExpectedRemainingBalance() =
+        runTest(dispatcher) {
+            val calculator = PendingBalanceCalculator(pendingRepository, dispatcherProvider)
+            calculator.onPendingInserted(
+                createMwebLitecoinPendingEntity(
+                    id = "ltc-mweb-pending",
+                    amountAtomic = "1000000",
+                    feeAtomic = "100000",
+                    sdkBalanceAtCreationAtomic = "2600000"
+                )
             )
-        )
 
-        val wallet = createMwebLitecoinWallet()
-        val rawBalance = BalanceData(available = BigDecimal.ZERO)
+            val wallet = createMwebLitecoinWallet()
+            val rawBalance = BalanceData(available = BigDecimal.ZERO)
 
-        val adjusted = calculator.adjustBalance(wallet, rawBalance)
-        advanceUntilIdle()
+            val adjusted = calculator.adjustBalance(wallet, rawBalance)
+            advanceUntilIdle()
 
-        assertEquals(
-            BigDecimal("0.015").stripTrailingZeros(),
-            adjusted.available.stripTrailingZeros()
-        )
-        coVerify(exactly = 0) { pendingRepository.deleteByIds(any()) }
-        coVerify(exactly = 0) { pendingRepository.markBalanceConfirmed(any()) }
-    }
+            assertEquals(
+                BigDecimal("0.015").stripTrailingZeros(),
+                adjusted.available.stripTrailingZeros()
+            )
+            coVerify(exactly = 0) { pendingRepository.deleteByIds(any()) }
+            coVerify(exactly = 0) { pendingRepository.markBalanceConfirmed(any()) }
+        }
 
     @Test
     fun adjustBalance_mwebSdkReportsPositiveBelowExpected_keepsSdkAvailableBalance() = runTest(dispatcher) {

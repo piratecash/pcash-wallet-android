@@ -68,7 +68,8 @@ import cash.p.terminal.modules.send.mockConnectivityManager
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendStellarViewModelTest : KoinTest {
 
-    private interface TestSendStellarAdapter : ISendStellarAdapter, OfflineTransactionAdapter<SignedOfflineStellarTransaction>
+    private interface TestSendStellarAdapter : ISendStellarAdapter,
+        OfflineTransactionAdapter<SignedOfflineStellarTransaction>
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val adapter = mockk<TestSendStellarAdapter>(relaxed = true)
@@ -172,9 +173,9 @@ class SendStellarViewModelTest : KoinTest {
             adapter.signOffline(
                 match {
                     it is OfflineStellarSignRequest &&
-                        it.amount == amount &&
-                        it.address == address.hex &&
-                        it.memo == "memo"
+                            it.amount == amount &&
+                            it.address == address.hex &&
+                            it.memo == "memo"
                 }
             )
         }
@@ -208,8 +209,8 @@ class SendStellarViewModelTest : KoinTest {
             adapter.signOffline(
                 match {
                     it is OfflineStellarSignRequest &&
-                        it.amount == amount &&
-                        it.address == address.hex
+                            it.amount == amount &&
+                            it.address == address.hex
                 }
             )
         }

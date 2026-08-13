@@ -118,7 +118,9 @@ fun SendBitcoinNavHost(
                 amountInputType = amountInputModeViewModel.inputType,
             )
         }
-        composablePopup(TransactionInputsSortInfoPage) { BtcTransactionInputSortInfoScreen { navController.popBackStackSafely() } }
+        composablePopup(
+            TransactionInputsSortInfoPage
+        ) { BtcTransactionInputSortInfoScreen { navController.popBackStackSafely() } }
         composablePage(UtxoExpertModePage) {
             UtxoExpertModeScreen(
                 adapter = viewModel.adapter,

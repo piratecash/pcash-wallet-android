@@ -40,9 +40,10 @@ class WalletStorage(
             .map { (tokenQuery, _) -> tokenQuery }
             .normalizedZcashWalletQueriesForLoad()
 
-        val enabledWalletsByQueryId = enabledWalletsByQuery.associate { (tokenQuery, enabledWallet) ->
-            tokenQuery.id to enabledWallet
-        }
+        val enabledWalletsByQueryId =
+            enabledWalletsByQuery.associate { (tokenQuery, enabledWallet) ->
+                tokenQuery.id to enabledWallet
+            }
 
         val tokens = marketKit.tokens(queries)
 
@@ -73,10 +74,15 @@ class WalletStorage(
 
                 enabledWallet ?: continue
 
-                if (enabledWallet.coinName != null && enabledWallet.coinCode != null && enabledWallet.coinDecimals != null) {
+                if (
+                    enabledWallet.coinName != null &&
+                    enabledWallet.coinCode != null &&
+                    enabledWallet.coinDecimals != null
+                ) {
                     val coinUid = tokenQuery.customCoinUid
-                    val blockchain = blockchains.firstOrNull { it.uid == tokenQuery.blockchainType.uid }
-                        ?: continue
+                    val blockchain =
+                        blockchains.firstOrNull { it.uid == tokenQuery.blockchainType.uid }
+                            ?: continue
 
                     val token = Token(
                         coin = Coin(

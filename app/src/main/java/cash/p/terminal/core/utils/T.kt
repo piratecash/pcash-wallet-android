@@ -19,7 +19,9 @@ object T {
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
-        Log.e("Displayed", format("elapsed: %4d, all: %5d, %s", elapsedTimeFromLast, elapsedTimeFromStart, traceElement))
+        Log.e(
+            "Displayed", format("elapsed: %4d, all: %5d, %s", elapsedTimeFromLast, elapsedTimeFromStart, traceElement)
+        )
     }
 
     fun e(tag: String, msg: String) {

@@ -122,9 +122,15 @@ object CoinAnalyticsModule {
     enum class ScoreCategory(val title: Int, val description: Int) : Parcelable {
         CexScoreCategory(R.string.CoinAnalytics_CexVolume, R.string.Coin_Analytics_OverallScore_CexVolume),
         DexVolumeScoreCategory(R.string.CoinAnalytics_DexVolume, R.string.Coin_Analytics_OverallScore_DexVolume),
-        DexLiquidityScoreCategory(R.string.CoinAnalytics_DexLiquidity, R.string.Coin_Analytics_OverallScore_DexLiquidity),
-        AddressesScoreCategory(R.string.CoinAnalytics_ActiveAddresses, R.string.Coin_Analytics_OverallScore_ActiveAddresses),
-        TransactionCountScoreCategory(R.string.CoinAnalytics_TransactionCount, R.string.Coin_Analytics_OverallScore_TransactionCount),
+        DexLiquidityScoreCategory(
+            R.string.CoinAnalytics_DexLiquidity, R.string.Coin_Analytics_OverallScore_DexLiquidity
+        ),
+        AddressesScoreCategory(
+            R.string.CoinAnalytics_ActiveAddresses, R.string.Coin_Analytics_OverallScore_ActiveAddresses
+        ),
+        TransactionCountScoreCategory(
+            R.string.CoinAnalytics_TransactionCount, R.string.Coin_Analytics_OverallScore_TransactionCount
+        ),
         HoldersScoreCategory(R.string.CoinAnalytics_Holders, R.string.Coin_Analytics_OverallScore_Holders),
         TvlScoreCategory(R.string.CoinAnalytics_ProjectTvl, R.string.Coin_Analytics_OverallScore_ProjectTvl),
     }
@@ -166,12 +172,26 @@ object CoinAnalyticsModule {
 
     @Parcelize
     enum class RankType(val title: Int, val description: Int, val headerIconName: String) : Parcelable {
-        CexVolumeRank(R.string.CoinAnalytics_CexVolumeRank, R.string.CoinAnalytics_CexVolumeRank_Description, "cex_volume"),
-        DexVolumeRank(R.string.CoinAnalytics_DexVolumeRank, R.string.CoinAnalytics_DexVolumeRank_Description, "dex_volume"),
-        DexLiquidityRank(R.string.CoinAnalytics_DexLiquidityRank, R.string.CoinAnalytics_DexLiquidityRank_Description, "dex_liquidity"),
-        AddressesRank(R.string.CoinAnalytics_ActiveAddressesRank, R.string.CoinAnalytics_ActiveAddressesRank_Description, "active_addresses"),
-        TransactionCountRank(R.string.CoinAnalytics_TransactionCountRank, R.string.CoinAnalytics_TransactionCountRank, "trx_count"),
-        RevenueRank(R.string.CoinAnalytics_ProjectRevenueRank, R.string.CoinAnalytics_ProjectRevenueRank_Description, "revenue"),
+        CexVolumeRank(
+            R.string.CoinAnalytics_CexVolumeRank, R.string.CoinAnalytics_CexVolumeRank_Description, "cex_volume"
+        ),
+        DexVolumeRank(
+            R.string.CoinAnalytics_DexVolumeRank, R.string.CoinAnalytics_DexVolumeRank_Description, "dex_volume"
+        ),
+        DexLiquidityRank(
+            R.string.CoinAnalytics_DexLiquidityRank, R.string.CoinAnalytics_DexLiquidityRank_Description,
+            "dex_liquidity"
+        ),
+        AddressesRank(
+            R.string.CoinAnalytics_ActiveAddressesRank, R.string.CoinAnalytics_ActiveAddressesRank_Description,
+            "active_addresses"
+        ),
+        TransactionCountRank(
+            R.string.CoinAnalytics_TransactionCountRank, R.string.CoinAnalytics_TransactionCountRank, "trx_count"
+        ),
+        RevenueRank(
+            R.string.CoinAnalytics_ProjectRevenueRank, R.string.CoinAnalytics_ProjectRevenueRank_Description, "revenue"
+        ),
         FeeRank(R.string.CoinAnalytics_ProjectFeeRank, R.string.CoinAnalytics_ProjectFeeRank_Description, "fee"),
         HoldersRank(R.string.CoinAnalytics_HoldersRank, R.string.CoinAnalytics_HoldersRank_Description, "holders");
 

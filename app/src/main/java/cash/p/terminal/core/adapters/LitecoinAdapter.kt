@@ -100,7 +100,9 @@ class LitecoinAdapter(
     private val mode: Mode,
     private val dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider(),
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider), LitecoinKit.Listener, ISendBitcoinAdapter, IMwebAddressValidator {
+) : BitcoinBaseAdapter(
+    kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider
+), LitecoinKit.Listener, ISendBitcoinAdapter, IMwebAddressValidator {
 
     sealed interface Mode {
         data class Public(val derivation: TokenType.Derivation) : Mode
@@ -159,6 +161,7 @@ class LitecoinAdapter(
 
     @Volatile
     private var latestMwebSyncState: MwebSyncState? = null
+
     @Volatile
     private var stopped = false
     private val mwebAvailableBalanceCache = linkedMapOf<MwebAvailableBalanceKey, BigDecimal>()
@@ -450,6 +453,7 @@ class LitecoinAdapter(
                     .map { records -> filterBitcoinTransactionRecords(records, transactionType) }
                     .filter { it.isNotEmpty() }
             }
+
             FilterTransactionType.Swap,
             FilterTransactionType.Approve -> {
                 emptyFlow()
@@ -499,7 +503,7 @@ class LitecoinAdapter(
     private fun BitcoinTransactionRecord.isPublicMwebPegInMarker(): Boolean {
         // MWEB extension outputs have no public address after BitcoinKit conversion.
         return transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING &&
-            hasNoVisibleTo
+                hasNoVisibleTo
     }
 
     private fun BitcoinTransactionRecord.matchPublicMwebChange(
@@ -532,9 +536,9 @@ class LitecoinAdapter(
         val amount = mainValue.decimalValue ?: return false
 
         return transactionRecordType == TransactionRecordType.BITCOIN_INCOMING &&
-            from.isNullOrBlank() &&
-            hasNoVisibleTo &&
-            amount > BigDecimal.ZERO
+                from.isNullOrBlank() &&
+                hasNoVisibleTo &&
+                amount > BigDecimal.ZERO
     }
 
     private fun BitcoinTransactionRecord.publicMwebChangeAmount(): BigDecimal? {
@@ -546,7 +550,7 @@ class LitecoinAdapter(
 
     private fun BitcoinTransactionRecord.matchesPublicMwebChange(pegIn: MwebTransaction): Boolean {
         return isPublicMwebChange() &&
-            abs(timestamp - pegIn.timestamp) <= LITECOIN_MWEB_PEG_IN_MATCH_TIMESTAMP_TOLERANCE_SECONDS
+                abs(timestamp - pegIn.timestamp) <= LITECOIN_MWEB_PEG_IN_MATCH_TIMESTAMP_TOLERANCE_SECONDS
     }
 
     private fun BitcoinTransactionRecord.publicMwebNetAmount(
@@ -597,10 +601,12 @@ class LitecoinAdapter(
             FilterTransactionType.All -> {
                 records
             }
+
             FilterTransactionType.Incoming,
             FilterTransactionType.Outgoing -> {
                 records.filter { it.matchesMwebTransactionType(transactionType) }
             }
+
             FilterTransactionType.Swap,
             FilterTransactionType.Approve -> {
                 emptyList()
@@ -690,7 +696,8 @@ class LitecoinAdapter(
         if (mwebMode) {
             emptyList()
         } else {
-            kit.usedAddresses(change).map { UsedAddress(it.index, it.address, "https://blockchair.com/litecoin/address/${it.address}") }
+            kit.usedAddresses(change)
+                .map { UsedAddress(it.index, it.address, "https://blockchair.com/litecoin/address/${it.address}") }
         }
 
     override fun availableBalance(
@@ -883,6 +890,7 @@ class LitecoinAdapter(
                 rejectMwebForTrezor()
                 LitecoinSendSource.Public
             }
+
             else -> null
         }
     }
@@ -906,9 +914,11 @@ class LitecoinAdapter(
             LitecoinSendSource.Mweb -> {
                 kit.litecoinBalance.mweb?.confirmed ?: 0
             }
+
             LitecoinSendSource.Public -> {
                 unspentOutputs?.sumOf { it.value } ?: kit.litecoinBalance.publicSpendable
             }
+
             LitecoinSendSource.Auto -> 0
         }
     }
@@ -1112,6 +1122,7 @@ class LitecoinAdapter(
                 uid = result.transaction.header.uid,
                 canonicalHashReversedHex = result.transaction.header.hash.toReversedHex()
             )
+
             is LitecoinSendResult.Mweb -> {
                 // MWEB transactions have no separate canonical hash concept exposed by the kit;
                 // mwebSendTransactionId already resolves the best available id (canonical hash,
@@ -1404,8 +1415,8 @@ class LitecoinAdapter(
         if (state.mwebHeaderHeight > 0 || state.mwebUtxosHeight > 0) return false
 
         return substatus != null ||
-            blocksRemained?.let { it > 0 } == true ||
-            progress?.let { it in 0.0..99.9999 } == true
+                blocksRemained?.let { it > 0 } == true ||
+                progress?.let { it in 0.0..99.9999 } == true
     }
 
     private fun Int.mwebSyncPhaseProgress(tipHeight: Int): Double {
@@ -1650,7 +1661,7 @@ class LitecoinAdapter(
             LitecoinKit.clearMweb(App.instance, NetworkType.MainNet, walletId)
         }
 
-        fun firstAddress(accountType: AccountType, tokenType: TokenType) : String {
+        fun firstAddress(accountType: AccountType, tokenType: TokenType): String {
             if (tokenType == TokenType.Mweb) throw UnsupportedAccountException()
 
             when (accountType) {
@@ -1666,6 +1677,7 @@ class LitecoinAdapter(
 
                     return address.stringValue
                 }
+
                 is AccountType.HdExtendedKey -> {
                     val key = accountType.hdExtendedKey
                     val derivation = tokenType.derivation ?: throw IllegalArgumentException()
@@ -1677,9 +1689,11 @@ class LitecoinAdapter(
 
                     return address.stringValue
                 }
+
                 is AccountType.BitcoinAddress -> {
                     return accountType.address
                 }
+
                 is AccountType.EvmAddress,
                 is AccountType.EvmPrivateKey,
                 is AccountType.HardwareCard,

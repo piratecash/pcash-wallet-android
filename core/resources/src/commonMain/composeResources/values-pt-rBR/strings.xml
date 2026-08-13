@@ -2063,6 +2063,11 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="multi_swap_no_providers">Nenhum provedor disponível</string>
     <string name="multi_swap_finding_best_provider">Procurando o melhor provedor…</string>
     <string name="multi_swap_continue">Continuar troca</string>
+    <string name="multi_swap_route_explanation">Para obter a melhor taxa, é usada uma rota via %2$s. A troca será realizada em duas etapas consecutivas: primeiro %1$s → %2$s, depois %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Rota de troca</string>
+    <string name="multi_swap_execution_title">Troca</string>
+    <string name="multi_swap_step">Passo %d</string>
+    <string name="multi_swap_understood_continue">Entendi, continuar</string>
     <string name="multi_swap_unfinished">Troca não finalizada</string>
     <string name="multi_swap_unfinished_plural">Trocas não finalizadas (%d)</string>
     <string name="duration_short_hours">%1$dh</string>
@@ -2192,6 +2197,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ocultar ao virar</string>
     <string name="balance_hide_on_flip_description">Vire a tela do dispositivo para baixo para ocultar e mostrar rapidamente seu saldo.</string>
+    <string name="balance_hide_on_flip_unsupported">Este dispositivo não oferece suporte a Ocultar ao virar.</string>
     <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
     <string name="balance_hide_on_flip_info_description">Para ocultar ou mostrar seu saldo, basta virar a tela do dispositivo para baixo ou desativá-lo nas configurações de segurança.</string>
     <string name="balance_hide_on_flip_dont_show_again">Não mostrar novamente</string>

@@ -53,7 +53,9 @@ class WalletStorageTest {
 
     private val hardwareStorage = object : IHardwarePublicKeyStorage {
         override fun deleteAll() = Unit
-        override suspend fun save(keys: List<cash.p.terminal.wallet.entities.HardwarePublicKey>) = Unit
+        override suspend fun save(keys: List<cash.p.terminal.wallet.entities.HardwarePublicKey>) =
+            Unit
+
         override suspend fun getKey(
             accountId: String,
             blockchainType: BlockchainType,
@@ -65,7 +67,8 @@ class WalletStorageTest {
             blockchainType: BlockchainType
         ) = null
 
-        override suspend fun getAllPublicKeys(accountId: String) = emptyList<cash.p.terminal.wallet.entities.HardwarePublicKey>()
+        override suspend fun getAllPublicKeys(accountId: String) =
+            emptyList<cash.p.terminal.wallet.entities.HardwarePublicKey>()
     }
 
     private val deletedWalletChecker = object : IDeletedWalletChecker {
@@ -78,7 +81,9 @@ class WalletStorageTest {
         val walletStorage = WalletStorage(
             marketKit = mockk(relaxed = true),
             storage = enabledWalletStorage,
-            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
+            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(
+                hardwareStorage
+            ),
             walletFactory = walletFactory,
             deletedWalletChecker = deletedWalletChecker
         )
@@ -96,7 +101,9 @@ class WalletStorageTest {
         val walletStorage = WalletStorage(
             marketKit = mockk(relaxed = true),
             storage = enabledWalletStorage,
-            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
+            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(
+                hardwareStorage
+            ),
             walletFactory = walletFactory,
             deletedWalletChecker = deletedWalletChecker
         )
@@ -177,7 +184,9 @@ class WalletStorageTest {
         val walletStorage = WalletStorage(
             marketKit = marketKit,
             storage = enabledWalletStorage,
-            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
+            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(
+                hardwareStorage
+            ),
             walletFactory = walletFactory,
             deletedWalletChecker = deletedWalletChecker
         )
@@ -215,7 +224,9 @@ class WalletStorageTest {
             zcashAddressSpecTokenQueries.map { it.id }.toSet(),
             wallets.map { it.token.tokenQuery.id }.toSet()
         )
-        assertEquals(listOf(unifiedQuery.id), enabledWalletStorage.enabledWallets(account.id).map { it.tokenQueryId })
+        assertEquals(
+            listOf(unifiedQuery.id),
+            enabledWalletStorage.enabledWallets(account.id).map { it.tokenQueryId })
     }
 
     @Test
@@ -306,7 +317,9 @@ class WalletStorageTest {
         return WalletStorage(
             marketKit = marketKit,
             storage = storage,
-            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
+            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(
+                hardwareStorage
+            ),
             walletFactory = walletFactory,
             deletedWalletChecker = deletedWalletChecker
         )

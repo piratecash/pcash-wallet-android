@@ -216,8 +216,10 @@ private fun ExchangeDetailContent(
                 swapButtonTitle = when {
                     viewModel.uiState?.actionCreate?.inProgress == true ->
                         stringResource(R.string.swap_creating_wallets)
+
                     viewModel.uiState?.actionCreate != null ->
                         stringResource(R.string.swap_create_wallets)
+
                     else -> stringResource(R.string.Swap)
                 },
                 onRefresh = viewModel::refreshQuotes,
@@ -281,7 +283,9 @@ private fun ExchangeDetailContent(
                 LaunchedEffect(Unit) { detailNavController.navigateUp() }
                 return@composablePage
             }
-            val balanceState by viewModel.leg2BalanceStateFlow.collectAsStateWithLifecycle(viewModel.leg2BalanceStateFlow.value)
+            val balanceState by viewModel.leg2BalanceStateFlow.collectAsStateWithLifecycle(
+                viewModel.leg2BalanceStateFlow.value
+            )
             SwapConfirmScreen(
                 navigation = SwapConfirmNavigation(fragmentNavController, detailNavController),
                 quoteParams = SwapConfirmQuoteParams(

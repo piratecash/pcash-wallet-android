@@ -271,7 +271,11 @@ private fun TokenBalanceScreenContent(
                                 if (uiState.isFavorite) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
                             ),
                             icon = if (uiState.isFavorite) R.drawable.ic_star_filled_20 else R.drawable.ic_star_20,
-                            tint = if (uiState.isFavorite) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey,
+                            tint = if (uiState.isFavorite) {
+                                ComposeAppTheme.colors.jacob
+                            } else {
+                                ComposeAppTheme.colors.grey
+                            },
                             onClick = onToggleFavorite
                         )
                     )
@@ -400,8 +404,8 @@ private fun TokenBalanceScreenContent(
         var headerHeightPx by remember { mutableIntStateOf(0) }
         // Opening search auto-focuses the field and shows the keyboard
         val searchHeaderIndex = 1 +
-            (if (failedIconVisible) 1 else 0) +
-            (if (uiState.showAmlPromo) 1 else 0)
+                (if (failedIconVisible) 1 else 0) +
+                (if (uiState.showAmlPromo) 1 else 0)
         LaunchedEffect(uiState.searchActive, searchHeaderIndex) {
             if (uiState.searchActive && listState.firstVisibleItemIndex < searchHeaderIndex) {
                 listState.animateScrollToItem(searchHeaderIndex)
@@ -535,9 +539,9 @@ private fun TokenBalanceScreenContent(
                                 // above the keyboard instead of sliding under it.
                                 val density = LocalDensity.current
                                 val keyboardOverlapPx = (
-                                    WindowInsets.ime.getBottom(density) -
-                                        WindowInsets.navigationBars.getBottom(density)
-                                    ).coerceAtLeast(0)
+                                        WindowInsets.ime.getBottom(density) -
+                                                WindowInsets.navigationBars.getBottom(density)
+                                        ).coerceAtLeast(0)
                                 val paddingValues = PaddingValues(
                                     top = with(density) {
                                         (headerHeightPx - placeholderTopPx).coerceAtLeast(0).toDp()
@@ -776,9 +780,13 @@ private fun TokenBalanceHeader(
                         onToggleBalanceVisibility()
                         HudHelper.vibrate(context)
                     }
-                ),
+            ),
             text = if (balanceViewItem.primaryValue.visible) balanceViewItem.primaryValue.value else "*****",
-            color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
+            color = if (balanceViewItem.primaryValue.dimmed) {
+                ComposeAppTheme.colors.grey
+            } else {
+                ComposeAppTheme.colors.leah
+            },
             style = ComposeAppTheme.typography.title2R,
             textAlign = TextAlign.Start,
         )
@@ -794,7 +802,11 @@ private fun TokenBalanceHeader(
         } else {
             Text(
                 text = if (balanceViewItem.secondaryValue.visible) secondaryValue.value else "*****",
-                color = if (balanceViewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
+                color = if (balanceViewItem.secondaryValue.dimmed) {
+                    ComposeAppTheme.colors.grey50
+                } else {
+                    ComposeAppTheme.colors.grey
+                },
                 style = ComposeAppTheme.typography.body,
                 maxLines = 1,
                 modifier = Modifier.clickable(
@@ -860,7 +872,8 @@ private fun TokenBalanceHeader(
                 uiState.stakingUnpaid?.let { unpaid ->
                     Text(
                         text = if (balanceViewItem.primaryValue.visible) unpaid else "*****",
-                        color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
+                        color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else
+                            ComposeAppTheme.colors.leah,
                         style = ComposeAppTheme.typography.subhead2,
                         maxLines = 1,
                     )
