@@ -64,7 +64,9 @@ class PayCoreProviderTest {
     private val selectedBankSettings = mapOf(PayCoreBankSwapSetting.ID to bank)
 
     private val usdtToken = Token(
-        coin = Coin(uid = "tether", name = "Tether", code = "USDT", marketCapRank = null, coinGeckoId = null, image = null),
+        coin = Coin(
+            uid = "tether", name = "Tether", code = "USDT", marketCapRank = null, coinGeckoId = null, image = null
+        ),
         blockchain = Blockchain(BlockchainType.Ethereum, "Ethereum", null),
         type = TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7"),
         decimals = 6
@@ -140,7 +142,10 @@ class PayCoreProviderTest {
     @Test
     fun supports_bscUsdToRub_returnsFalse() = runTest {
         val bscUsdToken = Token(
-            coin = Coin(uid = "tether", name = "BSC-USD", code = "BSC-USD", marketCapRank = null, coinGeckoId = null, image = null),
+            coin = Coin(
+                uid = "tether", name = "BSC-USD", code = "BSC-USD", marketCapRank = null, coinGeckoId = null,
+                image = null
+            ),
             blockchain = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null),
             type = TokenType.Eip20("0x55d398326f99059fF775485246999027B3197955"),
             decimals = 18
@@ -305,9 +310,9 @@ class PayCoreProviderTest {
             apiService.calculatePayout(
                 match {
                     it.amount == BigDecimal.ONE &&
-                        it.amountType == PayCoreAmountType.CRYPTO &&
-                        it.bankId == bank.id &&
-                        it.ticker == PayCoreTicker.USDT_ERC20
+                            it.amountType == PayCoreAmountType.CRYPTO &&
+                            it.bankId == bank.id &&
+                            it.ticker == PayCoreTicker.USDT_ERC20
                 },
                 PayCoreTicker.USDT_ERC20
             )
@@ -341,7 +346,7 @@ class PayCoreProviderTest {
             apiService.calculatePayout(
                 match {
                     it.amount == BigDecimal("100") &&
-                        it.amountType == PayCoreAmountType.RUB
+                            it.amountType == PayCoreAmountType.RUB
                 },
                 PayCoreTicker.USDT_ERC20,
             )
@@ -430,7 +435,7 @@ class PayCoreProviderTest {
     @Test
     fun fetchFinalQuote_amountOutOfRange_throwsSwapAmountOutOfRange() = runTest {
         coEvery { apiService.calculatePayout(any(), any()) } throws
-            PayCoreAmountOutOfRangeException("the amount in rubles is more than the specified limit")
+                PayCoreAmountOutOfRangeException("the amount in rubles is more than the specified limit")
 
         val provider = createProvider()
 

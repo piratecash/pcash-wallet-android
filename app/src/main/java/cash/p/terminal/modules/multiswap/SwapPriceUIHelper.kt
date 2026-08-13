@@ -13,6 +13,8 @@ class SwapPriceUIHelper(tokenIn: Token, tokenOut: Token, amountIn: BigDecimal, a
         BigDecimal.ZERO
     }
 
-    val priceStr = "${CoinValue(tokenIn, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenOut, price).getFormattedFull()}"
-    val priceInvStr = "${CoinValue(tokenOut, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenIn, priceInv).getFormattedFull()}"
+    val priceStr =
+        "${CoinValue(tokenIn, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenOut, price).getFormattedFull()}"
+    val priceInvStr =
+        "${CoinValue(tokenOut, BigDecimal.ONE).getFormattedFull()} = ${CoinValue(tokenIn, priceInv).getFormattedFull()}"
 }

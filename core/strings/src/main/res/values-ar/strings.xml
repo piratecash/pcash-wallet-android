@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">المفتاح الخاص</string>
     <string name="Restore_PrivateKeyHint">أدخل مفتاح EVM الخاص، أو مفتاح روت BIP32 أو المفتاح الخاص الموسع للحساب</string>
     <string name="Restore_PhraseHint">أدخل كلمات الاسترجاع الخاصة بك</string>
+    <string name="monero_restore_seed">كلمات استرجاع مونيرو</string>
     <string name="Restore_NonStandardRestore">Non-Standard Import</string>
     <string name="Restore_NonStandard_Description">This page provides a special wallet restore mechanism to P.CASH users who have a non-standard wallet. Such wallets might have been created in P.CASH version 0.27 - 0.28 using a non-English recovery phrase and/or a special character in the wallet passphrase (i.e. diacritic symbol).\n\nIf you\'re an affected user then your wallet balance will be shown 0 after restoring such wallet in version 0.29 or above. This page will enable you to restore access to your non-standard wallet. Once restored you\'re recommended to create a new wallet (which will be standard compliant) and move funds there.</string>
     <string name="Restore_Bip_Recommended">(recommended)</string>
@@ -2085,6 +2086,11 @@
     <string name="multi_swap_no_providers">لا يوجد مزودون متاحون</string>
     <string name="multi_swap_finding_best_provider">جارٍ البحث عن أفضل مزود…</string>
     <string name="multi_swap_continue">متابعة التبادل</string>
+    <string name="multi_swap_route_explanation">للحصول على أفضل سعر، يُستخدم مسار عبر %2$s. سيتم تنفيذ المبادلة في خطوتين متتاليتين: أولاً %1$s → %2$s، ثم %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">مسار المبادلة</string>
+    <string name="multi_swap_execution_title">مبادلة</string>
+    <string name="multi_swap_step">الخطوة %d</string>
+    <string name="multi_swap_understood_continue">فهمت، متابعة</string>
     <string name="multi_swap_unfinished">تبادل غير مكتمل</string>
     <string name="multi_swap_unfinished_plural">تبادلات غير مكتملة (%d)</string>
     <string name="duration_short_hours">%1$dس</string>
@@ -2144,6 +2150,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">تعذر إضافة بعض الرموز</string>
     <string name="send_error_address_unavailable">العنوان غير متاح</string>
     <string name="send_error_amount_unavailable">المبلغ غير متاح</string>
+    <string name="send_error_zcash_params_not_downloaded">لم يقم Zcash بعد بتنزيل الملفات اللازمة للإرسال. اتصل بالإنترنت وحاول مرة أخرى.</string>
     <string name="send_error_fee_rate_unavailable">معدل الرسوم غير متاح</string>
     <string name="send_error_balance_unavailable">الرصيد غير متاح</string>
     <string name="litecoin_mweb_invalid_amount">مبلغ Litecoin MWEB غير صالح</string>
@@ -2216,6 +2223,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">الإخفاء بالقلب</string>
     <string name="balance_hide_on_flip_description">اقلب شاشة الجهاز إلى الأسفل لإخفاء رصيدك وإظهاره بسرعة.</string>
+    <string name="balance_hide_on_flip_unsupported">هذا الجهاز لا يدعم الإخفاء بالقلب.</string>
     <string name="balance_hide_on_flip_info_title">تم إخفاء الرصيد</string>
     <string name="balance_hide_on_flip_info_description">لإخفاء رصيدك أو إظهاره، ما عليك سوى قلب شاشة الجهاز إلى الأسفل أو إيقافه من إعدادات الأمان.</string>
     <string name="balance_hide_on_flip_dont_show_again">عدم الإظهار مرة أخرى</string>

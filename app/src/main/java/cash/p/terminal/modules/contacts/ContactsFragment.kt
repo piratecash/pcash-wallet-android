@@ -65,12 +65,14 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
                 ContactAddress(blockchain, mode.address)
             }
         }
+
         is Mode.AddAddressToNewContact -> {
             startDestination = "contact"
             addAddress = App.marketKit.blockchain(mode.blockchainType.uid)?.let { blockchain ->
                 ContactAddress(blockchain, mode.address)
             }
         }
+
         Mode.Full -> {
             startDestination = "contacts"
             addAddress = null
@@ -133,12 +135,15 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
         }
         composablePage(route = "contact") { backStackEntry ->
             val contact = navHostController.previousBackStackEntry?.savedStateHandle?.get<Contact>("contact")
-            val newAddress = navHostController.previousBackStackEntry?.savedStateHandle?.get<ContactAddress>("new_address") ?: addAddress
+            val newAddress =
+                navHostController.previousBackStackEntry?.savedStateHandle?.get<ContactAddress>("new_address")
+                    ?: addAddress
 
             navHostController.previousBackStackEntry?.savedStateHandle?.set("contact", null)
             navHostController.previousBackStackEntry?.savedStateHandle?.set("new_address", null)
 
-            val viewModel = viewModel<ContactViewModel>(factory = ContactsModule.ContactViewModelFactory(contact, newAddress))
+            val viewModel =
+                viewModel<ContactViewModel>(factory = ContactsModule.ContactViewModelFactory(contact, newAddress))
 
             ContactScreen(
                 viewModel = viewModel,
@@ -161,7 +166,8 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
 
                     backStackEntry.savedStateHandle["contact_uid"] = viewModel.contact.uid
                     backStackEntry.savedStateHandle["address"] = address
-                    backStackEntry.savedStateHandle["defined_addresses"] = viewModel.uiState.addressViewItems.map { it.contactAddress }
+                    backStackEntry.savedStateHandle["defined_addresses"] =
+                        viewModel.uiState.addressViewItems.map { it.contactAddress }
 
                     navHostController.navigate("address")
                 }
@@ -172,7 +178,10 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
         ) {
             val contactUid = navHostController.previousBackStackEntry?.savedStateHandle?.get<String>("contact_uid")
             val address = navHostController.previousBackStackEntry?.savedStateHandle?.get<ContactAddress>("address")
-            val definedAddresses = navHostController.previousBackStackEntry?.savedStateHandle?.get<List<ContactAddress>>("defined_addresses")
+            val definedAddresses =
+                navHostController.previousBackStackEntry?.savedStateHandle?.get<List<ContactAddress>>(
+                    "defined_addresses"
+                )
 
             val viewModel = viewModel<AddressViewModel>(
                 factory = ContactsModule.AddressViewModelFactory(

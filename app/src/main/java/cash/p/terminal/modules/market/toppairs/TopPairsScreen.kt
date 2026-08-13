@@ -94,7 +94,11 @@ fun TopPairsScreen() {
                                             },
                                             title = stringResource(R.string.Market_Volume),
                                             iconRight = painterResource(
-                                                if (uiState.sortDescending) R.drawable.ic_arrow_down_20 else R.drawable.ic_arrow_up_20
+                                                if (uiState.sortDescending) {
+                                                    R.drawable.ic_arrow_down_20
+                                                } else {
+                                                    R.drawable.ic_arrow_up_20
+                                                }
                                             ),
                                         )
                                         HSpacer(width = 16.dp)

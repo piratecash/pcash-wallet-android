@@ -104,8 +104,12 @@ class BalanceViewModel(
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     private val seedPhraseQrCrypto: SeedPhraseQrCrypto by inject(SeedPhraseQrCrypto::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
-    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
-    private val resolvePayCoreNavigation: ResolvePayCoreNavigationUseCase by inject(ResolvePayCoreNavigationUseCase::class.java)
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(
+        SwapProviderTransactionsStorage::class.java
+    )
+    private val resolvePayCoreNavigation: ResolvePayCoreNavigationUseCase by inject(
+        ResolvePayCoreNavigationUseCase::class.java
+    )
 
     private var pendingSwapCount = 0
     private var singlePendingSwapId: String? = null

@@ -83,7 +83,11 @@ internal class SendTransactionServiceEvm(
     initialNonce: Long? = null,
     private val ignoreMevErrors: Boolean = false
 ) : ISendTransactionService<BaseEvmAdapter>(token) {
-    private val evmKitWrapper by lazy { App.evmBlockchainManager.getEvmKitManager(token.blockchainType).evmKitWrapper!! }
+    private val evmKitWrapper by lazy {
+        App.evmBlockchainManager.getEvmKitManager(
+            token.blockchainType
+        ).evmKitWrapper!!
+    }
     private val gasPriceService: IEvmGasPriceService by lazy {
         val evmKit = evmKitWrapper.evmKit
         if (evmKit.chain.isEIP1559Supported) {
@@ -273,7 +277,9 @@ internal class SendTransactionServiceEvm(
                     wallet = wallet,
                     token = wallet.token,
                     amount = amount,
-                    fee = if (token.type.isNative) BigDecimal(transaction.gasData.estimatedFee, feeToken.decimals) else null,
+                    fee = if (token.type.isNative) BigDecimal(
+                        transaction.gasData.estimatedFee, feeToken.decimals
+                    ) else null,
                     sdkBalanceAtCreation = sdkBalance,
                     fromAddress = evmKitWrapper.evmKit.receiveAddress.eip55,
                     toAddress = transactionData.to.eip55,

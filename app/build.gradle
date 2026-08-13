@@ -56,6 +56,18 @@ def getGitVersionSuffix = { ->
     }
 }
 
+def firebaseDevSigning = [
+        keystorePath: System.getenv("FIREBASE_DEV_KEYSTORE_PATH"),
+        storePassword: System.getenv("FIREBASE_DEV_STORE_PASSWORD"),
+        keyAlias: System.getenv("FIREBASE_DEV_KEY_ALIAS"),
+        keyPassword: System.getenv("FIREBASE_DEV_KEY_PASSWORD")
+]
+def configuredFirebaseDevSigningValues = firebaseDevSigning.values().findAll { it }
+if (configuredFirebaseDevSigningValues && configuredFirebaseDevSigningValues.size() != firebaseDevSigning.size()) {
+    throw new GradleException("Firebase DEV signing configuration is incomplete")
+}
+def firebaseDevSigningEnabled = configuredFirebaseDevSigningValues.size() == firebaseDevSigning.size()
+
 android {
 
     defaultConfig {
@@ -63,8 +75,8 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 251
-        versionName "0.59.0"
+        versionCode 252
+        versionName "0.59.1"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
         buildConfigField "String", "BITCOIN_KIT_VERSION", "\"${libs.versions.piratecash.bitcoin.get()}\""
         buildConfigField "String", "ETHEREUM_KIT_VERSION", "\"${libs.versions.piratecash.ethereum.get()}\""
@@ -133,9 +145,23 @@ android {
         // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
     }
+
+    signingConfigs {
+        if (firebaseDevSigningEnabled) {
+            firebaseDev {
+                storeFile file(firebaseDevSigning.keystorePath)
+                storePassword firebaseDevSigning.storePassword
+                keyAlias firebaseDevSigning.keyAlias
+                keyPassword firebaseDevSigning.keyPassword
+            }
+        }
+    }
     
     buildTypes {
         debug {
+            if (firebaseDevSigningEnabled) {
+                signingConfig signingConfigs.firebaseDev
+            }
             defaultConfig.versionCode System.getenv("BUILD_NUMBER")?.toInteger() ?: defaultConfig.versionCode
             debuggable true
             minifyEnabled false
@@ -435,11 +461,11 @@ dependencies {
 
     // UI modules
 
+    implementation project(':shared')
     implementation project(':core:core')
     implementation project(':core:strings')
     implementation project(':core:wallet')
     implementation project(':core:resources')
-    implementation project(':core:network')
     implementation project(':core:qr-multipart')
     implementation project(':core:navigation')
     implementation project(':components:icons')

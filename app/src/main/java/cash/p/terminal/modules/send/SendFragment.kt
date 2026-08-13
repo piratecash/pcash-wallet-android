@@ -450,7 +450,9 @@ class SendFragment : BaseComposeFragment() {
 
     private fun isAddressSuspicious(address: String?): Boolean {
         if (address == null) return false
-        return poisonAddressManager.isAddressSuspicious(address, args.input.wallet.token.blockchainType, args.input.wallet.account.id)
+        return poisonAddressManager.isAddressSuspicious(
+            address, args.input.wallet.token.blockchainType, args.input.wallet.account.id
+        )
     }
 
     @Parcelize

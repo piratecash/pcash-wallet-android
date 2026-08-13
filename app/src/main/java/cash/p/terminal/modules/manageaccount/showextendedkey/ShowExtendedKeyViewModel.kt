@@ -27,7 +27,9 @@ class ShowExtendedKeyViewModel(
 ) : ViewModel() {
     val purposes = HDWallet.Purpose.values()
     val blockchains: Array<Blockchain>
-        get() = if (purpose != HDWallet.Purpose.BIP44) arrayOf(Blockchain.Bitcoin, Blockchain.Litecoin) else Blockchain.values()
+        get() = if (purpose != HDWallet.Purpose.BIP44) arrayOf(
+            Blockchain.Bitcoin, Blockchain.Litecoin
+        ) else Blockchain.values()
     val accounts = 0..5
 
     var purpose: HDWallet.Purpose by mutableStateOf(purpose)
@@ -39,7 +41,10 @@ class ShowExtendedKeyViewModel(
 
     val title: TranslatableString
         get() = when (displayKeyType) {
-            is DisplayKeyType.AccountPrivateKey -> TranslatableString.ResString(R.string.AccountExtendedPrivateKey_Short)
+            is DisplayKeyType.AccountPrivateKey -> TranslatableString.ResString(
+                R.string.AccountExtendedPrivateKey_Short
+            )
+
             is DisplayKeyType.AccountPublicKey -> TranslatableString.ResString(R.string.AccountExtendedPublicKey_Short)
             DisplayKeyType.Bip32RootKey -> TranslatableString.ResString(R.string.Bip32RootKey)
         }
@@ -50,14 +55,18 @@ class ShowExtendedKeyViewModel(
                 keyChain.getKeyByPath("m/${purpose.value}'/${blockchain.coinType}'/$account'")
             else
                 keyChain.getKeyByPath("m")
-            val version = HDExtendedKeyVersion.initFrom(purpose, blockchain.extendedKeyCoinType, displayKeyType.isPrivate)
-            return if (displayKeyType.isPrivate) key.serializePrivate(version.value) else key.serializePublic(version.value)
+            val version =
+                HDExtendedKeyVersion.initFrom(purpose, blockchain.extendedKeyCoinType, displayKeyType.isPrivate)
+            return if (displayKeyType.isPrivate) key.serializePrivate(version.value) else key.serializePublic(
+                version.value
+            )
         }
 
     fun set(purpose: HDWallet.Purpose) {
         this.purpose = purpose
 
-        if (purpose != HDWallet.Purpose.BIP44 && (blockchain != Blockchain.Bitcoin && blockchain != Blockchain.Litecoin)) {
+        val supportsPurpose = blockchain == Blockchain.Bitcoin || blockchain == Blockchain.Litecoin
+        if (purpose != HDWallet.Purpose.BIP44 && !supportsPurpose) {
             blockchain = Blockchain.Bitcoin
         }
     }

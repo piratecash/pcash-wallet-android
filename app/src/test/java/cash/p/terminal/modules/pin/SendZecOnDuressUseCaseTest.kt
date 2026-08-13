@@ -389,8 +389,16 @@ class SendZecOnDuressUseCaseTest {
 
         assertEquals(SendZecResult.Success, result)
         // Verify exactly one adapter was used (the winner)
-        val shieldedCalled = try { coVerify(exactly = 1) { shieldedAdapter.send(any(), any(), any(), any()) }; true } catch (e: AssertionError) { false }
-        val unifiedCalled = try { coVerify(exactly = 1) { unifiedAdapter.send(any(), any(), any(), any()) }; true } catch (e: AssertionError) { false }
+        val shieldedCalled = try {
+            coVerify(exactly = 1) { shieldedAdapter.send(any(), any(), any(), any()) }; true
+        } catch (e: AssertionError) {
+            false
+        }
+        val unifiedCalled = try {
+            coVerify(exactly = 1) { unifiedAdapter.send(any(), any(), any(), any()) }; true
+        } catch (e: AssertionError) {
+            false
+        }
         // Exactly one should be called
         assert(shieldedCalled xor unifiedCalled) { "Exactly one adapter should be used to send" }
     }
@@ -620,7 +628,11 @@ class SendZecOnDuressUseCaseTest {
 
         every { adapterManager.getAdapterForWallet<ISendZcashAdapter>(shieldedWallet) } returns shieldedAdapter
         every { adapterManager.getAdapterForWallet<ISendZcashAdapter>(unifiedWallet) } returns unifiedAdapter
-        coEvery { adapterManager.awaitAdapterForWallet<ISendZcashAdapter>(shieldedWallet, any()) } returns shieldedAdapter
+        coEvery {
+            adapterManager.awaitAdapterForWallet<ISendZcashAdapter>(
+                shieldedWallet, any()
+            )
+        } returns shieldedAdapter
         coEvery { adapterManager.awaitAdapterForWallet<ISendZcashAdapter>(unifiedWallet, any()) } returns unifiedAdapter
     }
 }

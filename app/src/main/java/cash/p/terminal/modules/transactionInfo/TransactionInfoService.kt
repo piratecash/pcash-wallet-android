@@ -92,7 +92,8 @@ class TransactionInfoService(
         record = transactionRecord,
         externalStatus = null,
         lastBlockInfo = adapter?.lastBlockInfo,
-        explorerData = adapter?.getTransactionExplorerData(transactionRecord)?.map { it.toExplorerData() } ?: emptyList(),
+        explorerData = adapter?.getTransactionExplorerData(transactionRecord)?.map { it.toExplorerData() }
+            ?: emptyList(),
         rates = mapOf(),
         nftMetadata = mapOf(),
         hideAmount = balanceHiddenManager.isTransactionInfoHidden(transactionRecord.uid, walletUid),

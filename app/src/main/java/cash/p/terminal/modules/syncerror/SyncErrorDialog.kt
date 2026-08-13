@@ -87,7 +87,10 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
     val clipboardManager = LocalClipboardManager.current
 
     val errorDescription = when {
-        wallet.token.isMonero() || wallet.token.blockchainType.isEvm -> annotatedStringResource(R.string.source_blocked_by_provider_error)
+        wallet.token.isMonero() || wallet.token.blockchainType.isEvm -> annotatedStringResource(
+            R.string.source_blocked_by_provider_error
+        )
+
         viewModel.sourceChangeable -> annotatedStringResource(R.string.balance_sync_error_changeable_source)
         else -> annotatedStringResource(R.string.balance_sync_error_fixed_source)
     }

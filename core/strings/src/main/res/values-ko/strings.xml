@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">개인 암호</string>
     <string name="Restore_PrivateKeyHint">EVM 개인 키, BIP32 Root Key 또는 Account Extended Private Key 입력</string>
     <string name="Restore_PhraseHint">12, 15, 18, 21 또는 24단어 입력</string>
+    <string name="monero_restore_seed">Monero 복구 문구</string>
     <string name="Restore_NonStandardRestore">비표준 복원</string>
     <string name="Restore_NonStandard_Description">이 페이지는 비표준 지갑을 가지고 있는 P.CASH 사용자를 위한 특별한 지갑 복원 메커니즘을 제공합니다. 일반적으로 이러한 지갑은 P.CASH 버전 0.27 - 0.28에서 영어가 아닌 니모닉 단어 목록 및/또는 지갑 암호의 특수 문자(예: 분음 부호)를 사용하여 생성되었을 수 있습니다.\n\n영향을 받는 사용자인 경우 버전 0.29로 업데이트하면 지갑 잔액이 0으로 표시됩니다. 이 페이지에서는 비표준 지갑에 대한 액세스를 복원할 수 있습니다. 복원되면 새 지갑(표준 준수)을 만들고 그곳으로 자금을 옮기는 것이 좋습니다.</string>
     <string name="Restore_Bip_Recommended">(평균)</string>
@@ -2056,6 +2057,11 @@
     <string name="multi_swap_no_providers">사용 가능한 공급자 없음</string>
     <string name="multi_swap_finding_best_provider">최적의 공급자 검색 중…</string>
     <string name="multi_swap_continue">교환 계속하기</string>
+    <string name="multi_swap_route_explanation">최적의 환율을 위해 %2$s 경유 경로를 사용합니다. 스왑은 두 단계로 진행됩니다. 먼저 %1$s → %2$s, 다음 %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">스왑 경로</string>
+    <string name="multi_swap_execution_title">스왑</string>
+    <string name="multi_swap_step">%d단계</string>
+    <string name="multi_swap_understood_continue">확인, 계속</string>
     <string name="multi_swap_unfinished">미완료 교환</string>
     <string name="multi_swap_unfinished_plural">미완료 교환 (%d)</string>
     <string name="duration_short_hours">%1$d시간</string>
@@ -2115,6 +2121,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">일부 토큰을 추가할 수 없습니다</string>
     <string name="send_error_address_unavailable">주소를 사용할 수 없습니다</string>
     <string name="send_error_amount_unavailable">금액을 사용할 수 없습니다</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash가 전송에 필요한 파일을 아직 다운로드하지 않았습니다. 인터넷에 연결한 후 다시 시도해 주세요.</string>
     <string name="send_error_fee_rate_unavailable">수수료율을 사용할 수 없습니다</string>
     <string name="send_error_balance_unavailable">잔액을 사용할 수 없습니다</string>
     <string name="litecoin_mweb_invalid_amount">Litecoin MWEB 금액이 올바르지 않습니다</string>
@@ -2182,6 +2189,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">뒤집어서 숨기기</string>
     <string name="balance_hide_on_flip_description">기기 화면을 아래로 뒤집으면 잔액을 빠르게 숨기고 표시할 수 있습니다.</string>
+    <string name="balance_hide_on_flip_unsupported">이 기기는 뒤집어서 숨기기를 지원하지 않습니다.</string>
     <string name="balance_hide_on_flip_info_title">잔액 숨김</string>
     <string name="balance_hide_on_flip_info_description">잔액을 숨기거나 표시하려면 기기 화면을 아래로 뒤집거나 보안 설정에서 끄면 됩니다.</string>
     <string name="balance_hide_on_flip_dont_show_again">다시 표시 안 함</string>

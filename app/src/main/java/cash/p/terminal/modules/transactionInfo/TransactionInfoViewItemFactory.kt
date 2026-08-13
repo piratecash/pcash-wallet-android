@@ -273,7 +273,7 @@ class TransactionInfoViewItemFactory(
                         for (event in transaction.incomingEvents!!) {
                             itemSections.add(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
-                                showCopyWarning = isSuspicious,
+                                    showCopyWarning = isSuspicious,
                                     value = event.value,
                                     fromAddress = event.address,
                                     toAddress = event.addressForIncomingAddress?.let(::listOf),
@@ -305,7 +305,7 @@ class TransactionInfoViewItemFactory(
                         for (event in transaction.incomingEvents!!) {
                             itemSections.add(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
-                                showCopyWarning = isSuspicious,
+                                    showCopyWarning = isSuspicious,
                                     value = event.value,
                                     fromAddress = event.address,
                                     toAddress = event.addressForIncomingAddress?.let(::listOf),
@@ -408,7 +408,7 @@ class TransactionInfoViewItemFactory(
                         for (event in transaction.incomingEvents!!) {
                             itemSections.add(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
-                                showCopyWarning = isSuspicious,
+                                    showCopyWarning = isSuspicious,
                                     value = event.value,
                                     fromAddress = event.address,
                                     toAddress = event.addressForIncomingAddress?.let(::listOf),
@@ -440,7 +440,7 @@ class TransactionInfoViewItemFactory(
                         for (event in transaction.incomingEvents!!) {
                             itemSections.add(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
-                                showCopyWarning = isSuspicious,
+                                    showCopyWarning = isSuspicious,
                                     value = event.value,
                                     fromAddress = event.address,
                                     toAddress = null,
@@ -461,7 +461,9 @@ class TransactionInfoViewItemFactory(
                                     transaction.transaction.contract?.label
                                         ?: Translator.getString(R.string.Transactions_ContractCall),
                                     "",
-                                    TransactionViewItem.Icon.Platform.fromBlockchainType(transaction.blockchainType).iconRes
+                                    TransactionViewItem.Icon.Platform.fromBlockchainType(
+                                        transaction.blockchainType
+                                    ).iconRes
                                 )
                             )
                         )
@@ -590,7 +592,7 @@ class TransactionInfoViewItemFactory(
                         for (transfer in transaction.incomingSolanaTransfers!!) {
                             itemSections.add(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
-                                showCopyWarning = isSuspicious,
+                                    showCopyWarning = isSuspicious,
                                     value = transfer.value,
                                     fromAddress = transfer.address,
                                     toAddress = transfer.addressForIncomingAddress?.let(::listOf),
@@ -733,7 +735,8 @@ class TransactionInfoViewItemFactory(
         )
         itemSections.add(statusItems.withOfflineStatus(transactionItem.offlineStatus))
 
-        if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected && status == TransactionStatus.Pending && resendEnabled) {
+        if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected &&
+            status == TransactionStatus.Pending && resendEnabled) {
             itemSections.add(
                 listOf(
                     SpeedUpCancel(

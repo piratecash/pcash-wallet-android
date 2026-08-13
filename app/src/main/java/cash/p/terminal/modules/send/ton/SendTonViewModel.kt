@@ -173,15 +173,20 @@ class SendTonViewModel(
         return SendTonUiState(
             availableBalance = amountState.availableBalance,
             amountCaution = amountState.amountCaution
-                ?: if(feeState.feeStatus is FeeStatus.NoEnoughBalance) { HSCaution(
-                    TranslatableString.ResString(
-                        R.string.not_enough_ton_for_fee,
-                        amountState.availableBalance?.toPlainString() ?: "0"
-                    ),
-                    HSCaution.Type.Error
-                ) } else { null },
+                ?: if (feeState.feeStatus is FeeStatus.NoEnoughBalance) {
+                    HSCaution(
+                        TranslatableString.ResString(
+                            R.string.not_enough_ton_for_fee,
+                            amountState.availableBalance?.toPlainString() ?: "0"
+                        ),
+                        HSCaution.Type.Error
+                    )
+                } else {
+                    null
+                },
             addressError = addressState.addressError,
-            canBeSend = (feeState.feeStatus is FeeStatus.Success) && amountState.canBeSend && addressState.canBeSend && (!poison || riskAccepted),
+            canBeSend = (feeState.feeStatus is FeeStatus.Success) && amountState.canBeSend && addressState.canBeSend
+                    && (!poison || riskAccepted),
             showAddressInput = showAddressInput,
             fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
             feeInProgress = feeState.inProgress,
@@ -248,7 +253,7 @@ class SendTonViewModel(
 
             // 1. Create pending transaction draft BEFORE sending
             val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
-                ?.balanceData?.available ?: amountState.availableBalance ?: throw IllegalStateException("Balance unavailable")
+                ?.balanceData?.available ?: amountState.availableBalance ?: error("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = sendToken,

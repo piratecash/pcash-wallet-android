@@ -45,7 +45,8 @@ class TransactionAdapterManagerTest {
 
         val adapterManager = mockk<IAdapterManager>(relaxed = true) {
             every { adaptersReadyObservable } returns adaptersReadyProcessor
-            every { initializationInProgressFlow } returns this@TransactionAdapterManagerTest.initializationInProgressFlow
+            every { initializationInProgressFlow } returns this@TransactionAdapterManagerTest
+                .initializationInProgressFlow
         }
 
         transactionAdapterManager = TransactionAdapterManager(

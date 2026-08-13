@@ -119,7 +119,8 @@ class WalletFactory(
     fun create(token: Token, account: Account, hardwarePublicKey: HardwarePublicKey?): Wallet? {
         if (!account.type.isCompatibleWith(token.blockchainType, token.type)) {
             Timber.d(
-                "Skipping wallet creation for token ${token.blockchainType} ${token.type} - account type ${account.type::class.simpleName} is not supported"
+                "Skipping wallet creation for token ${token.blockchainType} ${token.type} - account type " +
+                        "${account.type::class.simpleName} is not supported"
             )
             return null
         }
@@ -128,7 +129,8 @@ class WalletFactory(
             !hardwareWalletTokenPolicy.isSupported(account, token)
         ) {
             Timber.d(
-                "Skipping wallet creation for token ${token.blockchainType} ${token.type} - hardware wallet not supported"
+                "Skipping wallet creation for token ${token.blockchainType} ${token.type} - hardware wallet not " +
+                        "supported"
             )
             return null
         }

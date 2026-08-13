@@ -22,7 +22,8 @@ class EvmMessageSigningTest {
     }
 
     private fun mnemonicSigner(): Signer {
-        val words = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about".split(" ")
+        val words =
+            "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about".split(" ")
         val seed = AccountType.Mnemonic(words, "").seed
         return Signer.getInstance(seed, Chain.Ethereum)
     }

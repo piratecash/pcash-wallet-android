@@ -44,7 +44,9 @@ class NftEventsProvider(
         return Pair(eventsMetadata, response.continuation?.let { PaginationData.Cursor(it) })
     }
 
-    private fun events(blockchainType: BlockchainType, activities: List<Activity>, providerCollectionUid: String?): List<NftEventMetadata> {
+    private fun events(
+        blockchainType: BlockchainType, activities: List<Activity>, providerCollectionUid: String?
+    ): List<NftEventMetadata> {
         val token = marketKit.token(TokenQuery(blockchainType, TokenType.Native))
 
         return activities.map { activity ->
@@ -52,7 +54,9 @@ class NftEventsProvider(
 
             NftEventMetadata(
                 assetMetadata = NftAssetMetadata(
-                    nftUid = NftUid.Evm(blockchainType, activity.collection?.collectionId ?: "", activity.token?.tokenId ?: ""),
+                    nftUid = NftUid.Evm(
+                        blockchainType, activity.collection?.collectionId ?: "", activity.token?.tokenId ?: ""
+                    ),
                     providerCollectionUid = providerCollectionUid ?: activity.collection?.collectionId ?: "",
                     name = null,
                     imageUrl = activity.token?.tokenImage ?: activity.collection?.collectionImage,
@@ -107,7 +111,8 @@ class NftEventsProvider(
 
         @GET("collections/activity/v5")
         suspend fun collectionActivity(
-            @Query("collection") contractAddress: String, @Query("types") eventType: String?, @Query("continuation") cursor: String?
+            @Query("collection") contractAddress: String, @Query("types") eventType: String?,
+            @Query("continuation") cursor: String?
         ): ActivityResponse
     }
 

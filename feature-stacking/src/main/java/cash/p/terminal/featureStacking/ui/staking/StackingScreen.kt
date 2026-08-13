@@ -85,7 +85,9 @@ internal fun StackingScreen(
     ) {
         Column(Modifier.padding(it)) {
             val pagerState =
-                rememberPagerState(initialPage = uiState.tabs.indexOfFirst { tab -> tab.selected }) { uiState.tabs.size }
+                rememberPagerState(
+                    initialPage = uiState.tabs.indexOfFirst { tab -> tab.selected }
+                ) { uiState.tabs.size }
             val pirateViewModel = koinViewModel<PirateCoinViewModel>()
             val cosantaViewModel = koinViewModel<CosantaCoinViewModel>()
 

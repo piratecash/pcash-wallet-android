@@ -135,7 +135,7 @@
     <string name="Restore_PrivateKey">Приватний ключ</string>
     <string name="Restore_PrivateKeyHint">Введіть приватний ключ EVM, BIP32 Root Key або Account Extended Private Key</string>
     <string name="Restore_PhraseHint">Введіть фразу відновлення</string>
-    <string name="monero_restore_seed">Сід-фраза для відновлення Monero</string>
+    <string name="monero_restore_seed">Фраза відновлення Monero</string>
     <string name="Restore_NonStandardRestore">Нестандартний імпорт</string>
     <string name="Restore_NonStandard_Description">На цій сторінці представлено спеціальний механізм відновлення гаманця для користувачів P.CASH з нестандартним гаманцем. Як правило, такі гаманці могли бути створені у версіях P.CASH 0.27–0.28 з використанням неангломовного списку мнемонічних слів та/або спеціального символу в парольній фразі гаманця (наприклад, діакритичного знака).\n\nЯкщо ви є таким користувачем, то баланс вашого гаманця буде відображатися як 0 після відновлення такого гаманця у версії 0.29 або вище. Ця сторінка дозволить вам відновити доступ до вашого нестандартного гаманця. Після відновлення рекомендується створити новий гаманець (який буде відповідати стандарту) та перевести туди кошти.</string>
     <string name="Restore_Bip_Recommended">(рекомендовано)</string>
@@ -1860,6 +1860,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">Деякі токени не вдалося додати</string>
     <string name="send_error_address_unavailable">Адреса недоступна</string>
     <string name="send_error_amount_unavailable">Сума недоступна</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash ще не завантажив файли, потрібні для надсилання. Підключіться до інтернету та повторіть спробу.</string>
     <string name="send_error_fee_rate_unavailable">Ставка комісії недоступна</string>
     <string name="send_error_balance_unavailable">Баланс недоступний</string>
     <string name="litecoin_mweb_invalid_amount">Некоректна сума Litecoin MWEB</string>
@@ -2224,6 +2225,11 @@
     <string name="multi_swap_no_providers">Немає доступних провайдерів</string>
     <string name="multi_swap_finding_best_provider">Пошук найкращого провайдера…</string>
     <string name="multi_swap_continue">Продовжити обмін</string>
+    <string name="multi_swap_route_explanation">Для отримання найвигіднішого курсу використовується маршрут через %2$s. Обмін буде виконано у два послідовні кроки: спочатку %1$s → %2$s, потім %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Маршрут обміну</string>
+    <string name="multi_swap_execution_title">Обмін</string>
+    <string name="multi_swap_step">Крок %d</string>
+    <string name="multi_swap_understood_continue">Зрозуміло, продовжити</string>
     <string name="multi_swap_unfinished">Незавершений обмін</string>
     <string name="multi_swap_unfinished_plural">Незавершені обміни (%d)</string>
     <string name="duration_short_hours">%1$dгод</string>
@@ -2343,6 +2349,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Приховування перевертанням</string>
     <string name="balance_hide_on_flip_description">Переверніть екран пристрою вниз, щоб швидко приховати та показати баланс.</string>
+    <string name="balance_hide_on_flip_unsupported">Цей пристрій не підтримує приховування перевертанням.</string>
     <string name="balance_hide_on_flip_info_title">Баланс приховано</string>
     <string name="balance_hide_on_flip_info_description">Щоб приховати або показати свій баланс, просто переверніть екран пристрою вниз або вимкніть його в налаштуваннях безпеки.</string>
     <string name="balance_hide_on_flip_dont_show_again">Більше не показувати</string>

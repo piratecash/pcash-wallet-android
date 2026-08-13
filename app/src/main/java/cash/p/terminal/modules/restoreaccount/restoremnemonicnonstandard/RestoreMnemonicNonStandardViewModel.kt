@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.restoreaccount.restoremnemonicnonstandard
 
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.core.IAccountFactory
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.WordsManager
@@ -67,6 +68,7 @@ class RestoreMnemonicNonStandardViewModel(
             wordItemWithCursor != null && mnemonicWordList.validWord(wordItemWithCursor.word, true) -> {
                 invalidWordItems.filter { it != wordItemWithCursor }
             }
+
             else -> invalidWordItems
         }
 
@@ -117,12 +119,18 @@ class RestoreMnemonicNonStandardViewModel(
             invalidWordItems.isNotEmpty() -> {
                 invalidWordRanges = invalidWordItems.map { it.range }
             }
+
             wordItems.size !in (Mnemonic.EntropyStrength.values().map { it.wordCount }) -> {
-                error = cash.p.terminal.strings.helpers.Translator.getString(R.string.Restore_Error_MnemonicWordCount, wordItems.size)
+                error = Translator.getString(
+                    R.string.Restore_Error_MnemonicWordCount, wordItems.size
+                )
             }
+
             passphraseEnabled && passphrase.isBlank() -> {
-                passphraseError = cash.p.terminal.strings.helpers.Translator.getString(R.string.Restore_Error_EmptyPassphrase)
+                passphraseError =
+                    Translator.getString(R.string.Restore_Error_EmptyPassphrase)
             }
+
             else -> {
                 try {
                     val words = wordItems.map { it.word }
@@ -131,7 +139,7 @@ class RestoreMnemonicNonStandardViewModel(
                     accountType = AccountType.Mnemonic(words, passphrase)
                     error = null
                 } catch (checksumException: Exception) {
-                    error = cash.p.terminal.strings.helpers.Translator.getString(R.string.Restore_InvalidChecksum)
+                    error = Translator.getString(R.string.Restore_InvalidChecksum)
                 }
             }
         }

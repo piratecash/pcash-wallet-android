@@ -140,7 +140,9 @@ class UpdateSwapProviderTransactionsStatusUseCase(
         null
     }
 
-    private fun getSwapProviderTransactionStatusRepository(provider: SwapProvider): SwapProviderTransactionStatusRepository? {
+    private fun getSwapProviderTransactionStatusRepository(
+        provider: SwapProvider
+    ): SwapProviderTransactionStatusRepository? {
         return try {
             getKoin().get(named(provider))
         } catch (e: Exception) {

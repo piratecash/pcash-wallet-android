@@ -68,14 +68,18 @@ class OpenSeaNftProvider(
         )
     }
 
-    override suspend fun extendedAssetMetadata(nftUid: NftUid, providerCollectionUid: String): Pair<NftAssetMetadata, NftCollectionMetadata> {
+    override suspend fun extendedAssetMetadata(
+        nftUid: NftUid, providerCollectionUid: String
+    ): Pair<NftAssetMetadata, NftCollectionMetadata> {
         val asset = service.asset(nftUid.contractAddress, nftUid.tokenId)
         val collection = service.collection(providerCollectionUid)
 
         return Pair(assetMetadata(nftUid.blockchainType, asset), collectionMetadata(nftUid.blockchainType, collection))
     }
 
-    override suspend fun collectionMetadata(blockchainType: BlockchainType, providerUid: String): NftCollectionMetadata {
+    override suspend fun collectionMetadata(
+        blockchainType: BlockchainType, providerUid: String
+    ): NftCollectionMetadata {
         val response = service.collection(providerUid)
         return collectionMetadata(blockchainType, response)
     }
@@ -106,17 +110,23 @@ class OpenSeaNftProvider(
         eventType: EventType?,
         paginationData: PaginationData?
     ): Pair<List<NftEventMetadata>, PaginationData?> {
-        val response = service.assetEvents(nftUid.contractAddress, nftUid.tokenId, openSeaEventType(eventType), paginationData?.cursor)
+        val response = service.assetEvents(
+            nftUid.contractAddress, nftUid.tokenId, openSeaEventType(eventType), paginationData?.cursor
+        )
         val eventsMetadata = events(nftUid.blockchainType, response.asset_events)
         return Pair(eventsMetadata, response.next?.let { PaginationData.Cursor(it) })
     }
 
-    override suspend fun assetsBriefMetadata(blockchainType: BlockchainType, nftUids: List<NftUid>): List<NftAssetBriefMetadata> {
+    override suspend fun assetsBriefMetadata(
+        blockchainType: BlockchainType, nftUids: List<NftUid>
+    ): List<NftAssetBriefMetadata> {
         val chunkedNftUids = nftUids.chunked(30)
         val assetsBriefList = mutableListOf<NftAssetBriefMetadata>()
         for (nftUidsChunk in chunkedNftUids) {
             try {
-                val response = service.assets(contractAddresses = nftUidsChunk.map { it.contractAddress }, tokenIds = nftUidsChunk.map { it.tokenId })
+                val response = service.assets(
+                    contractAddresses = nftUidsChunk.map { it.contractAddress },
+                    tokenIds = nftUidsChunk.map { it.tokenId })
                 assetsBriefList.addAll(assetsBrief(blockchainType, response.assets))
             } catch (error: Throwable) {
                 continue
@@ -154,7 +164,11 @@ class OpenSeaNftProvider(
         return NftCollectionMetadata(
             blockchainType = blockchainType,
             providerUid = response.slug,
-            contracts = response.primary_asset_contracts?.map { NftContractMetadata(it.address, it.name, it.created_date, it.schema_name) } ?: listOf(),
+            contracts = response.primary_asset_contracts?.map {
+                NftContractMetadata(
+                    it.address, it.name, it.created_date, it.schema_name
+                )
+            } ?: listOf(),
             name = response.name,
             description = response.description,
             imageUrl = response.large_image_url,
@@ -273,7 +287,11 @@ class OpenSeaNftProvider(
                     traitSearchUrl(it.trait_type, it.value, response.collection.slug)
                 )
             } ?: listOf(),
-            lastSalePrice = response.last_sale?.let { nftPrice(map[it.payment_token.address.lowercase()], it.total_price, true) },
+            lastSalePrice = response.last_sale?.let {
+                nftPrice(
+                    map[it.payment_token.address.lowercase()], it.total_price, true
+                )
+            },
             offers = offers,
             saleInfo = saleInfo
         )
@@ -295,7 +313,9 @@ class OpenSeaNftProvider(
         }
     )
 
-    private fun assets(blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Asset>): List<NftAssetMetadata> {
+    private fun assets(
+        blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Asset>
+    ): List<NftAssetMetadata> {
         val addresses = mutableListOf<String>()
         responses.forEach { response ->
             response.last_sale?.let {
@@ -311,12 +331,16 @@ class OpenSeaNftProvider(
         return responses.map { assetMetadata(blockchainType, it, tokenMap) }
     }
 
-    private fun collections(blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Collection>): List<NftCollectionMetadata> {
+    private fun collections(
+        blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Collection>
+    ): List<NftCollectionMetadata> {
         val baseToken = marketKit.token(TokenQuery(blockchainType, TokenType.Native))
         return responses.map { collectionMetadata(blockchainType, it, baseToken) }
     }
 
-    private fun events(blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Event>): List<NftEventMetadata> {
+    private fun events(
+        blockchainType: BlockchainType, responses: List<OpenSeaNftApiResponse.Event>
+    ): List<NftEventMetadata> {
         val addresses = mutableListOf<String>()
         responses.forEach { response ->
             response.payment_token?.address?.let {
@@ -342,7 +366,9 @@ class OpenSeaNftProvider(
         }
     }
 
-    private fun assetsBrief(blockchainType: BlockchainType, assets: List<OpenSeaNftApiResponse.Asset>): List<NftAssetBriefMetadata> = assets.map {
+    private fun assetsBrief(
+        blockchainType: BlockchainType, assets: List<OpenSeaNftApiResponse.Asset>
+    ): List<NftAssetBriefMetadata> = assets.map {
         NftAssetBriefMetadata(
             nftUid = NftUid.Evm(blockchainType, it.asset_contract.address, it.token_id),
             providerCollectionUid = it.collection.slug,

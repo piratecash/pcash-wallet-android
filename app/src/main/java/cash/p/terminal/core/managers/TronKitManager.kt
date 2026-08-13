@@ -220,7 +220,10 @@ class TronKitManager(
                         }, 1000)
                     }
                 } else if (state == BackgroundManagerState.EnterBackground) {
-                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Tron)) {
+                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(
+                            BlockchainType.Tron
+                        )
+                    ) {
                         tronKitWrapper?.tronKit?.pause()
                     } else {
                         Timber.tag("TxPoller").d("TronKit staying alive")

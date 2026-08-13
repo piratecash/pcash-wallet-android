@@ -59,7 +59,11 @@ fun FormsInputPassword(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     enabled: Boolean = true,
-    textState: MutableState<TextFieldValue> = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) },
+    textState: MutableState<TextFieldValue> = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(
+            TextFieldValue("")
+        )
+    },
     onValueChange: (String) -> Unit,
 ) {
     var hide by remember { mutableStateOf(true) }
@@ -71,6 +75,7 @@ fun FormsInputPassword(
                 ComposeAppTheme.colors.red50
             }
         }
+
         else -> ComposeAppTheme.colors.steel20
     }
 
@@ -104,7 +109,10 @@ fun FormsInputPassword(
                     } else {
                         // Need to set textState to new instance of TextFieldValue with the same values
                         // Otherwise it getting set to empty string
-                        textState.value = TextFieldValue(text = textState.value.text, selection = textState.value.selection)
+                        textState.value = TextFieldValue(
+                            text = textState.value.text,
+                            selection = textState.value.selection
+                        )
                     }
                 },
                 textStyle = ColoredTextStyle(
@@ -140,6 +148,7 @@ fun FormsInputPassword(
                         tint = cautionColor
                     )
                 }
+
                 else -> {
                     Spacer(modifier = Modifier.width(28.dp))
                 }
@@ -148,7 +157,11 @@ fun FormsInputPassword(
             Icon(
                 modifier = Modifier
                     .size(20.dp)
-                    .clickable(onClick = { hide = !hide }, interactionSource = MutableInteractionSource(), indication = null),
+                    .clickable(
+                        onClick = { hide = !hide },
+                        interactionSource = MutableInteractionSource(),
+                        indication = null
+                    ),
                 painter = painterResource(id = if (hide) R.drawable.ic_eye_off_20 else R.drawable.ic_eye_20),
                 contentDescription = null,
                 tint = ComposeAppTheme.colors.grey

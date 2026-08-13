@@ -248,8 +248,11 @@ fun HsChartLineHeader(
                                 Text(
                                     text = buildAnnotatedString {
                                         macd.histogramValue?.let { value ->
-                                            val color =
-                                                if (value >= 0) ComposeAppTheme.colors.remus else ComposeAppTheme.colors.lucian
+                                            val color = if (value >= 0) {
+                                                ComposeAppTheme.colors.remus
+                                            } else {
+                                                ComposeAppTheme.colors.lucian
+                                            }
                                             withStyle(style = SpanStyle(color = color)) {
                                                 append(numberFormatter.format(value, 0, 8))
                                                 append(" ")
@@ -624,7 +627,11 @@ fun PriceVolChart(
                                     text = "30",
                                 )
                             }
-                        } else if (macdLineCurveState != null && macdSignalCurveState != null && macdHistogramBarsState != null) {
+                        } else if (
+                            macdLineCurveState != null &&
+                            macdSignalCurveState != null &&
+                            macdHistogramBarsState != null
+                        ) {
                             GraphicBarsWithNegative(
                                 modifier = Modifier
                                     .fillMaxSize()

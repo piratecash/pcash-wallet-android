@@ -386,7 +386,9 @@ private fun BackupFileItems(
                                 Column(modifier = Modifier.weight(1f)) {
                                     body_leah(text = walletBackupViewItem.name)
                                     if (walletBackupViewItem.backupRequired) {
-                                        subhead2_lucian(text = stringResource(id = R.string.BackupManager_BackupRequired))
+                                        subhead2_lucian(
+                                            text = stringResource(id = R.string.BackupManager_BackupRequired)
+                                        )
                                     } else {
                                         subhead2_grey(
                                             text = walletBackupViewItem.type,

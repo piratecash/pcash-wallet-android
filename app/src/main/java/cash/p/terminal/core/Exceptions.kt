@@ -35,6 +35,8 @@ class ZcashRescanException(override val message: String?) : Exception()
 
 fun LocalizedException.toResString(): TranslatableString =
     TranslatableString.ResString(errorTextRes, *formatArgs)
+
+fun LocalizedException.toLocalizedString(): String = toResString().toString()
 class AdapterErrorWrongParameters(override val message: String) : Exception()
 class NoFeeSendTransactionError : Exception()
 class FailedTransaction(errorMessage: String?) : RuntimeException(errorMessage) {

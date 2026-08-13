@@ -33,7 +33,9 @@ object SendTonModule {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
         private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
         private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
-        private val payloadEncoder: OfflineTransactionPayloadEncoder by inject(OfflineTransactionPayloadEncoder::class.java)
+        private val payloadEncoder: OfflineTransactionPayloadEncoder by inject(
+            OfflineTransactionPayloadEncoder::class.java
+        )
         private val offlineRepository: OfflineSignedTransactionRepository by inject(
             OfflineSignedTransactionRepository::class.java
         )
@@ -56,7 +58,8 @@ object SendTonModule {
                     val addressService = SendTonAddressService()
                     val feeService = SendTonFeeService(adapter)
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-                    val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Ton, TokenType.Native)) ?: throw IllegalArgumentException()
+                    val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Ton, TokenType.Native))
+                        ?: throw IllegalArgumentException()
 
                     SendTonViewModel(
                         wallet = wallet,

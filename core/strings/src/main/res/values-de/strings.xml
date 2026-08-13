@@ -145,6 +145,7 @@
     <string name="Restore_PrivateKey">Privater Schlüssel</string>
     <string name="Restore_PrivateKeyHint">Geben Sie EVM privaten Schlüssel, BIP32 Root-Schlüssel oder  Account Extended Private Key ein</string>
     <string name="Restore_PhraseHint">12, 15, 18, 21 oder 24 Wörter eingeben</string>
+    <string name="monero_restore_seed">Monero-Wiederherstellungsphrase</string>
     <string name="Restore_NonStandardRestore">Nicht standardmäßige Wiederherstellung</string>
     <string name="Restore_NonStandard_Description">Diese Seite bietet einen speziellen Wallet-Wiederherstellungsmechanismus für P.CASH-Benutzer, die ein nicht standardmäßiges Wallet haben. Im Allgemeinen könnten solche Wallets in der P.CASH-Version 0.27–0.28 mit einer nicht-englischen mnemonischen Wortliste und/oder einem Sonderzeichen in der Wallet-Passphrase (d. h. einem diakritischen Symbol) erstellt worden sein.
 \n\nWenn Sie ein betroffener Benutzer sind, wird Ihr Wallet-Guthaben nach der Wiederherstellung eines solchen Wallets in Version 0.29 oder höher als 0 angezeigt.Auf dieser Seite können Sie den Zugriff auf Ihre nicht standardmäßige Brieftasche wiederherstellen. Nach der Wiederherstellung wird empfohlen, eine neue Brieftasche zu erstellen (die standardkonform ist) und Gelder dorthin zu verschieben.</string>
@@ -2054,6 +2055,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="multi_swap_no_providers">Keine Anbieter verfügbar</string>
     <string name="multi_swap_finding_best_provider">Besten Anbieter suchen…</string>
     <string name="multi_swap_continue">Tausch fortsetzen</string>
+    <string name="multi_swap_route_explanation">Für den besten Kurs wird eine Route über %2$s verwendet. Der Tausch erfolgt in zwei Schritten: zuerst %1$s → %2$s, dann %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Tauschroute</string>
+    <string name="multi_swap_execution_title">Tausch</string>
+    <string name="multi_swap_step">%d. Schritt</string>
+    <string name="multi_swap_understood_continue">Verstanden, weiter</string>
     <string name="multi_swap_unfinished">Unvollständiger Tausch</string>
     <string name="multi_swap_unfinished_plural">Unvollständige Tausche (%d)</string>
     <string name="duration_short_hours">%1$dh</string>
@@ -2113,6 +2119,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="error_hardware_wallet_some_tokens_not_found">Einige Token konnten nicht hinzugefügt werden</string>
     <string name="send_error_address_unavailable">Adresse nicht verfügbar</string>
     <string name="send_error_amount_unavailable">Betrag nicht verfügbar</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash hat die zum Senden benötigten Dateien noch nicht heruntergeladen. Stellen Sie eine Internetverbindung her und versuchen Sie es erneut.</string>
     <string name="send_error_fee_rate_unavailable">Gebührensatz nicht verfügbar</string>
     <string name="send_error_balance_unavailable">Guthaben nicht verfügbar</string>
     <string name="litecoin_mweb_invalid_amount">Ungültiger Litecoin-MWEB-Betrag</string>
@@ -2181,6 +2188,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen durch Umdrehen</string>
     <string name="balance_hide_on_flip_description">Drehen Sie das Gerät mit dem Bildschirm nach unten, um Ihren Kontostand schnell aus- und einzublenden.</string>
+    <string name="balance_hide_on_flip_unsupported">Dieses Gerät unterstützt Verbergen durch Umdrehen nicht.</string>
     <string name="balance_hide_on_flip_info_title">Kontostand verborgen</string>
     <string name="balance_hide_on_flip_info_description">Um Ihren Kontostand aus- oder einzublenden, drehen Sie das Gerät einfach mit dem Bildschirm nach unten oder deaktivieren Sie die Funktion in den Sicherheitseinstellungen.</string>
     <string name="balance_hide_on_flip_dont_show_again">Nicht mehr anzeigen</string>

@@ -281,7 +281,9 @@ object DeniableEncryptionManager {
                 // Retry with new salt
             }
         }
-        throw PasswordCollisionException("Failed to create container after $maxRetries attempts due to password collisions")
+        throw PasswordCollisionException(
+            "Failed to create container after $maxRetries attempts due to password collisions"
+        )
     }
 
     /**
@@ -340,13 +342,15 @@ object DeniableEncryptionManager {
 
             // Check for collision
             if (rangesOverlap(range1, range2)) {
-                throw PasswordCollisionException("Passwords conflict - they derive overlapping positions. Please choose a different password.")
+                throw PasswordCollisionException(
+                    "Passwords conflict - they derive overlapping positions. Please choose a different password."
+                )
             }
         }
 
         // Check maximum size limit
-        if (requiredSize > MAX_CONTAINER_SIZE) {
-            throw IllegalArgumentException("Data is too large: required $requiredSize bytes, maximum is $MAX_CONTAINER_SIZE bytes")
+        require(requiredSize <= MAX_CONTAINER_SIZE) {
+            "Data is too large: required $requiredSize bytes, maximum is $MAX_CONTAINER_SIZE bytes"
         }
 
         // Round to size bucket for deniability

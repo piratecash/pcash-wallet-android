@@ -31,6 +31,7 @@ data class TweetsPageResponse(
                                     attachments.add(Tweet.Attachment.Photo(it))
                                 }
                             }
+
                             "video" -> {
                                 media.previewImageUrl?.let {
                                     attachments.add(Tweet.Attachment.Video(it))
@@ -53,23 +54,24 @@ data class TweetsPageResponse(
             var referencedTweet: Tweet.ReferencedTweetXxx? = null
             rawTweet.referencedTweets?.firstOrNull()?.let { tweetReference ->
                 includes.referencedTweets.find { tweet -> tweet.id == tweetReference.id }?.let { rawReferencedTweet ->
-                    includes.users.find { user -> user.id == rawReferencedTweet.authorId }?.let { referencedTweetAuthor ->
-                        val tweet = Tweet(
-                            rawReferencedTweet.id,
-                            referencedTweetAuthor,
-                            rawReferencedTweet.text,
-                            rawReferencedTweet.date,
-                            listOf(),
-                            null
-                        )
+                    includes.users.find { user -> user.id == rawReferencedTweet.authorId }
+                        ?.let { referencedTweetAuthor ->
+                            val tweet = Tweet(
+                                rawReferencedTweet.id,
+                                referencedTweetAuthor,
+                                rawReferencedTweet.text,
+                                rawReferencedTweet.date,
+                                listOf(),
+                                null
+                            )
 
-                        referencedTweet = when (tweetReference.type) {
-                            "quoted" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Quoted, tweet)
-                            "retweeted" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Retweeted, tweet)
-                            "replied_to" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Replied, tweet)
-                            else -> null
+                            referencedTweet = when (tweetReference.type) {
+                                "quoted" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Quoted, tweet)
+                                "retweeted" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Retweeted, tweet)
+                                "replied_to" -> Tweet.ReferencedTweetXxx(Tweet.ReferenceType.Replied, tweet)
+                                else -> null
+                            }
                         }
-                    }
                 }
             }
 

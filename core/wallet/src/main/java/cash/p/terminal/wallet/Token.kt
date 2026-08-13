@@ -28,7 +28,11 @@ data class Token(
         get() = FullCoin(coin, listOf(this))
 
     override fun equals(other: Any?): Boolean =
-        other is Token && other.coin == coin && other.blockchain == blockchain && other.type == type && other.decimals == decimals
+        other is Token &&
+                other.coin == coin &&
+                other.blockchain == blockchain &&
+                other.type == type &&
+                other.decimals == decimals
 
     override fun hashCode(): Int =
         Objects.hash(coin, blockchain, type, decimals)

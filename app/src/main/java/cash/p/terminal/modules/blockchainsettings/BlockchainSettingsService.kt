@@ -89,7 +89,8 @@ class BlockchainSettingsService(
             BlockchainItem.StatusOnly(it)
         }
 
-        blockchainItems = (btcBlockchainItems + evmBlockchainItems + solanaBlockchainItems + statusOnlyItems).sortedBy { it.order }
+        blockchainItems =
+            (btcBlockchainItems + evmBlockchainItems + solanaBlockchainItems + statusOnlyItems).sortedBy { it.order }
     }
 
 }

@@ -40,7 +40,9 @@ fun FinishStepScreen(
 
     val (description, descriptionStyle) = when (finishState) {
         is FinishState.Loading -> "" to StepDescriptionStyle.Grey
-        is FinishState.Success -> stringResource(R.string.connect_mini_app_connection_successful) to StepDescriptionStyle.Green
+        is FinishState.Success -> stringResource(
+            R.string.connect_mini_app_connection_successful
+        ) to StepDescriptionStyle.Green
         is FinishState.JwtExpired -> "" to StepDescriptionStyle.Grey // Already handled above
         is FinishState.Error -> buildString {
             append(stringResource(R.string.connect_mini_app_connection_failed))
@@ -60,6 +62,7 @@ fun FinishStepScreen(
                 is FinishState.Loading, is FinishState.JwtExpired -> {
                     // No button shown during loading or JWT expired (handled above)
                 }
+
                 is FinishState.Success -> {
                     VSpacer(16.dp)
                     ButtonPrimaryYellow(
@@ -68,6 +71,7 @@ fun FinishStepScreen(
                         onClick = onCloseClick
                     )
                 }
+
                 is FinishState.Error -> {
                     VSpacer(16.dp)
                     ButtonPrimaryYellow(

@@ -21,7 +21,9 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 fun MarketDataPreview() {
     val marketData = listOf(
         CoinDataItem(title = "Market Cap", value = "$123.34 B", rankLabel = "#555"),
-        CoinDataItem(title = "Trading Volume", value = "112,112,112,112,112,112,112,112,112,112,112,112,112,112,112,112 ETH"),
+        CoinDataItem(
+            title = "Trading Volume", value = "112,112,112,112,112,112,112,112,112,112,112,112,112,112,112,112 ETH"
+        ),
         CoinDataItem(title = "Inception Date", value = "Jul 23, 2012"),
     )
 

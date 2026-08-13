@@ -30,14 +30,16 @@ class TonTransactionRecord(
 ) {
 
     override val to: List<String>?
-        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { listOf((it.type as Action.Type.Send).to) } ?:
-            actions.firstOrNull { it.type is Action.Type.Swap }?.let { listOf((it.type as Action.Type.Swap).routerAddress) }
+        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { listOf((it.type as Action.Type.Send).to) }
+            ?: actions.firstOrNull { it.type is Action.Type.Swap }
+                ?.let { listOf((it.type as Action.Type.Swap).routerAddress) }
 
     override val from: String?
         get() = actions.firstOrNull { it.type is Action.Type.Receive }?.let { (it.type as Action.Type.Receive).from }
 
     override val sentToSelf: Boolean
-        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { (it.type as Action.Type.Send).sentToSelf } ?: false
+        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { (it.type as Action.Type.Send).sentToSelf }
+            ?: false
 
     override val memo: String?
         get() = actions.firstNotNullOfOrNull {

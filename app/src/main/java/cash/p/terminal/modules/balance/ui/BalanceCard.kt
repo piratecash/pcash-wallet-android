@@ -188,7 +188,8 @@ fun BalanceCardInner(
                         Spacer(Modifier.width(24.dp))
                         Text(
                             text = if (viewItem.primaryValue.visible) viewItem.primaryValue.value else "*****",
-                            color = if (viewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
+                            color = if (viewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else
+                                ComposeAppTheme.colors.leah,
                             style = ComposeAppTheme.typography.headline2,
                             maxLines = 1,
                             textAlign = TextAlign.End,
@@ -217,7 +218,11 @@ fun BalanceCardInner(
                                             Column {
                                                 Text(
                                                     text = viewItem.exchangeValue.value,
-                                                    color = if (viewItem.exchangeValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
+                                                    color = if (viewItem.exchangeValue.dimmed) {
+                                                        ComposeAppTheme.colors.grey50
+                                                    } else {
+                                                        ComposeAppTheme.colors.grey
+                                                    },
                                                     style = ComposeAppTheme.typography.subhead2,
                                                     modifier = Modifier.oneLineHeight(
                                                         ComposeAppTheme.typography.subhead2
@@ -257,8 +262,10 @@ fun BalanceCardInner(
                                 )
                             } else {
                                 Text(
-                                    text = if (viewItem.secondaryValue.visible) viewItem.secondaryValue.value else "*****",
-                                    color = if (viewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
+                                    text = if (viewItem.secondaryValue.visible) viewItem.secondaryValue.value else
+                                        "*****",
+                                    color = if (viewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else
+                                        ComposeAppTheme.colors.grey,
                                     style = ComposeAppTheme.typography.subhead2,
                                     maxLines = 1,
                                 )

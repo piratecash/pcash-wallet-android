@@ -298,7 +298,10 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.getTokenHolders(authToken, coinGeckoUid, blockchainUid)
     }
 
-    fun coinTreasuriesSingle(coinGeckoUid: String, currencyCode: String): Single<List<CoinTreasury>> {
+    fun coinTreasuriesSingle(
+        coinGeckoUid: String,
+        currencyCode: String
+    ): Single<List<CoinTreasury>> {
         return service.getCoinTreasuries(coinGeckoUid, currencyCode).map { responseList ->
             responseList.mapNotNull {
                 try {
@@ -435,7 +438,10 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return pirateService.getAllTokens()
     }
 
-    fun analyticsPreviewSingle(coinGeckoUid: String, addresses: List<String>): Single<AnalyticsPreview> {
+    fun analyticsPreviewSingle(
+        coinGeckoUid: String,
+        addresses: List<String>
+    ): Single<AnalyticsPreview> {
         return service.getAnalyticsPreview(
             coinGeckoUid = coinGeckoUid,
             address = if (addresses.isEmpty()) null else addresses.joinToString(",")
@@ -823,13 +829,17 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         companion object {
             private const val marketInfoFields =
-                "name,code,price,price_change_1d,price_change_24h,price_change_7d,price_change_30d,price_change_90d,market_cap_rank,coingecko_id,market_cap,market_cap_rank,total_volume"
+                "name,code,price,price_change_1d,price_change_24h,price_change_7d,price_change_30d," +
+                        "price_change_90d,market_cap_rank,coingecko_id,market_cap,market_cap_rank,total_volume"
             private const val topCoinsMarketInfoFields =
-                "price,price_change_1d,price_change_24h,price_change_7d,price_change_30d,price_change_90d,market_cap_rank,market_cap,total_volume"
+                "price,price_change_1d,price_change_24h,price_change_7d,price_change_30d,price_change_90d," +
+                        "market_cap_rank,market_cap,total_volume"
             private const val coinPriceFields =
                 "price,price_change_1d,price_change_24h,last_updated"
             private const val advancedMarketFields =
-                "all_platforms,price,market_cap,total_volume,price_change_1d,price_change_24h,price_change_7d,price_change_14d,price_change_30d,price_change_200d,price_change_1y,ath_percentage,atl_percentage"
+                "all_platforms,price,market_cap,total_volume,price_change_1d,price_change_24h,price_change_7d," +
+                        "price_change_14d,price_change_30d,price_change_200d,price_change_1y,ath_percentage," +
+                        "atl_percentage"
         }
     }
 

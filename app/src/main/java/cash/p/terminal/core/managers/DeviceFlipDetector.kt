@@ -33,6 +33,9 @@ class DeviceFlipDetector {
         sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
     }
 
+    val isSupported: Boolean
+        get() = gravitySensor != null
+
     private var registered = false
     private val listener = FlipSensorListener()
 

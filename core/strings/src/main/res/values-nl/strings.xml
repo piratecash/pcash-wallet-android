@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">Private Key</string>
     <string name="Restore_PrivateKeyHint">Enter EVM Private Key, BIP32 Root Key or Account Extended Private Key</string>
     <string name="Restore_PhraseHint">Enter Recovery Phrase</string>
+    <string name="monero_restore_seed">Monero-herstelzin</string>
     <string name="Restore_NonStandardRestore">Non-Standard Import</string>
     <string name="Restore_NonStandard_Description">This page provides a special wallet restore mechanism to P.CASH users who have a non-standard wallet. Such wallets might have been created in P.CASH version 0.27 - 0.28 using a non-English recovery phrase and/or a special character in the wallet passphrase (i.e. diacritic symbol).\n\nIf you\'re an affected user then your wallet balance will be shown 0 after restoring such wallet in version 0.29 or above. This page will enable you to restore access to your non-standard wallet. Once restored you\'re recommended to create a new wallet (which will be standard compliant) and move funds there.</string>
     <string name="Restore_Bip_Recommended">(recommended)</string>
@@ -2069,6 +2070,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="multi_swap_no_providers">Geen providers beschikbaar</string>
     <string name="multi_swap_finding_best_provider">Beste aanbieder zoeken…</string>
     <string name="multi_swap_continue">Ruil voortzetten</string>
+    <string name="multi_swap_route_explanation">Voor de beste koers wordt een route via %2$s gebruikt. De ruil wordt in twee opeenvolgende stappen uitgevoerd: eerst %1$s → %2$s, daarna %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Ruilroute</string>
+    <string name="multi_swap_execution_title">Ruil</string>
+    <string name="multi_swap_step">Stap %d</string>
+    <string name="multi_swap_understood_continue">Begrepen, doorgaan</string>
     <string name="multi_swap_unfinished">Onvoltooide ruil</string>
     <string name="multi_swap_unfinished_plural">Onvoltooide ruilingen (%d)</string>
     <string name="duration_short_hours">%1$du</string>
@@ -2128,6 +2134,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="error_hardware_wallet_some_tokens_not_found">Sommige tokens konden niet worden toegevoegd</string>
     <string name="send_error_address_unavailable">Adres niet beschikbaar</string>
     <string name="send_error_amount_unavailable">Bedrag niet beschikbaar</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash heeft de bestanden die nodig zijn om te verzenden nog niet gedownload. Maak verbinding met internet en probeer het opnieuw.</string>
     <string name="send_error_fee_rate_unavailable">Fee-tarief niet beschikbaar</string>
     <string name="send_error_balance_unavailable">Saldo niet beschikbaar</string>
     <string name="litecoin_mweb_invalid_amount">Ongeldig Litecoin MWEB-bedrag</string>
@@ -2196,6 +2203,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen door omdraaien</string>
     <string name="balance_hide_on_flip_description">Draai het scherm van het apparaat naar beneden om je saldo snel te verbergen en te tonen.</string>
+    <string name="balance_hide_on_flip_unsupported">Dit apparaat ondersteunt Verbergen door omdraaien niet.</string>
     <string name="balance_hide_on_flip_info_title">Saldo verborgen</string>
     <string name="balance_hide_on_flip_info_description">Om je saldo te verbergen of te tonen, draai je gewoon het scherm van het apparaat naar beneden, of schakel je het uit in de beveiligingsinstellingen.</string>
     <string name="balance_hide_on_flip_dont_show_again">Niet meer tonen</string>

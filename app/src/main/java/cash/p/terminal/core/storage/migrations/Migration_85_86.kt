@@ -43,6 +43,8 @@ object Migration_85_86 : Migration(85, 86) {
 
         // Step 5: Create indexes (including unique constraint)
         db.execSQL("CREATE INDEX index_EnabledWallet_accountId ON EnabledWallet(accountId)")
-        db.execSQL("CREATE UNIQUE INDEX index_EnabledWallet_accountId_tokenQueryId ON EnabledWallet(accountId, tokenQueryId)")
+        db.execSQL(
+            "CREATE UNIQUE INDEX index_EnabledWallet_accountId_tokenQueryId ON EnabledWallet(accountId, tokenQueryId)"
+        )
     }
 }

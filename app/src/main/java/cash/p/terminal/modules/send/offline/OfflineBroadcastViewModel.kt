@@ -364,7 +364,7 @@ class OfflineBroadcastViewModel(
             true
         } else {
             false
-    }
+        }
 
     private fun prepareFromDecoded(decoded: DecodedOfflineTransaction, payload: String) {
         val blockchain = marketKit.blockchain(decoded.blockchainUid)
@@ -622,31 +622,42 @@ private fun Throwable.typedOfflineBroadcastErrorText(feeCoinCode: String): Trans
         is UnknownHostException,
         is ConnectException,
         is NoRouteToHostException -> TranslatableString.ResString(R.string.Hud_Text_NoInternet)
+
         is InterruptedIOException,
         is TimeoutException -> TranslatableString.ResString(R.string.offline_broadcast_error_timeout)
+
         is UnsupportedException,
-        is UnsupportedOperationException -> TranslatableString.ResString(R.string.offline_broadcast_unsupported_blockchain)
+        is UnsupportedOperationException -> TranslatableString.ResString(
+            R.string.offline_broadcast_unsupported_blockchain
+        )
+
         is EvmError.InsufficientBalanceWithFee -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_InsufficientBalanceWithFee,
             feeCoinCode
         )
+
         is EvmError.CannotEstimateSwap -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_CannotEstimate,
             feeCoinCode
         )
+
         is EvmError.LowerThanBaseGasLimit -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_LowerThanBaseGasLimit
         )
+
         is EvmError.ExecutionReverted -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_ExecutionReverted,
             message.orEmpty()
         )
+
         is EvmError.InsufficientLiquidity -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_InsufficientLiquidity
         )
+
         is EvmError.BlockedByProvider -> TranslatableString.ResString(R.string.source_blocked_by_provider_error)
         is EvmError.RpcError -> message?.knownOfflineBroadcastErrorText(feeCoinCode)
             ?: TranslatableString.ResString(R.string.offline_broadcast_error_send_failed)
+
         else -> null
     }
 
@@ -656,23 +667,29 @@ private fun String.knownOfflineBroadcastErrorText(feeCoinCode: String): Translat
         message.isBlank() || message == "error" -> TranslatableString.ResString(
             R.string.offline_broadcast_error_send_failed
         )
+
         message.containsAny(alreadyKnownTransactionMessages) ||
                 message.isZcashAlreadyCommittedToBestChainError() -> TranslatableString.ResString(
             R.string.offline_broadcast_error_already_sent
         )
+
         message.contains("nonce too low") -> TranslatableString.ResString(
             R.string.offline_broadcast_error_nonce_used
         )
+
         message.containsAny(lowFeeMessages) -> TranslatableString.ResString(
             R.string.offline_broadcast_error_low_fee
         )
+
         message.contains("insufficient funds") -> TranslatableString.ResString(
             R.string.EthereumTransaction_Error_InsufficientBalanceWithFee,
             feeCoinCode
         )
+
         message.containsAny(rejectedTransactionMessages) -> TranslatableString.ResString(
             R.string.offline_broadcast_error_rejected
         )
+
         else -> null
     }
 }

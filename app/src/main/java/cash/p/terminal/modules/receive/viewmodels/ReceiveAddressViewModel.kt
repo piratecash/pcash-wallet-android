@@ -75,7 +75,8 @@ class ReceiveAddressViewModel(
     private fun setNetworkName() {
         when (val tokenType = wallet.token.type) {
             is TokenType.Derived -> {
-                addressFormat = "${tokenType.derivation.accountTypeDerivation.addressType} (${tokenType.derivation.accountTypeDerivation.rawName})"
+                val derivation = tokenType.derivation.accountTypeDerivation
+                addressFormat = "${derivation.addressType} (${derivation.rawName})"
             }
 
             is TokenType.AddressTyped -> {

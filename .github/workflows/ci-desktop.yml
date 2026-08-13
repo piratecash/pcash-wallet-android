@@ -1,0 +1,40 @@
+name: Desktop CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact: linux-x64
+          - os: windows-2025
+            artifact: windows-x64
+          - os: macos-26
+            artifact: macos-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: gradle
+      - name: Build Desktop distributable
+        shell: bash
+        run: ./gradlew :desktopApp:createDistributable
+      - name: Upload Desktop distributable
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.artifact }}
+          path: desktopApp/build/compose/binaries/main/app
+          if-no-files-found: error

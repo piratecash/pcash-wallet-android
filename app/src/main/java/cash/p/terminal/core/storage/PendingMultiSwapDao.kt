@@ -22,10 +22,16 @@ interface PendingMultiSwapDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(swap: PendingMultiSwap)
 
-    @Query("UPDATE PendingMultiSwap SET leg1Status = :status, leg1AmountOut = :amountOut, leg1TransactionId = :transactionId WHERE id = :id")
+    @Query(
+        "UPDATE PendingMultiSwap SET leg1Status = :status, leg1AmountOut = :amountOut, leg1TransactionId = " +
+                ":transactionId WHERE id = :id"
+    )
     suspend fun updateLeg1(id: String, status: String, amountOut: BigDecimal?, transactionId: String?)
 
-    @Query("UPDATE PendingMultiSwap SET leg2Status = :status, leg2AmountOut = :amountOut, leg2TransactionId = :transactionId WHERE id = :id")
+    @Query(
+        "UPDATE PendingMultiSwap SET leg2Status = :status, leg2AmountOut = :amountOut, leg2TransactionId = " +
+                ":transactionId WHERE id = :id"
+    )
     suspend fun updateLeg2(id: String, status: String, amountOut: BigDecimal?, transactionId: String?)
 
     @Query("UPDATE PendingMultiSwap SET leg1ProviderTransactionId = :providerTransactionId WHERE id = :id")

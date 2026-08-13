@@ -46,7 +46,9 @@ class PayCoreStatusRepositoryTest {
         )
 
         coEvery { storage.getTransaction(payoutId) } returns transaction
-        coEvery { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) } returns statusResponse("Completed")
+        coEvery { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) } returns statusResponse(
+            "Completed"
+        )
 
         val result = repository.getTransactionStatus(SwapProviderStatusRequest(payoutId, ""))
 
@@ -128,7 +130,9 @@ class PayCoreStatusRepositoryTest {
     ) {
         val transactionId = "tx-${payCoreStatus ?: "missing"}"
         coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT_ERC20) } returns statusResponse(payCoreStatus)
+        coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT_ERC20) } returns statusResponse(
+            payCoreStatus
+        )
 
         val result = repository.getTransactionStatus(SwapProviderStatusRequest(transactionId, ""))
 

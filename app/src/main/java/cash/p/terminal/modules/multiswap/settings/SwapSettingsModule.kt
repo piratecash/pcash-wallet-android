@@ -27,7 +27,9 @@ object SwapSettingsModule {
             override fun getLocalizedMessage(): String {
                 return when (invalidSlippageType) {
                     is InvalidSlippageType.Lower -> Translator.getString(R.string.SwapSettings_Error_SlippageTooLow)
-                    is InvalidSlippageType.Higher -> Translator.getString(R.string.SwapSettings_Error_SlippageTooHigh, invalidSlippageType.max)
+                    is InvalidSlippageType.Higher -> Translator.getString(
+                        R.string.SwapSettings_Error_SlippageTooHigh, invalidSlippageType.max
+                    )
                 }
             }
         }

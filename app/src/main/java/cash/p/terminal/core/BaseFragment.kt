@@ -30,7 +30,8 @@ abstract class BaseFragment(
     }
 
     protected fun hideKeyboard() {
-        activity?.getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(activity?.currentFocus?.windowToken, 0)
+        activity?.getSystemService(InputMethodManager::class.java)
+            ?.hideSoftInputFromWindow(activity?.currentFocus?.windowToken, 0)
     }
 
     protected fun setMenuItemEnabled(menuItem: MenuItem, enabled: Boolean) {

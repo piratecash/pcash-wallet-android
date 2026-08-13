@@ -358,8 +358,12 @@ class TransactionInfoServiceTest : KoinTest {
             toAddress = "bc1-wallet-address",
             type = TransactionRecordType.BITCOIN_INCOMING,
         )
-        every { adapter.getTransactionRecordsFlow(null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null) } returns
-            MutableStateFlow(listOf(incomingRecord))
+        every {
+            adapter.getTransactionRecordsFlow(
+                null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null
+            )
+        } returns
+                MutableStateFlow(listOf(incomingRecord))
 
         val service = createService(initialTransactionRecord = pendingRecord)
         backgroundScope.launch { service.start() }
@@ -391,8 +395,12 @@ class TransactionInfoServiceTest : KoinTest {
             toAddress = "bc1same-address",
             type = TransactionRecordType.BITCOIN_OUTGOING,
         )
-        every { adapter.getTransactionRecordsFlow(null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null) } returns
-            MutableStateFlow(listOf(oldRealRecord))
+        every {
+            adapter.getTransactionRecordsFlow(
+                null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null
+            )
+        } returns
+                MutableStateFlow(listOf(oldRealRecord))
 
         val service = createService(initialTransactionRecord = pendingRecord)
         backgroundScope.launch { service.start() }
@@ -440,8 +448,12 @@ class TransactionInfoServiceTest : KoinTest {
             toAddress = "0xrecipient",
             type = TransactionRecordType.EVM_OUTGOING,
         )
-        every { adapter.getTransactionRecordsFlow(null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null) } returns
-            MutableStateFlow(listOf(realRecord))
+        every {
+            adapter.getTransactionRecordsFlow(
+                null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null
+            )
+        } returns
+                MutableStateFlow(listOf(realRecord))
 
         val service = createService(initialTransactionRecord = pendingRecord)
         backgroundScope.launch { service.start() }
@@ -488,8 +500,12 @@ class TransactionInfoServiceTest : KoinTest {
             timestamp = 1_715_000_005,
             toAddress = "0xrouter",
         )
-        every { adapter.getTransactionRecordsFlow(null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null) } returns
-            MutableStateFlow(listOf(realRecord))
+        every {
+            adapter.getTransactionRecordsFlow(
+                null, cash.p.terminal.modules.transactions.FilterTransactionType.All, null
+            )
+        } returns
+                MutableStateFlow(listOf(realRecord))
 
         val service = createService(initialTransactionRecord = pendingRecord)
         backgroundScope.launch { service.start() }

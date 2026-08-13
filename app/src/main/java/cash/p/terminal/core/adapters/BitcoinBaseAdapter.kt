@@ -215,7 +215,9 @@ abstract class BitcoinBaseAdapter(
         else -> emptyFlow()
     }
 
-    private fun getTransactionRecordsFlowable(transactionType: FilterTransactionType): Flowable<List<TransactionRecord>> {
+    private fun getTransactionRecordsFlowable(
+        transactionType: FilterTransactionType
+    ): Flowable<List<TransactionRecord>> {
         val observable: Observable<List<TransactionRecord>> = when (transactionType) {
             FilterTransactionType.All -> {
                 transactionRecordsSubject
@@ -246,13 +248,15 @@ abstract class BitcoinBaseAdapter(
             FilterTransactionType.Incoming -> {
                 records.filter {
                     it.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING ||
-                        (it.transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING &&
-                            (it as BitcoinTransactionRecord).sentToSelf)
+                            (it.transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING &&
+                                    (it as BitcoinTransactionRecord).sentToSelf)
                 }
             }
+
             FilterTransactionType.Outgoing -> {
                 records.filter { it.transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING }
             }
+
             FilterTransactionType.Swap,
             FilterTransactionType.Approve -> {
                 emptyList()
@@ -357,7 +361,8 @@ abstract class BitcoinBaseAdapter(
 
                     BackgroundManagerState.EnterBackground -> {
                         if (pollingSessionCount.get() == 0 &&
-                            !backgroundKeepAliveManager.isKeepAlive(wallet.token.blockchainType)) {
+                            !backgroundKeepAliveManager.isKeepAlive(wallet.token.blockchainType)
+                        ) {
                             kit.onEnterBackground()
                         } else {
                             Timber.tag("TxPoller").d("BitcoinKit(%s) staying alive", wallet.token.blockchainType.uid)
@@ -726,7 +731,8 @@ abstract class BitcoinBaseAdapter(
                     failed = transaction.status == TransactionStatus.INVALID,
                     lockInfo = transactionLockInfo,
                     conflictingHash = transaction.conflictingTxHash,
-                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status == TransactionStatus.INVALID,
+                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status ==
+                            TransactionStatus.INVALID,
                     amount = satoshiToBTC(transaction.amount),
                     from = from,
                     to = to,
@@ -759,7 +765,8 @@ abstract class BitcoinBaseAdapter(
                     failed = transaction.status == TransactionStatus.INVALID,
                     lockInfo = transactionLockInfo,
                     conflictingHash = transaction.conflictingTxHash,
-                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status == TransactionStatus.INVALID,
+                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status ==
+                            TransactionStatus.INVALID,
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
@@ -794,14 +801,17 @@ abstract class BitcoinBaseAdapter(
                     failed = transaction.status == TransactionStatus.INVALID,
                     lockInfo = transactionLockInfo,
                     conflictingHash = transaction.conflictingTxHash,
-                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status == TransactionStatus.INVALID,
+                    showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status ==
+                            TransactionStatus.INVALID,
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
                     changeAddresses = change,
                     sentToSelf = true,
                     memo = memo,
-                    replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,
+                    replaceable = transaction.rbfEnabled &&
+                            transaction.blockHeight == null &&
+                            transaction.conflictingTxHash == null,
                     transactionRecordType = TransactionRecordType.BITCOIN_OUTGOING
                 )
             }
@@ -810,7 +820,9 @@ abstract class BitcoinBaseAdapter(
     }
 
     override val statusInfo: Map<String, Any>
-        get() = networkErrorTracker.appendNetworkErrors(kit.statusInfo(), wallet.token.blockchainType, wallet.account.id)
+        get() = networkErrorTracker.appendNetworkErrors(
+            kit.statusInfo(), wallet.token.blockchainType, wallet.account.id
+        )
 
     override fun satoshiToBTC(value: Long): BigDecimal {
         return BigDecimal(value).movePointLeft(decimal)

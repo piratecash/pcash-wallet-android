@@ -1520,6 +1520,7 @@ Proceed only if you\'re sure.</string>
     <string name="error_hardware_wallet_some_tokens_not_found">Some tokens could not be added</string>
     <string name="send_error_address_unavailable">Address unavailable</string>
     <string name="send_error_amount_unavailable">Amount unavailable</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash hasn\'t downloaded the files it needs to send. Connect to the internet and try again.</string>
     <string name="send_error_fee_rate_unavailable">Fee rate unavailable</string>
     <string name="send_error_balance_unavailable">Balance unavailable</string>
     <string name="litecoin_mweb_invalid_amount">Invalid Litecoin MWEB amount</string>
@@ -2527,6 +2528,11 @@ Proceed only if you\'re sure.</string>
     <string name="multi_swap_no_providers">No providers available</string>
     <string name="multi_swap_finding_best_provider">Finding best provider…</string>
     <string name="multi_swap_continue">Continue swap</string>
+    <string name="multi_swap_route_explanation">To get the best rate, a route through %2$s is used. The swap will be completed in two consecutive steps: first %1$s → %2$s, then %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Swap route</string>
+    <string name="multi_swap_execution_title">Swap</string>
+    <string name="multi_swap_step">%d step</string>
+    <string name="multi_swap_understood_continue">Got it, continue</string>
     <string name="multi_swap_unfinished">Unfinished swap</string>
     <string name="multi_swap_unfinished_plural">Unfinished swaps (%d)</string>
 
@@ -2631,6 +2637,7 @@ Proceed only if you\'re sure.</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Hide on flip</string>
     <string name="balance_hide_on_flip_description">Flip the device screen face down to quickly hide and show your balance.</string>
+    <string name="balance_hide_on_flip_unsupported">This device doesn\'t support Hide on flip.</string>
     <string name="balance_hide_on_flip_info_title">Balance hidden</string>
     <string name="balance_hide_on_flip_info_description">To hide or show your balance, just flip the device screen face down, or turn it off in the security settings.</string>
     <string name="balance_hide_on_flip_dont_show_again">Don\'t show again</string>

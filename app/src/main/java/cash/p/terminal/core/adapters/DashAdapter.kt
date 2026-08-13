@@ -33,7 +33,9 @@ class DashAdapter(
     backgroundManager: BackgroundManager,
     wallet: Wallet,
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
+) : BitcoinBaseAdapter(
+    kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider
+),
     DashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -166,6 +168,7 @@ class DashAdapter(
                         minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
                 }
+
                 is AccountType.HardwareCard -> {
                     val hardwareWalletEcdaBitcoinSigner = buildHardwareWalletEcdaBitcoinSigner(
                         accountId = account.id,

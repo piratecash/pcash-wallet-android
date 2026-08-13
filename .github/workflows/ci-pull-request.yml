@@ -17,12 +17,29 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Restore Firebase DEV signing key
+        env:
+          FIREBASE_DEV_KEYSTORE_BASE64: ${{ secrets.FIREBASE_DEV_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$FIREBASE_DEV_KEYSTORE_BASE64" \
+            | base64 --decode \
+            > "$RUNNER_TEMP/firebase-dev.jks"
       - name: Run Unit tests
         run: ./gradlew :app:testDebugUnitTest :core:core:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest :feature-trezor:testDebugUnitTest :feature-tangem:testDebugUnitTest
       - name: Build with Gradle
         run: ./gradlew assembleDebug
         env:
           BUILD_NUMBER: ${{ github.run_number }}
+          FIREBASE_DEV_KEYSTORE_PATH: ${{ runner.temp }}/firebase-dev.jks
+          FIREBASE_DEV_STORE_PASSWORD: ${{ secrets.FIREBASE_DEV_STORE_PASSWORD }}
+          FIREBASE_DEV_KEY_ALIAS: ${{ secrets.FIREBASE_DEV_KEY_ALIAS }}
+          FIREBASE_DEV_KEY_PASSWORD: ${{ secrets.FIREBASE_DEV_KEY_PASSWORD }}
+      - name: Verify Firebase DEV signing certificate
+        run: |
+          APKSIGNER="$(ls -1 "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          ACTUAL_CERT_SHA256="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
+            | awk '/certificate SHA-256 digest:/ { print $NF; exit }')"
+          test "$ACTUAL_CERT_SHA256" = "374992632abe227755163b21d0eec1e109767054ebb956bda9a7b79709a4eec2"
       - name: Upload Crashlytics native symbols
         if: github.ref == 'refs/heads/master'
         run: ./gradlew :app:uploadCrashlyticsSymbolFileRelease --stacktrace --no-daemon

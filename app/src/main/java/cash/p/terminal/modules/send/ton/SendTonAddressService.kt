@@ -38,7 +38,9 @@ class SendTonAddressService {
         try {
             tonAddress = FriendlyAddress.parse(address.hex)
         } catch (e: Exception) {
-            addressError = Throwable(cash.p.terminal.strings.helpers.Translator.getString(R.string.SwapSettings_Error_InvalidAddress))
+            addressError = Throwable(
+                cash.p.terminal.strings.helpers.Translator.getString(R.string.SwapSettings_Error_InvalidAddress)
+            )
         }
     }
 
