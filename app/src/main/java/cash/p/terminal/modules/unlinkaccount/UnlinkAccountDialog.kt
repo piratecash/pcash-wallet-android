@@ -14,7 +14,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,8 +34,6 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.ui_compose.components.HudHelper
-import kotlinx.coroutines.delay
 
 internal class UnlinkAccountDialog : BaseComposableBottomSheetFragment() {
     override fun onCreateView(
@@ -78,14 +75,6 @@ private fun UnlinkAccountScreen(navController: NavController, account: Account) 
     val confirmations = viewModel.confirmations
     val unlinkEnabled = viewModel.unlinkEnabled
     val deleteWarningMsg = viewModel.deleteWarningMsg
-
-    LaunchedEffect(viewModel.closeScreen) {
-        if (viewModel.closeScreen) {
-            delay(1000)
-            navController.popBackStack()
-        }
-    }
-
     BottomSheetHeader(
         iconPainter = painterResource(R.drawable.ic_attention_red_24),
         title = stringResource(R.string.ManageKeys_Delete_Title),
@@ -120,9 +109,6 @@ private fun UnlinkAccountScreen(navController: NavController, account: Account) 
             )
         }
 
-        val view = LocalView.current
-        val doneConfirmationMessage = stringResource(R.string.Hud_Text_Done)
-
         Spacer(Modifier.height(32.dp))
         ButtonPrimaryRed(
             modifier = Modifier
@@ -131,8 +117,7 @@ private fun UnlinkAccountScreen(navController: NavController, account: Account) 
             title = stringResource(viewModel.deleteButtonText),
             onClick = {
                 viewModel.onUnlink()
-                HudHelper.showSuccessMessage(view, doneConfirmationMessage)
-                navController.popBackStackSafely()
+                navController.navigateUp()
             },
             enabled = unlinkEnabled
         )

@@ -3,12 +3,14 @@ package cash.p.terminal.core.adapters.zcash
 import android.content.Context
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.util.Log
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineSignRequest
 import cash.p.terminal.core.OfflineZcashSignRequest
@@ -792,11 +794,24 @@ class ZcashAdapter(
         logger?.info("call synchronizer.sendToAddress")
         val account = getFirstAccount()
         val proposal = transferProposal(account, amount, address, memo)
-        return synchronizer.createProposedTransactions(
-            proposal = proposal,
-            usk = spendingKey(account)
-        ).first().txId
+        return localizingMissingParams {
+            synchronizer.createProposedTransactions(
+                proposal = proposal,
+                usk = spendingKey(account)
+            ).first().txId
+        }
     }
+
+    /**
+     * Translates the SDK's missing proving parameters failure into a localized message at the
+     * single boundary where this adapter talks to the transaction encoder.
+     */
+    private suspend fun <T> localizingMissingParams(block: suspend () -> T): T =
+        try {
+            block()
+        } catch (_: TransactionEncoderException.MissingParamsException) {
+            throw LocalizedException(R.string.send_error_zcash_params_not_downloaded)
+        }
 
     override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineZcashTransaction {
         require(request is OfflineZcashSignRequest) { "OfflineZcashSignRequest is required" }
@@ -807,10 +822,12 @@ class ZcashAdapter(
             address = request.address,
             memo = request.memo,
         )
-        val signedTransactions = synchronizer.createSignedTransactions(
-            proposal = proposal,
-            usk = spendingKey(account),
-        )
+        val signedTransactions = localizingMissingParams {
+            synchronizer.createSignedTransactions(
+                proposal = proposal,
+                usk = spendingKey(account),
+            )
+        }
         val signed = signedTransactions.singleOrNull()
             ?: throw UnsupportedException("Zcash offline signing supports exactly one transaction")
 
@@ -884,10 +901,12 @@ class ZcashAdapter(
         if (proposal == null) {
             throw Throwable("Failed to create proposal")
         }
-        synchronizer.createProposedTransactions(
-            proposal = proposal,
-            usk = spendingKey(account)
-        ).first().txId
+        localizingMissingParams {
+            synchronizer.createProposedTransactions(
+                proposal = proposal,
+                usk = spendingKey(account)
+            ).first().txId
+        }
     }
 
     private val ironwoodActivationHeight: Long
@@ -940,9 +959,11 @@ class ZcashAdapter(
         ironwoodMigrationProposal = null
 
         val usk = spendingKey(getFirstAccount())
-        val results = synchronizer
-            .createProposedTransactions(proposal = proposal, usk = usk)
-            .toList()
+        val results = localizingMissingParams {
+            synchronizer
+                .createProposedTransactions(proposal = proposal, usk = usk)
+                .toList()
+        }
         rememberIronwoodMigration(results.map { it.txIdString() })
 
         results.firstOrNull { it !is TransactionSubmitResult.Success }

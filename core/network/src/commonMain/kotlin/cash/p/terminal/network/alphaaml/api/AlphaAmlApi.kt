@@ -2,13 +2,13 @@ package cash.p.terminal.network.alphaaml.api
 
 import cash.p.terminal.network.alphaaml.data.AlphaAmlResponse
 import cash.p.terminal.network.api.parseResponse
+import cash.p.terminal.network.data.NetworkLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.url
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 class AlphaAmlApi(
     private val httpClient: HttpClient,
@@ -23,7 +23,7 @@ class AlphaAmlApi(
                 parameter("apiKey", apiKey)
             }.parseResponse<AlphaAmlResponse>()
         } catch (e: Exception) {
-            Timber.d("AlphaAmlApi getRiskGrade error: ${e.localizedMessage}")
+            NetworkLogger.debug("AlphaAmlApi getRiskGrade error", e)
             null
         }
     }

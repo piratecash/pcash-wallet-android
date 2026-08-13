@@ -1,5 +1,6 @@
 package cash.p.terminal.network.quickex.data.mapper
 
+import cash.p.terminal.network.data.NetworkLogger
 import cash.p.terminal.network.quickex.data.entity.NewTransactionQuickexResponseDto
 import cash.p.terminal.network.quickex.data.entity.QuickexInstrumentDto
 import cash.p.terminal.network.quickex.data.entity.QuickexRatesDto
@@ -16,7 +17,6 @@ import cash.p.terminal.network.quickex.domain.entity.QuickexInstrument
 import cash.p.terminal.network.quickex.domain.entity.QuickexRates
 import cash.p.terminal.network.quickex.domain.entity.Rules
 import cash.p.terminal.network.quickex.domain.entity.TransactionQuickexStatus
-import timber.log.Timber
 
 internal class QuickexMapper {
     fun mapCurrencyDtoToCurrency(list: List<QuickexInstrumentDto>) =
@@ -103,7 +103,7 @@ internal class QuickexMapper {
         return try {
             OrderEventKind.valueOf(kind)
         } catch (e: IllegalArgumentException) {
-            Timber.e(e, "Unknown OrderEventKind: $kind")
+            NetworkLogger.error("Unknown OrderEventKind: $kind", e)
             null
         }
     }

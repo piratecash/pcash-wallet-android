@@ -4,11 +4,13 @@ import android.content.Context
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.toLocalizedString
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
@@ -277,7 +279,10 @@ class SendZecOnDuressUseCase(
             SendZecResult.Success
         } catch (e: Exception) {
             Timber.e(e, "Failed to send ZEC transaction")
-            SendZecResult.TransactionFailed(e.message ?: "Transaction failed")
+            val message = (e as? LocalizedException)?.toLocalizedString()
+                ?: e.message
+                ?: "Transaction failed"
+            SendZecResult.TransactionFailed(message)
         }
     }
 

@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">Gizli Anahtar</string>
     <string name="Restore_PrivateKeyHint">EVM Özel Anahtarını, BIP32 Root Key veya Account Extended Private Key girin</string>
     <string name="Restore_PhraseHint">12, 15, 18, 21 veya 24 kelime girin</string>
+    <string name="monero_restore_seed">Monero kurtarma cümlesi</string>
     <string name="Restore_NonStandardRestore">Standart Olmayan Geri Yükleme</string>
     <string name="Restore_NonStandard_Description">Bu sayfa, standart olmayan bir cüzdanı olan P.CASH kullanıcıları için özel geri yükleme mekanizması sağlar. Genel olarak, bu tür cüzdanlar, İngilizce olmayan bir anımsatma kelimeleri listesi ve/veya cüzdan şifresinde özel bir karakter (yani aksan simgesi) kullanılarak P.CASH 0.27 - 0.28 sürümünde oluşturulmuş olabilir.\n\n Bu durumdan etkilenen bir kullanıcıysanız, 0.29 sürümüne güncelledikten sonra cüzdan bakiyeniz 0 olarak görüntülenir. Bu sayfa, standart olmayan cüzdanınıza erişimi geri yüklemenizi sağlayacaktır. Geri yüklendikten sonra, yeni bir cüzdan oluşturmanız (standartlarla uyumlu) ve paranızı oraya taşımanız önerilir.</string>
     <string name="Restore_Bip_Recommended">(ortalama)</string>
@@ -2132,6 +2133,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="error_hardware_wallet_some_tokens_not_found">Bazı tokenler eklenemedi</string>
     <string name="send_error_address_unavailable">Adres kullanılamıyor</string>
     <string name="send_error_amount_unavailable">Tutar kullanılamıyor</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash, gönderim için gereken dosyaları henüz indirmedi. İnternete bağlanın ve tekrar deneyin.</string>
     <string name="send_error_fee_rate_unavailable">Ücret oranı kullanılamıyor</string>
     <string name="send_error_balance_unavailable">Bakiye kullanılamıyor</string>
     <string name="litecoin_mweb_invalid_amount">Geçersiz Litecoin MWEB tutarı</string>

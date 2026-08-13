@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">私钥</string>
     <string name="Restore_PrivateKeyHint">輸入 EVM 私鑰、BIP32 Root Key 或  Account Extended Private Key</string>
     <string name="Restore_PhraseHint">输入12、15、18、21或24个单词</string>
+    <string name="monero_restore_seed">Monero 恢复码</string>
     <string name="Restore_NonStandardRestore">非标准还原</string>
     <string name="Restore_NonStandard_Description">此页面为拥有非标准钱包的 P.CASH 用户提供了一种特殊的钱包恢复机制。 通常，此类钱包可以在 P.CASH 版本 0.27 - 0.28 中使用非英语助记词列表和/或钱包密码短语中的特殊字符（即变音符号）创建。\n\n如果您是受影响的用户，那么在 0.29 或更高版本中恢复此类钱包后，您的钱包余额将显示为 0。 此页面将使您能够恢复对非标准钱包的访问。 恢复后，建议您创建一个新钱包（符合标准）并将资金转移到那里。</string>
     <string name="Restore_Bip_Recommended">(平均)</string>
@@ -2116,6 +2117,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">部分代币无法添加</string>
     <string name="send_error_address_unavailable">地址不可用</string>
     <string name="send_error_amount_unavailable">金额不可用</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash 尚未下载发送所需的文件。请连接网络后重试。</string>
     <string name="send_error_fee_rate_unavailable">费率不可用</string>
     <string name="send_error_balance_unavailable">余额不可用</string>
     <string name="litecoin_mweb_invalid_amount">无效的 Litecoin MWEB 金额</string>

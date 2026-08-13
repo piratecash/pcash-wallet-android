@@ -6,6 +6,9 @@ import cash.p.terminal.core.usecase.AddMoneroToTrezorAccountUseCase
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
+import cash.p.terminal.core.usecase.TrezorAccountDependencies
+import cash.p.terminal.core.usecase.TrezorMoneroDependencies
+import cash.p.terminal.core.usecase.DeleteAccountUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
@@ -49,6 +52,7 @@ val useCaseModule = module {
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase) bind TrezorMoneroRestoreHeightResolver::class
     singleOf(::AddMoneroToTrezorAccountUseCase)
+    factoryOf(::DeleteAccountUseCase)
     factoryOf(::GetLocalizedAssetUseCase)
     factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
@@ -57,6 +61,8 @@ val useCaseModule = module {
     factoryOf(::RescanMoneroUseCase)
     factoryOf(::RescanZcashUseCase)
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
+    factoryOf(::TrezorAccountDependencies)
+    factoryOf(::TrezorMoneroDependencies)
     factoryOf(::CreateTrezorWalletUseCase) bind ICreateTrezorWalletUseCase::class
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class

@@ -1,5 +1,9 @@
 package cash.p.terminal.network.zcash.data
 
-internal expect class Logger() {
-    fun log(date: String, error: Throwable)
+import cash.p.terminal.network.data.NetworkLogger
+
+internal class Logger {
+    fun log(date: String, error: Throwable) {
+        NetworkLogger.warning("Failed to load Zcash height for $date", error)
+    }
 }

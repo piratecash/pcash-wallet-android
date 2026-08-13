@@ -2,6 +2,7 @@
 
 package cash.p.terminal.modules.balance.token
 
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +49,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,22 +76,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.MoneroSpendReadiness
-import cash.p.terminal.core.premiumAction
 import cash.p.terminal.featureStacking.ui.staking.StackingType
-import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
-import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.balance.ui.FlipHiddenBalanceInfoHost
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
-import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
-import cash.p.terminal.modules.receive.ReceiveFragment
-import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.send.SendResult
-import cash.p.terminal.modules.syncerror.showSyncErrorDialog
+import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
 import cash.p.terminal.modules.transactions.AmlCheckPromoBanner
 import cash.p.terminal.modules.transactions.Filter
@@ -98,13 +94,11 @@ import cash.p.terminal.modules.transactions.SearchEmptyResultsView
 import cash.p.terminal.modules.transactions.SearchInProgressView
 import cash.p.terminal.modules.transactions.TransactionSearchField
 import cash.p.terminal.modules.transactions.TransactionViewItem
-import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
 import cash.p.terminal.modules.transactions.transactionsHiddenBlock
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.modules.zcashmigration.ZcashMigrationFlow
 import cash.p.terminal.navigation.popBackStackSafely
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
@@ -148,6 +142,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
+import kotlinx.coroutines.flow.Flow
 
 private const val HEADER_CONTENT_TYPE = "token_balance_sticky_header"
 private const val PLACEHOLDER_CONTENT_TYPE = "token_balance_empty_placeholder"
@@ -158,145 +153,195 @@ private enum class TokenBalanceLazyKey { SearchHeader }
 
 @Composable
 fun TokenBalanceScreen(
-    viewModel: TokenBalanceViewModel,
-    transactionsViewModel: TransactionsViewModel,
-    sendResult: SendResult? = viewModel.sendResult,
-    navController: NavController,
-    refreshing: Boolean,
-    onStackingClicked: () -> Unit,
-    onShowAllTransactionsClicked: () -> Unit,
-    onClickSubtitle: () -> Unit,
-    onRefresh: () -> Unit,
-    onSettingsClick: () -> Unit
+    params: TokenBalanceScreenParams,
+    modifier: Modifier = Modifier,
 ) {
     val view = LocalView.current
     var showMoneroSendPreparation by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(viewModel) {
-        viewModel.events.collect { event ->
-            when (event) {
-                is TokenBalanceModule.Event.OpenSend -> {
-                    showMoneroSendPreparation = false
-                    navController.openSend(event.wallet)
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(viewModel.uiState.moneroSpendReadiness) {
-        if (
-            showMoneroSendPreparation &&
-            viewModel.uiState.moneroSpendReadiness ==
-            MoneroSpendReadiness.ReconcilingSpentStatus
-        ) {
-            showMoneroSendPreparation = false
-        }
-    }
-
-    TokenBalanceScreenContent(
-        uiState = viewModel.uiState,
-        secondaryValue = viewModel.secondaryValue,
-        sendResult = sendResult,
-        navController = navController,
-        refreshing = refreshing,
-        onToggleFavorite = viewModel::toggleFavorite,
-        onToggleBalanceVisibility = viewModel::toggleBalanceVisibility,
-        onSearchClick = viewModel::onSearchClick,
-        onSearchClose = viewModel::onSearchClose,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        onSetTransactionType = viewModel::setTransactionType,
-        onWillShow = viewModel::willShow,
-        onTransactionClick = {
-            onTransactionClick(it, viewModel, transactionsViewModel, navController)
-        },
-        onSensitiveTransactionClick = {
-            HudHelper.vibrate(App.instance)
-            transactionsViewModel.toggleTransactionInfoHidden(it.uid)
-        },
-        onBottomReached = viewModel::onBottomReached,
-        onSetAmlCheckEnabled = { enabled ->
-            if (enabled) {
-                navController.premiumAction { viewModel.setAmlCheckEnabled(true) }
-            } else {
-                viewModel.setAmlCheckEnabled(false)
-            }
-        },
-        onDismissAmlPromo = {
-            viewModel.dismissAmlPromo()
-            HudHelper.showPremiumMessage(
-                view,
-                R.string.aml_promo_dismiss_hud,
-                SnackbarDuration.LONG
-            )
-        },
-        onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
-        onSendClick = sendClick@{
-            val wallet = viewModel.uiState.balanceViewItem?.wallet ?: return@sendClick
-            if (
-                viewModel.uiState.moneroHardwareWallet &&
-                viewModel.uiState.moneroSpendReadiness != MoneroSpendReadiness.Ready
-            ) {
-                showMoneroSendPreparation = true
-                viewModel.prepareMoneroSend()
-            } else {
-                navController.openSend(wallet)
-            }
-        },
-        onReceiveClick = { onReceiveClicked(viewModel, navController) },
-        onShieldClick = viewModel::proposeShielding,
-        onSyncErrorClick = { onSyncErrorClicked(it, viewModel, navController) },
-        onStackingClicked = onStackingClicked,
-        onShowAllTransactionsClicked = onShowAllTransactionsClicked,
-        onClickSubtitle = onClickSubtitle,
-        onRefresh = onRefresh,
-        onSettingsClick = onSettingsClick,
+    TokenBalanceScreenEffects(
+        events = params.events,
+        navController = params.navController,
+        showMoneroSendPreparation = showMoneroSendPreparation,
+        onDismissMoneroSendPreparation = { showMoneroSendPreparation = false },
+        moneroSpendReadiness = params.moneroSpendReadiness,
     )
 
-    if (showMoneroSendPreparation) {
-        MoneroSendPreparationBottomSheet(
-            syncInProgress = viewModel.uiState.moneroKeyImageSyncInProgress,
-            error = viewModel.uiState.moneroKeyImageSyncError,
-            fullWalletRecoveryAvailable = viewModel.uiState.moneroFullWalletRecoveryAvailable,
-            onSync = viewModel::syncMoneroKeyImages,
-            onFullWalletRecovery = viewModel::fullMoneroWalletRecovery,
-            onDismiss = {
-                viewModel.cancelMoneroKeyImageSync()
-                showMoneroSendPreparation = false
-            },
+    Box(modifier = modifier) {
+        TokenBalanceScreenContentHost(
+            params = params,
+            view = view,
+            onShowMoneroSendPreparation = { showMoneroSendPreparation = true },
+        )
+        MoneroSendPreparationBottomSheetHost(
+            MoneroSendPreparationBottomSheetParams(
+                visible = showMoneroSendPreparation,
+                syncInProgress = params.moneroKeyImageSyncInProgress,
+                error = params.moneroKeyImageSyncError,
+                fullWalletRecoveryAvailable = params.moneroFullWalletRecoveryAvailable,
+                onSync = params.actions.onSyncMoneroKeyImages,
+                onFullWalletRecovery = params.actions.onFullMoneroWalletRecovery,
+                onCancel = params.actions.onCancelMoneroKeyImageSync,
+                onDismiss = { showMoneroSendPreparation = false },
+            ),
         )
     }
 }
 
 @Composable
-private fun TokenBalanceScreenContent(
-    uiState: TokenBalanceModule.TokenBalanceUiState,
-    secondaryValue: DeemedValue<String>,
-    sendResult: SendResult?,
-    navController: NavController,
-    refreshing: Boolean,
-    onToggleFavorite: () -> Unit,
-    onToggleBalanceVisibility: () -> Unit,
-    onSearchClick: () -> Unit,
-    onSearchClose: () -> Unit,
-    onSearchQueryChange: (String) -> Unit,
-    onSetTransactionType: (FilterTransactionType) -> Unit,
-    onWillShow: (TransactionViewItem) -> Unit,
-    onTransactionClick: (TransactionViewItem) -> Unit,
-    onSensitiveTransactionClick: (TransactionViewItem) -> Unit,
-    onBottomReached: () -> Unit,
-    onSetAmlCheckEnabled: (Boolean) -> Unit,
-    onDismissAmlPromo: () -> Unit,
-    onDismissNetworkFeeWarning: () -> Unit,
-    onSendClick: () -> Unit,
-    onReceiveClick: () -> Unit,
-    onShieldClick: () -> Unit,
-    onSyncErrorClick: (BalanceViewItem) -> Unit,
-    onStackingClicked: () -> Unit,
-    onShowAllTransactionsClicked: () -> Unit,
-    onClickSubtitle: () -> Unit,
-    onRefresh: () -> Unit,
-    onSettingsClick: () -> Unit,
+private fun TokenBalanceScreenContentHost(
+    params: TokenBalanceScreenParams,
+    view: View,
+    onShowMoneroSendPreparation: () -> Unit,
 ) {
+    tokenBalanceScreenContent(
+        TokenBalanceScreenContentParams(
+            uiState = params.uiState,
+            secondaryValue = params.secondaryValue,
+            sendResult = params.sendResult,
+            navController = params.navController,
+            refreshing = params.refreshing,
+            onToggleFavorite = params.actions.onToggleFavorite,
+            onToggleBalanceVisibility = params.actions.onToggleBalanceVisibility,
+            onSearchClick = params.actions.onSearchClick,
+            onSearchClose = params.actions.onSearchClose,
+            onSearchQueryChange = params.actions.onSearchQueryChange,
+            onSetTransactionType = params.actions.onSetTransactionType,
+            onWillShow = params.actions.onWillShow,
+            onTransactionClick = params.actions.onTransactionClick,
+            onSensitiveTransactionClick = params.actions.onSensitiveTransactionClick,
+            onBottomReached = params.actions.onBottomReached,
+            onSetAmlCheckEnabled = params.actions.onSetAmlCheckEnabled,
+            onDismissAmlPromo = { params.actions.onDismissAmlPromo(view) },
+            onDismissNetworkFeeWarning = params.actions.onDismissNetworkFeeWarning,
+            onSendClick = { params.actions.onSendClick(onShowMoneroSendPreparation) },
+            onReceiveClick = params.actions.onReceiveClick,
+            onShieldClick = params.actions.onShieldClick,
+            onSyncErrorClick = params.actions.onSyncErrorClick,
+            onStackingClicked = params.actions.onStackingClicked,
+            onShowAllTransactionsClicked = params.actions.onShowAllTransactionsClicked,
+            onClickSubtitle = params.actions.onClickSubtitle,
+            onRefresh = params.actions.onRefresh,
+            onSettingsClick = params.actions.onSettingsClick,
+        )
+    )
+}
+
+data class TokenBalanceScreenParams(
+    val uiState: TokenBalanceModule.TokenBalanceUiState,
+    val secondaryValue: DeemedValue<String>,
+    val events: Flow<TokenBalanceModule.Event>,
+    val navController: NavController,
+    val refreshing: Boolean,
+    val sendResult: SendResult?,
+    val moneroSpendReadiness: MoneroSpendReadiness?,
+    val moneroKeyImageSyncInProgress: Boolean,
+    @StringRes val moneroKeyImageSyncError: Int?,
+    val moneroFullWalletRecoveryAvailable: Boolean,
+    val actions: TokenBalanceScreenActions,
+)
+
+data class TokenBalanceScreenActions(
+    val onToggleFavorite: () -> Unit,
+    val onToggleBalanceVisibility: () -> Unit,
+    val onSearchClick: () -> Unit,
+    val onSearchClose: () -> Unit,
+    val onSearchQueryChange: (String) -> Unit,
+    val onSetTransactionType: (FilterTransactionType) -> Unit,
+    val onWillShow: (TransactionViewItem) -> Unit,
+    val onTransactionClick: (TransactionViewItem) -> Unit,
+    val onSensitiveTransactionClick: (TransactionViewItem) -> Unit,
+    val onBottomReached: () -> Unit,
+    val onSetAmlCheckEnabled: (Boolean) -> Unit,
+    val onDismissAmlPromo: (View) -> Unit,
+    val onDismissNetworkFeeWarning: () -> Unit,
+    val onSendClick: ((() -> Unit)) -> Unit,
+    val onReceiveClick: () -> Unit,
+    val onShieldClick: () -> Unit,
+    val onSyncErrorClick: (BalanceViewItem) -> Unit,
+    val onSyncMoneroKeyImages: () -> Unit,
+    val onFullMoneroWalletRecovery: () -> Unit,
+    val onCancelMoneroKeyImageSync: () -> Unit,
+    val onStackingClicked: () -> Unit,
+    val onShowAllTransactionsClicked: () -> Unit,
+    val onClickSubtitle: () -> Unit,
+    val onRefresh: () -> Unit,
+    val onSettingsClick: () -> Unit,
+)
+
+@Composable
+private fun TokenBalanceScreenEffects(
+    events: Flow<TokenBalanceModule.Event>,
+    navController: NavController,
+    showMoneroSendPreparation: Boolean,
+    onDismissMoneroSendPreparation: () -> Unit,
+    moneroSpendReadiness: MoneroSpendReadiness?,
+) {
+    val dismissMoneroSendPreparation by rememberUpdatedState(onDismissMoneroSendPreparation)
+    LaunchedEffect(events, navController) {
+        events.collect { event ->
+            if (event is TokenBalanceModule.Event.OpenSend) {
+                dismissMoneroSendPreparation()
+                navController.openSend(event.wallet)
+            }
+        }
+    }
+    LaunchedEffect(showMoneroSendPreparation, moneroSpendReadiness) {
+        if (showMoneroSendPreparation &&
+            moneroSpendReadiness == MoneroSpendReadiness.ReconcilingSpentStatus
+        ) {
+            dismissMoneroSendPreparation()
+        }
+    }
+}
+
+internal fun NavController.openSend(wallet: Wallet) {
+    val sendTitle = Translator.getString(
+        R.string.Send_Title,
+        wallet.token.fullCoin.coin.code,
+    )
+    navigate(
+        MainGraphDirections.actionGlobalToSendFragment(
+            SendFragment.Input(
+                wallet = wallet,
+                title = sendTitle,
+                sendEntryPointDestId = R.id.tokenBalanceFragment,
+                address = null,
+            )
+        )
+    )
+}
+
+@Composable
+private fun MoneroSendPreparationBottomSheetHost(
+    params: MoneroSendPreparationBottomSheetParams,
+) {
+    if (!params.visible) return
+    MoneroSendPreparationBottomSheet(
+        syncInProgress = params.syncInProgress,
+        error = params.error,
+        fullWalletRecoveryAvailable = params.fullWalletRecoveryAvailable,
+        onSync = params.onSync,
+        onFullWalletRecovery = params.onFullWalletRecovery,
+        onDismiss = {
+            params.onCancel()
+            params.onDismiss()
+        },
+    )
+}
+
+private data class MoneroSendPreparationBottomSheetParams(
+    val visible: Boolean,
+    val syncInProgress: Boolean,
+    @StringRes val error: Int?,
+    val fullWalletRecoveryAvailable: Boolean,
+    val onSync: () -> Unit,
+    val onFullWalletRecovery: () -> Unit,
+    val onCancel: () -> Unit,
+    val onDismiss: () -> Unit,
+)
+
+private val tokenBalanceScreenContent: @Composable (TokenBalanceScreenContentParams) -> Unit = { params ->
+    val uiState = params.uiState
     val view = LocalView.current
 
     var showAmlInfoSheet by remember { mutableStateOf(false) }
@@ -311,27 +356,36 @@ private fun TokenBalanceScreenContent(
                 ScreenSecurityState.isAppLocked
             )
         ) {
-            onSyncErrorClick(viewItem)
+            params.onSyncErrorClick(viewItem)
         }
     }
 
+    Box {
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
                 title = uiState.title,
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStackSafely() })
+                    HsBackButton(onClick = { params.navController.popBackStackSafely() })
                 },
                 menuItems = buildList {
                     add(
                         MenuItem(
                             title = TranslatableString.ResString(
-                                if (uiState.isFavorite) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
+                                if (uiState.isFavorite) {
+                                    R.string.CoinPage_Unfavorite
+                                } else {
+                                    R.string.CoinPage_Favorite
+                                }
                             ),
                             icon = if (uiState.isFavorite) R.drawable.ic_star_filled_20 else R.drawable.ic_star_20,
-                            tint = if (uiState.isFavorite) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey,
-                            onClick = onToggleFavorite
+                            tint = if (uiState.isFavorite) {
+                                ComposeAppTheme.colors.jacob
+                            } else {
+                                ComposeAppTheme.colors.grey
+                            },
+                            onClick = params.onToggleFavorite
                         )
                     )
                     if (!uiState.isCustomToken) {
@@ -343,7 +397,7 @@ private fun TokenBalanceScreenContent(
                                     val coinUid = uiState.balanceViewItem?.wallet?.coin?.uid
                                         ?: return@MenuItem
                                     val arguments = CoinFragmentInput(coinUid)
-                                    navController.slideFromRight(R.id.coinFragment, arguments)
+                                    params.navController.slideFromRight(R.id.coinFragment, arguments)
                                 }
                             )
                         )
@@ -352,7 +406,7 @@ private fun TokenBalanceScreenContent(
                         MenuItem(
                             title = TranslatableString.ResString(R.string.Settings_Title),
                             icon = R.drawable.ic_manage_2_24,
-                            onClick = onSettingsClick
+                            onClick = params.onSettingsClick
                         )
                     )
                     if (failedIconVisible && !loading) {
@@ -362,7 +416,7 @@ private fun TokenBalanceScreenContent(
                                 icon = R.drawable.ic_attention_red_24,
                                 tint = ComposeAppTheme.colors.lucian,
                                 onClick = {
-                                    uiState.balanceViewItem?.let(onSyncErrorClick)
+                                    uiState.balanceViewItem?.let(params.onSyncErrorClick)
                                 }
                             )
                         )
@@ -377,7 +431,7 @@ private fun TokenBalanceScreenContent(
         // would make the tabs vanish mid-switch.
         val showFilterTabs = uiState.transactionFiltersEnabled
         val listState = rememberLazyListState()
-        when (sendResult) {
+        when (params.sendResult) {
             SendResult.Sending -> {
                 HudHelper.showInProcessMessage(
                     view,
@@ -405,7 +459,7 @@ private fun TokenBalanceScreenContent(
             is SendResult.Failed -> {
                 HudHelper.showErrorMessage(
                     view,
-                    sendResult.caution.getDescription() ?: sendResult.caution.getString()
+                    params.sendResult.caution.getDescription() ?: params.sendResult.caution.getString()
                 )
             }
 
@@ -467,9 +521,9 @@ private fun TokenBalanceScreenContent(
             }
         }
         HSSwipeRefresh(
-            refreshing = refreshing,
+            refreshing = params.refreshing,
             modifier = Modifier.padding(paddingValues),
-            onRefresh = onRefresh
+            onRefresh = params.onRefresh
         ) {
             Box {
                 // Overscroll is disabled: the stretch effect moves the pinned header (inside the
@@ -478,19 +532,21 @@ private fun TokenBalanceScreenContent(
                     item {
                         uiState.balanceViewItem?.let {
                             TokenBalanceHeader(
+                                TokenBalanceHeaderParams(
                                 balanceViewItem = it,
-                                navController = navController,
+                                navController = params.navController,
                                 uiState = uiState,
-                                secondaryValue = secondaryValue,
-                                onStackingClicked = onStackingClicked,
-                                onClickSubtitle = onClickSubtitle,
-                                onToggleBalanceVisibility = onToggleBalanceVisibility,
-                                onSendClick = onSendClick,
-                                onReceiveClick = onReceiveClick,
-                                onShieldClick = onShieldClick,
-                                onSyncErrorClick = onSyncErrorClick,
-                                onDismissNetworkFeeWarning = onDismissNetworkFeeWarning,
-                                isShowShieldFunds = uiState.isShowShieldFunds
+                                secondaryValue = params.secondaryValue,
+                                onStackingClicked = params.onStackingClicked,
+                                onClickSubtitle = params.onClickSubtitle,
+                                onToggleBalanceVisibility = params.onToggleBalanceVisibility,
+                                onSendClick = params.onSendClick,
+                                onReceiveClick = params.onReceiveClick,
+                                onShieldClick = params.onShieldClick,
+                                onSyncErrorClick = params.onSyncErrorClick,
+                                onDismissNetworkFeeWarning = params.onDismissNetworkFeeWarning,
+                                isShowShieldFunds = uiState.isShowShieldFunds,
+                                )
                             )
                         }
                     }
@@ -500,13 +556,13 @@ private fun TokenBalanceScreenContent(
                             TokenNotSyncedSection(
                                 onBlockchainStatusClick = {
                                     uiState.balanceViewItem?.wallet?.token?.blockchain?.let { blockchain ->
-                                        navController.slideFromRight(
+                                        params.navController.slideFromRight(
                                             R.id.blockchainStatusFragment,
                                             blockchain
                                         )
                                     }
                                 },
-                                onRetry = onRefresh,
+                                onRetry = params.onRefresh,
                             )
                         }
                     }
@@ -515,9 +571,9 @@ private fun TokenBalanceScreenContent(
                         item {
                             AmlCheckPromoBanner(
                                 amlCheckEnabled = uiState.amlCheckEnabled,
-                                onToggleChange = onSetAmlCheckEnabled,
+                                onToggleChange = params.onSetAmlCheckEnabled,
                                 onInfoClick = { showAmlInfoSheet = true },
-                                onClose = onDismissAmlPromo,
+                                onClose = params.onDismissAmlPromo,
                                 modifier = Modifier.padding(vertical = 12.dp)
                             )
                         }
@@ -548,7 +604,7 @@ private fun TokenBalanceScreenContent(
                                 FilterTypeTabs(
                                     filterTypes = uiState.transactionFilterTypes,
                                     offlineSignedSelected = false,
-                                    onTransactionTypeClick = onSetTransactionType,
+                                    onTransactionTypeClick = params.onSetTransactionType,
                                 )
                             }
                             if (uiState.searchActive) {
@@ -558,17 +614,17 @@ private fun TokenBalanceScreenContent(
                                         .padding(horizontal = 4.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    HsBackButton(onClick = onSearchClose)
+                                    HsBackButton(onClick = params.onSearchClose)
                                     TransactionSearchField(
                                         query = uiState.searchQuery,
-                                        onQueryChange = onSearchQueryChange,
+                                        onQueryChange = params.onSearchQueryChange,
                                     )
                                 }
                             } else {
                                 HideBalanceSearchRow(
                                     hideBalance = !uiState.balanceViewItem.primaryValue.visible,
-                                    onToggleBalanceVisibility = onToggleBalanceVisibility,
-                                    onSearchClick = onSearchClick,
+                                    onToggleBalanceVisibility = params.onToggleBalanceVisibility,
+                                    onSearchClick = params.onSearchClick,
                                 )
                             }
                             HorizontalDivider(
@@ -632,17 +688,17 @@ private fun TokenBalanceScreenContent(
                     } else {
                         transactionList(
                             transactionsMap = transactionItems,
-                            willShow = onWillShow,
-                            onClick = onTransactionClick,
+                            willShow = params.onWillShow,
+                            onClick = params.onTransactionClick,
                             isItemBalanceHidden = { !it.showAmount },
-                            onSensitiveValueClick = onSensitiveTransactionClick,
-                            onBottomReached = onBottomReached,
+                            onSensitiveValueClick = params.onSensitiveTransactionClick,
+                            onBottomReached = params.onBottomReached,
                             stickyDateHeaders = false
                         )
                         if (uiState.hasHiddenTransactions) {
                             transactionsHiddenBlock(
                                 shortBlock = transactionItems.isNotEmpty(),
-                                onShowAllTransactionsClicked = onShowAllTransactionsClicked
+                                onShowAllTransactionsClicked = params.onShowAllTransactionsClicked
                             )
                         }
                     }
@@ -656,7 +712,7 @@ private fun TokenBalanceScreenContent(
         AmlCheckInfoBottomSheet(
             onPremiumSettingsClick = {
                 showAmlInfoSheet = false
-                navController.slideFromRight(
+                params.navController.slideFromRight(
                     R.id.premiumSettingsFragment
                 )
             },
@@ -671,7 +727,38 @@ private fun TokenBalanceScreenContent(
     FlipHiddenBalanceInfoHost(
         canShow = !ScreenSecurityState.isAppLocked && !showAmlInfoSheet
     )
+    }
 }
+
+private data class TokenBalanceScreenContentParams(
+    val uiState: TokenBalanceModule.TokenBalanceUiState,
+    val secondaryValue: DeemedValue<String>,
+    val sendResult: SendResult?,
+    val navController: NavController,
+    val refreshing: Boolean,
+    val onToggleFavorite: () -> Unit,
+    val onToggleBalanceVisibility: () -> Unit,
+    val onSearchClick: () -> Unit,
+    val onSearchClose: () -> Unit,
+    val onSearchQueryChange: (String) -> Unit,
+    val onSetTransactionType: (FilterTransactionType) -> Unit,
+    val onWillShow: (TransactionViewItem) -> Unit,
+    val onTransactionClick: (TransactionViewItem) -> Unit,
+    val onSensitiveTransactionClick: (TransactionViewItem) -> Unit,
+    val onBottomReached: () -> Unit,
+    val onSetAmlCheckEnabled: (Boolean) -> Unit,
+    val onDismissAmlPromo: () -> Unit,
+    val onDismissNetworkFeeWarning: () -> Unit,
+    val onSendClick: () -> Unit,
+    val onReceiveClick: () -> Unit,
+    val onShieldClick: () -> Unit,
+    val onSyncErrorClick: (BalanceViewItem) -> Unit,
+    val onStackingClicked: () -> Unit,
+    val onShowAllTransactionsClicked: () -> Unit,
+    val onClickSubtitle: () -> Unit,
+    val onRefresh: () -> Unit,
+    val onSettingsClick: () -> Unit,
+)
 
 
 // Date for the overlay pinned below the combined sticky header (tabs + hide-balance/search
@@ -748,256 +835,188 @@ private fun HideBalanceSearchRow(
     }
 }
 
-private fun onTransactionClick(
-    transactionViewItem: TransactionViewItem,
-    tokenBalanceViewModel: TokenBalanceViewModel,
-    transactionsViewModel: TransactionsViewModel,
-    navController: NavController
-) {
-    val transactionItem = tokenBalanceViewModel.getTransactionItem(transactionViewItem) ?: return
-    transactionsViewModel.tmpItemToShow = transactionItem
-
-    navController.slideFromBottom(R.id.transactionInfoFragment)
-}
-
-private fun NavController.openSend(wallet: Wallet) {
-    val sendTitle = Translator.getString(
-        R.string.Send_Title,
-        wallet.token.fullCoin.coin.code,
-    )
-    navigate(
-        MainGraphDirections.actionGlobalToSendFragment(
-            SendFragment.Input(
-                wallet = wallet,
-                title = sendTitle,
-                sendEntryPointDestId = R.id.tokenBalanceFragment,
-                address = null,
-            )
-        )
-    )
-}
-
 @Composable
 private fun TokenBalanceHeader(
-    balanceViewItem: BalanceViewItem,
-    navController: NavController,
-    uiState: TokenBalanceModule.TokenBalanceUiState,
-    secondaryValue: DeemedValue<String>,
-    onStackingClicked: () -> Unit,
-    onClickSubtitle: () -> Unit,
-    onToggleBalanceVisibility: () -> Unit,
-    onSendClick: () -> Unit,
-    onReceiveClick: () -> Unit,
-    onShieldClick: () -> Unit,
-    onSyncErrorClick: (BalanceViewItem) -> Unit,
-    onDismissNetworkFeeWarning: () -> Unit,
-    isShowShieldFunds: Boolean
+    params: TokenBalanceHeaderParams,
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        // Sub-header row: coin icon + ticker + badge + staking status
-        VSpacer(height = 12.dp)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.size(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CoinIconWithSyncProgress(
-                    token = balanceViewItem.wallet.token,
-                    syncingProgress = balanceViewItem.syncingProgress,
-                    failedIconVisible = balanceViewItem.failedIconVisible,
-                    onClickSyncError = {
-                        onSyncErrorClick(balanceViewItem)
-                    }
-                )
-            }
-            HSpacer(16.dp)
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = uiState.coinCode,
-                    color = ComposeAppTheme.colors.grey,
-                    style = ComposeAppTheme.typography.subhead1,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                uiState.badge?.let { badgeText ->
-                    HSpacer(6.dp)
-                    Badge(text = badgeText)
-                }
-            }
-            uiState.stakingStatus?.let { status ->
-                HSpacer(8.dp)
-                StakingStatusBadge(status = status)
-            }
-        }
-
-        // Balance
-        VSpacer(height = 22.dp)
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        onToggleBalanceVisibility()
-                        HudHelper.vibrate(context)
-                    }
-                ),
-            text = if (balanceViewItem.primaryValue.visible) balanceViewItem.primaryValue.value else "*****",
-            color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
-            style = ComposeAppTheme.typography.title2R,
-            textAlign = TextAlign.Start,
-        )
-
-        // Price line
-        VSpacer(height = 6.dp)
-        if (balanceViewItem.syncingTextValue != null) {
-            body_grey(
-                text = balanceViewItem.syncingTextValue + (balanceViewItem.syncedUntilTextValue?.let { " - $it" }
-                    ?: ""),
-                maxLines = 1,
-            )
-        } else {
-            Text(
-                text = if (balanceViewItem.secondaryValue.visible) secondaryValue.value else "*****",
-                color = if (balanceViewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
-                style = ComposeAppTheme.typography.body,
-                maxLines = 1,
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        if (balanceViewItem.secondaryValue.visible) {
-                            onClickSubtitle()
-                        }
-                    }
-                )
-            )
-        }
-
-        // Exchange rate + diff
-        if (balanceViewItem.exchangeValue.visible) {
-            VSpacer(height = 4.dp)
-            Row {
-                Text(
-                    text = "1${uiState.coinCode} = ${balanceViewItem.exchangeValue.value}",
-                    color = ComposeAppTheme.colors.grey,
-                    style = ComposeAppTheme.typography.subhead2,
-                )
-                if (balanceViewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
-                    balanceViewItem.fullDiff.takeIf { it.isNotBlank() }?.let { fullDiff ->
-                        val color = diffColor(balanceViewItem.diff)
-                        HSpacer(width = 6.dp)
-                        BadgeText(
-                            text = fullDiff,
-                            background = color.copy(alpha = 0.1f),
-                            textColor = color
-                        )
-                    }
-                }
-            }
-        }
-
-        // Staking unpaid row (with info tooltip) + optional "next accrual" subtitle
-        var showInfoSheet by rememberSaveable { mutableStateOf(false) }
-        uiState.stackingType?.let { stackingType ->
-            VSpacer(height = 21.dp)
-            HorizontalDivider(color = ComposeAppTheme.colors.steel20, thickness = 1.dp)
-
-            VSpacer(height = 12.dp)
-            RowUniversal(verticalPadding = 0.dp) {
-                subhead2_grey(
-                    text = stringResource(R.string.staking_unpaid),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                HSpacer(4.dp)
-                HsIconButton(
-                    onClick = { showInfoSheet = true },
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info_20),
-                        contentDescription = stringResource(R.string.staking_unpaid_info_title),
-                        tint = ComposeAppTheme.colors.grey
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                uiState.stakingUnpaid?.let { unpaid ->
-                    Text(
-                        text = if (balanceViewItem.primaryValue.visible) unpaid else "*****",
-                        color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
-                        style = ComposeAppTheme.typography.subhead2,
-                        maxLines = 1,
-                    )
-                } ?: Text(
-                    text = "—",
-                    color = ComposeAppTheme.colors.grey50,
-                    style = ComposeAppTheme.typography.subhead2,
-                )
-            }
-
-            val nextAccrualHours = uiState.hoursUntilNextAccrual
-            AnimatedVisibility(
-                visible = nextAccrualHours != null,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-            ) {
-                val hours = nextAccrualHours ?: return@AnimatedVisibility
-                subhead2_jacob(
-                    text = pluralStringResource(
-                        R.plurals.staking_next_accrual_in_hours,
-                        hours,
-                        hours
-                    )
-                )
-            }
-
-            if (showInfoSheet) {
-                val bodyRes = when (stackingType) {
-                    StackingType.PCASH -> R.string.staking_unpaid_info_body_pirate
-                    StackingType.COSANTA -> R.string.staking_unpaid_info_body_cosanta
-                }
-                InfoBottomSheet(
-                    title = stringResource(R.string.staking_unpaid_info_title),
-                    text = stringResource(bodyRes),
-                    onDismiss = { showInfoSheet = false }
-                )
-            }
-        }
-
+        TokenBalanceAssetIdentity(params)
+        TokenBalanceValues(params)
+        TokenBalanceStakingDetails(params)
         VSpacer(height = 12.dp)
         ButtonsRow(
-            viewItem = balanceViewItem,
-            navController = navController,
-            sendEnabled = uiState.sendEntryEnabled,
-            onSendClick = onSendClick,
-            onReceiveClick = onReceiveClick,
-            onShieldClick = onShieldClick,
-            onStackingClicked = onStackingClicked,
-            isShowShieldFunds = isShowShieldFunds
+            TokenBalanceButtonsParams(
+                params.balanceViewItem, params.navController, params.uiState.sendEntryEnabled,
+                params.onSendClick, params.onReceiveClick, params.onShieldClick,
+                params.onStackingClicked, params.isShowShieldFunds,
+            )
         )
-        uiState.zcashMigrationRequiredAmount?.let { amount ->
-            ZcashMigrationRequiredSection(
-                amount = amount,
-                amountVisible = balanceViewItem.primaryValue.visible,
-                wallet = balanceViewItem.wallet
+        TokenBalanceHeaderAlerts(params)
+        VSpacer(height = 16.dp)
+    }
+}
+
+@Composable
+private fun TokenBalanceAssetIdentity(params: TokenBalanceHeaderParams) {
+    val item = params.balanceViewItem
+    VSpacer(height = 12.dp)
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+            CoinIconWithSyncProgress(
+                token = item.wallet.token,
+                syncingProgress = item.syncingProgress,
+                failedIconVisible = item.failedIconVisible,
+                onClickSyncError = { params.onSyncErrorClick(item) },
             )
         }
-        LockedBalanceSection(balanceViewItem)
-        balanceViewItem.warning?.let {
+        HSpacer(16.dp)
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = params.uiState.coinCode,
+                color = ComposeAppTheme.colors.grey,
+                style = ComposeAppTheme.typography.subhead1,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            params.uiState.badge?.let { HSpacer(6.dp); Badge(text = it) }
+        }
+        params.uiState.stakingStatus?.let { HSpacer(8.dp); StakingStatusBadge(status = it) }
+    }
+}
+
+@Composable
+private fun TokenBalanceValues(params: TokenBalanceHeaderParams) {
+    val item = params.balanceViewItem
+    val context = LocalContext.current
+    Column {
+        VSpacer(height = 22.dp)
+        Text(
+            modifier = Modifier.fillMaxWidth().clickable(remember { MutableInteractionSource() }, null) {
+                params.onToggleBalanceVisibility(); HudHelper.vibrate(context)
+            }, text = if (item.primaryValue.visible) item.primaryValue.value else "*****",
+            color = if (item.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
+            style = ComposeAppTheme.typography.title2R, textAlign = TextAlign.Start,
+        )
+        TokenBalanceSecondaryValue(params)
+        TokenBalanceExchangeValue(params)
+    }
+}
+
+@Composable
+private fun TokenBalanceSecondaryValue(params: TokenBalanceHeaderParams) {
+    val item = params.balanceViewItem
+    VSpacer(height = 6.dp)
+    if (item.syncingTextValue != null) {
+        body_grey(text = item.syncingTextValue + (item.syncedUntilTextValue?.let { " - $it" } ?: ""), maxLines = 1)
+        return
+    }
+    Text(
+        text = if (item.secondaryValue.visible) params.secondaryValue.value else "*****",
+        color = if (item.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
+        style = ComposeAppTheme.typography.body, maxLines = 1,
+        modifier = Modifier.clickable(remember { MutableInteractionSource() }, null) {
+            if (item.secondaryValue.visible) params.onClickSubtitle()
+        },
+    )
+}
+
+@Composable
+private fun TokenBalanceExchangeValue(params: TokenBalanceHeaderParams) {
+    val item = params.balanceViewItem
+    if (!item.exchangeValue.visible) return
+    VSpacer(height = 4.dp)
+    Row {
+        Text(
+            text = "1${params.uiState.coinCode} = ${item.exchangeValue.value}",
+            color = ComposeAppTheme.colors.grey,
+            style = ComposeAppTheme.typography.subhead2,
+        )
+        item.fullDiff.takeIf { item.displayDiffOptionType != DisplayDiffOptionType.NONE && it.isNotBlank() }?.let {
+            val color = diffColor(item.diff)
+            HSpacer(6.dp)
+            BadgeText(text = it, background = color.copy(alpha = 0.1f), textColor = color)
+        }
+    }
+}
+
+@Composable
+private fun TokenBalanceStakingDetails(params: TokenBalanceHeaderParams) {
+    val stackingType = params.uiState.stackingType ?: return
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
+    VSpacer(height = 21.dp)
+    HorizontalDivider(color = ComposeAppTheme.colors.steel20, thickness = 1.dp)
+    TokenBalanceUnpaidRow(params, onInfoClick = { showInfoSheet = true })
+    TokenBalanceNextAccrual(params.uiState.hoursUntilNextAccrual)
+    if (showInfoSheet) StakingUnpaidInfoSheet(stackingType) { showInfoSheet = false }
+}
+
+@Composable
+private fun TokenBalanceUnpaidRow(params: TokenBalanceHeaderParams, onInfoClick: () -> Unit) {
+    val item = params.balanceViewItem
+    VSpacer(height = 12.dp)
+    RowUniversal(verticalPadding = 0.dp) {
+        subhead2_grey(stringResource(R.string.staking_unpaid), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        HSpacer(4.dp)
+        HsIconButton(onClick = onInfoClick, modifier = Modifier.size(20.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.ic_info_20),
+                contentDescription = stringResource(R.string.staking_unpaid_info_title),
+                tint = ComposeAppTheme.colors.grey,
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = params.uiState.stakingUnpaid?.let { if (item.primaryValue.visible) it else "*****" } ?: "—",
+            color = if (params.uiState.stakingUnpaid == null || item.primaryValue.dimmed) {
+                ComposeAppTheme.colors.grey50
+            } else {
+                ComposeAppTheme.colors.leah
+            },
+            style = ComposeAppTheme.typography.subhead2, maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun TokenBalanceNextAccrual(hours: Int?) {
+    AnimatedVisibility(
+        visible = hours != null,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut(),
+    ) {
+        hours?.let { subhead2_jacob(pluralStringResource(R.plurals.staking_next_accrual_in_hours, it, it)) }
+    }
+}
+
+@Composable
+private fun StakingUnpaidInfoSheet(stackingType: StackingType, onDismiss: () -> Unit) {
+    val bodyRes = when (stackingType) {
+        StackingType.PCASH -> R.string.staking_unpaid_info_body_pirate
+        StackingType.COSANTA -> R.string.staking_unpaid_info_body_cosanta
+    }
+    InfoBottomSheet(
+        title = stringResource(R.string.staking_unpaid_info_title),
+        text = stringResource(bodyRes),
+        onDismiss = onDismiss,
+    )
+}
+
+@Composable
+private fun TokenBalanceHeaderAlerts(params: TokenBalanceHeaderParams) {
+    val item = params.balanceViewItem
+    params.uiState.zcashMigrationRequiredAmount?.let { amount ->
+            ZcashMigrationRequiredSection(
+                amount = amount,
+                amountVisible = item.primaryValue.visible,
+                wallet = item.wallet
+            )
+        }
+        LockedBalanceSection(item)
+        item.warning?.let {
             VSpacer(height = 8.dp)
             TextImportantWarning(
                 icon = R.drawable.ic_attention_20,
@@ -1005,7 +1024,7 @@ private fun TokenBalanceHeader(
                 text = it.text.getString()
             )
         }
-        uiState.networkFeeWarning?.let { warningData ->
+        params.uiState.networkFeeWarning?.let { warningData ->
             VSpacer(height = 8.dp)
             val bodyText = buildAnnotatedString {
                 val balanceStart = warningData.body.indexOf(warningData.formattedBalance)
@@ -1023,12 +1042,26 @@ private fun TokenBalanceHeader(
                 icon = R.drawable.ic_attention_20,
                 title = warningData.title,
                 text = bodyText,
-                onClose = onDismissNetworkFeeWarning
+                onClose = params.onDismissNetworkFeeWarning
             )
         }
-        VSpacer(height = 16.dp)
     }
-}
+
+private data class TokenBalanceHeaderParams(
+    val balanceViewItem: BalanceViewItem,
+    val navController: NavController,
+    val uiState: TokenBalanceModule.TokenBalanceUiState,
+    val secondaryValue: DeemedValue<String>,
+    val onStackingClicked: () -> Unit,
+    val onClickSubtitle: () -> Unit,
+    val onToggleBalanceVisibility: () -> Unit,
+    val onSendClick: () -> Unit,
+    val onReceiveClick: () -> Unit,
+    val onShieldClick: () -> Unit,
+    val onSyncErrorClick: (BalanceViewItem) -> Unit,
+    val onDismissNetworkFeeWarning: () -> Unit,
+    val isShowShieldFunds: Boolean,
+)
 
 @Composable
 private fun ZcashMigrationRequiredSection(
@@ -1200,43 +1233,6 @@ private fun TokenNotSyncedSectionPreview() {
 internal fun shouldAutoShowSyncError(failedIconVisible: Boolean, appLocked: Boolean): Boolean =
     failedIconVisible && !appLocked
 
-private fun onSyncErrorClicked(
-    viewItem: BalanceViewItem,
-    viewModel: TokenBalanceViewModel,
-    navController: NavController
-) {
-    when (val syncErrorDetails = viewModel.getSyncErrorDetails(viewItem)) {
-        is BalanceViewModel.SyncError.Dialog -> {
-            val wallet = syncErrorDetails.wallet
-            val errorMessage = syncErrorDetails.errorMessage
-
-            navController.showSyncErrorDialog(wallet, errorMessage)
-        }
-
-        is BalanceViewModel.SyncError.NetworkNotAvailable -> Unit // We already show this at bottom panel
-    }
-}
-
-private fun onReceiveClicked(
-    viewModel: TokenBalanceViewModel,
-    navController: NavController
-) {
-    try {
-        val wallet = viewModel.getWalletForReceive()
-        navController.slideFromRight(R.id.receiveFragment, ReceiveFragment.Input(wallet))
-    } catch (e: BackupRequiredError) {
-        val text = Translator.getString(
-            R.string.ManageAccount_BackupRequired_Description,
-            e.account.name,
-            e.coinTitle
-        )
-        navController.slideFromBottom(
-            R.id.backupRequiredDialog,
-            BackupRequiredDialog.Input(e.account, text)
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MoneroSendPreparationBottomSheet(
@@ -1260,12 +1256,14 @@ internal fun MoneroSendPreparationBottomSheet(
             onCloseClick = onDismiss,
         ) {
             MoneroSendPreparationContent(
-                syncInProgress = syncInProgress,
-                error = error,
-                fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
-                onSync = onSync,
-                onFullWalletRecovery = onFullWalletRecovery,
-                onDismiss = onDismiss,
+                MoneroPreparationParams(
+                    syncInProgress = syncInProgress,
+                    error = error,
+                    fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
+                    onSync = onSync,
+                    onFullWalletRecovery = onFullWalletRecovery,
+                    onDismiss = onDismiss,
+                ),
             )
         }
     }
@@ -1273,50 +1271,35 @@ internal fun MoneroSendPreparationBottomSheet(
 
 @Composable
 private fun MoneroSendPreparationContent(
-    syncInProgress: Boolean,
-    @StringRes error: Int?,
-    fullWalletRecoveryAvailable: Boolean,
-    onSync: () -> Unit,
-    onFullWalletRecovery: () -> Unit,
-    onDismiss: () -> Unit,
+    params: MoneroPreparationParams,
 ) {
     Column {
         body_leah(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             text = stringResource(R.string.monero_prepare_trezor_description),
         )
-        error?.let {
+        params.error?.let {
             TextImportantWarning(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 text = stringResource(it),
             )
         }
-        MoneroSendPreparationActions(
-            syncInProgress = syncInProgress,
-            fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
-            onSync = onSync,
-            onFullWalletRecovery = onFullWalletRecovery,
-            onDismiss = onDismiss,
-        )
+        MoneroSendPreparationActions(params)
     }
 }
 
 @Composable
 private fun MoneroSendPreparationActions(
-    syncInProgress: Boolean,
-    fullWalletRecoveryAvailable: Boolean,
-    onSync: () -> Unit,
-    onFullWalletRecovery: () -> Unit,
-    onDismiss: () -> Unit,
+    params: MoneroPreparationParams,
 ) {
-    val actionUiState = moneroPreparationActionUiState(syncInProgress)
+    val actionUiState = moneroPreparationActionUiState(params.syncInProgress)
     Column {
         ButtonPrimaryYellow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 12.dp),
             title = stringResource(actionUiState.title),
-            onClick = onSync,
+            onClick = params.onSync,
             enabled = actionUiState.enabled,
             loadingIndicator = actionUiState.loading,
         )
@@ -1325,9 +1308,9 @@ private fun MoneroSendPreparationActions(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             title = stringResource(R.string.Button_Cancel),
-            onClick = onDismiss,
+            onClick = params.onDismiss,
         )
-        if (fullWalletRecoveryAvailable) {
+        if (params.fullWalletRecoveryAvailable) {
             body_leah(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                 text = stringResource(R.string.monero_full_wallet_recovery_warning),
@@ -1337,12 +1320,21 @@ private fun MoneroSendPreparationActions(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 title = stringResource(R.string.monero_full_wallet_recovery),
-                onClick = onFullWalletRecovery,
+                onClick = params.onFullWalletRecovery,
             )
         }
         VSpacer(32.dp)
     }
 }
+
+private data class MoneroPreparationParams(
+    val syncInProgress: Boolean,
+    @StringRes val error: Int?,
+    val fullWalletRecoveryAvailable: Boolean,
+    val onSync: () -> Unit,
+    val onFullWalletRecovery: () -> Unit,
+    val onDismiss: () -> Unit,
+)
 
 internal data class MoneroPreparationActionUiState(
     @StringRes val title: Int,
@@ -1375,107 +1367,112 @@ private fun MoneroSendPreparationBottomSheetPreview() {
 
 
 @Composable
-private fun ButtonsRow(
-    viewItem: BalanceViewItem,
-    navController: NavController,
-    sendEnabled: Boolean,
-    onSendClick: () -> Unit,
-    onReceiveClick: () -> Unit,
-    onShieldClick: () -> Unit,
-    onStackingClicked: () -> Unit,
-    isShowShieldFunds: Boolean
-) {
+private fun ButtonsRow(params: TokenBalanceButtonsParams) {
+    TokenBalanceMainButtons(params)
+    if (params.isShowShieldFunds) ShieldFundsButton(params.onShieldClick)
+}
+
+private data class TokenBalanceButtonsParams(
+    val viewItem: BalanceViewItem,
+    val navController: NavController,
+    val sendEnabled: Boolean,
+    val onSendClick: () -> Unit,
+    val onReceiveClick: () -> Unit,
+    val onShieldClick: () -> Unit,
+    val onStackingClicked: () -> Unit,
+    val isShowShieldFunds: Boolean,
+)
+
+@Composable
+private fun TokenBalanceMainButtons(params: TokenBalanceButtonsParams) {
     Row(
         modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
     ) {
-        if (viewItem.isWatchAccount) {
-            ButtonPrimaryDefault(
-                modifier = Modifier.weight(1f),
-                title = stringResource(R.string.Balance_Address),
-                onClick = onReceiveClick,
-            )
-            if (viewItem.wallet.isStakingWallet()) {
-                HSpacer(8.dp)
-                ButtonPrimaryCircle(
-                    icon = R.drawable.ic_coins_stacking,
-                    contentDescription = stringResource(R.string.stacking),
-                    onClick = {
-                        onStackingClicked()
-                    },
-                    iconTint = Color.Black,
-                    background = Color.White,
-                )
-            }
-        } else {
-            if (!viewItem.isSendDisabled) {
-                ButtonPrimaryYellow(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.Balance_Send),
-                    onClick = onSendClick,
-                    enabled = sendEnabled,
-                )
-                HSpacer(8.dp)
-            }
-            if (!viewItem.swapVisible) {
-                ButtonPrimaryDefault(
-                    modifier = Modifier.weight(1f),
-                    title = stringResource(R.string.Balance_Receive),
-                    onClick = onReceiveClick,
-                )
-            } else {
-                ButtonPrimaryCircle(
-                    icon = R.drawable.ic_arrow_down_left_24,
-                    contentDescription = stringResource(R.string.Balance_Receive),
-                    onClick = onReceiveClick,
-                    iconTint = Color.Black,
-                    background = Color.White,
-                )
-            }
-            if (viewItem.swapVisible) {
-                HSpacer(8.dp)
-                ButtonPrimaryCircle(
-                    icon = R.drawable.ic_swap_24,
-                    contentDescription = stringResource(R.string.Swap),
-                    onClick = {
-                        navController.slideFromRight(
-                            R.id.multiswap,
-                            SwapParams.TOKEN_IN to viewItem.wallet.token
-                        )
-                    },
-                    enabled = viewItem.swapEnabled,
-                    iconTint = Color.Black,
-                    background = Color.White,
-                )
-            }
-            if (viewItem.wallet.isStakingWallet()) {
-                HSpacer(8.dp)
-                ButtonPrimaryCircle(
-                    icon = R.drawable.ic_coins_stacking,
-                    contentDescription = stringResource(R.string.stacking),
-                    onClick = {
-                        onStackingClicked()
-                    },
-                    iconTint = Color.Black,
-                    background = Color.White,
-                )
-            }
-        }
+        if (params.viewItem.isWatchAccount) WatchAccountButtons(params) else RegularAccountButtons(params)
     }
-    if (isShowShieldFunds) {
-        Column(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            ButtonPrimaryYellow(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.shield_funds),
-                onClick = onShieldClick
+}
+
+@Composable
+private fun RowScope.WatchAccountButtons(params: TokenBalanceButtonsParams) {
+    ButtonPrimaryDefault(Modifier.weight(1f), stringResource(R.string.Balance_Address), params.onReceiveClick)
+    StakingButton(params)
+}
+
+@Composable
+private fun RowScope.RegularAccountButtons(params: TokenBalanceButtonsParams) {
+    val item = params.viewItem
+    if (!item.isSendDisabled) {
+        ButtonPrimaryYellow(
+            modifier = Modifier.weight(1f),
+            title = stringResource(R.string.Balance_Send),
+            onClick = params.onSendClick,
+            enabled = params.sendEnabled,
+        )
+        HSpacer(8.dp)
+    }
+    ReceiveButton(params)
+    if (item.swapVisible) SwapButton(params)
+    StakingButton(params)
+}
+
+@Composable
+private fun RowScope.ReceiveButton(params: TokenBalanceButtonsParams) {
+    if (params.viewItem.swapVisible) {
+        ButtonPrimaryCircle(
+            icon = R.drawable.ic_arrow_down_left_24,
+            contentDescription = stringResource(R.string.Balance_Receive),
+            onClick = params.onReceiveClick,
+            iconTint = Color.Black,
+            background = Color.White,
+        )
+    } else {
+        ButtonPrimaryDefault(Modifier.weight(1f), stringResource(R.string.Balance_Receive), params.onReceiveClick)
+    }
+}
+
+@Composable
+private fun SwapButton(params: TokenBalanceButtonsParams) {
+    HSpacer(8.dp)
+    ButtonPrimaryCircle(
+        icon = R.drawable.ic_swap_24,
+        contentDescription = stringResource(R.string.Swap),
+        onClick = {
+            params.navController.slideFromRight(
+                R.id.multiswap,
+                SwapParams.TOKEN_IN to params.viewItem.wallet.token,
             )
-            body_grey(
-                text = stringResource(R.string.typical_fee),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
+        },
+        enabled = params.viewItem.swapEnabled, iconTint = Color.Black, background = Color.White,
+    )
+}
+
+@Composable
+private fun StakingButton(params: TokenBalanceButtonsParams) {
+    if (!params.viewItem.wallet.isStakingWallet()) return
+    HSpacer(8.dp)
+    ButtonPrimaryCircle(
+        icon = R.drawable.ic_coins_stacking,
+        contentDescription = stringResource(R.string.stacking),
+        onClick = params.onStackingClicked,
+        iconTint = Color.Black, background = Color.White,
+    )
+}
+
+@Composable
+private fun ShieldFundsButton(onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        ButtonPrimaryYellow(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.shield_funds),
+            onClick = onClick,
+        )
+        body_grey(
+            text = stringResource(R.string.typical_fee),
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 }
 
@@ -1533,7 +1530,8 @@ private fun PreviewTokenBalanceScreenContent(
     uiState: TokenBalanceModule.TokenBalanceUiState
 ) {
     ComposeAppTheme(darkTheme = true) {
-        TokenBalanceScreenContent(
+        tokenBalanceScreenContent(
+            TokenBalanceScreenContentParams(
             uiState = uiState,
             secondaryValue = DeemedValue("$1,234.56"),
             sendResult = null,
@@ -1561,6 +1559,7 @@ private fun PreviewTokenBalanceScreenContent(
             onClickSubtitle = {},
             onRefresh = {},
             onSettingsClick = {},
+            )
         )
     }
 }

@@ -1,13 +1,12 @@
 package cash.p.terminal.network.data
 
-import android.content.Context
-import android.util.Base64
 import kotlin.experimental.xor
+import kotlin.io.encoding.Base64
 
-internal class Decoder(private val context: Context) {
+internal class Decoder(private val environment: NetworkEnvironment) {
     @Suppress("UNUSED_VARIABLE", "NAME_SHADOWING", "LocalVariableName", "UNUSED_PARAMETER")
     fun decode(releaseAndDebugKeys: List<String>): String {
-        return if (context.isAppDebuggable() || releaseAndDebugKeys.size < 2)  {
+        return if (environment.isDebug || releaseAndDebugKeys.size < 2) {
             decode(releaseAndDebugKeys.firstOrNull().orEmpty())
         } else {
             decode(releaseAndDebugKeys[1])
@@ -21,7 +20,7 @@ internal class Decoder(private val context: Context) {
         val timestampGenerator = { _: Int, _: String -> System.nanoTime() }
 
         fun decodeBase64(input: String): ByteArray = try {
-            Base64.decode(input, Base64.DEFAULT)
+            Base64.decode(input)
         } catch (exception: Throwable) {
             byteArrayOf()
         }
@@ -38,7 +37,7 @@ internal class Decoder(private val context: Context) {
 
         if (rawBytes.isEmpty()) return ""
 
-        val applicationPackage = context.packageName.take(15)
+        val applicationPackage = environment.applicationId.take(15)
 
         val transformedPackage = reverseTransform(applicationPackage)
 

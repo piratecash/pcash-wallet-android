@@ -178,14 +178,13 @@ class AccountManager(
 
     override suspend fun delete(id: String) = withContext(Dispatchers.IO) {
         val accountToDelete = storage.loadAccount(id)
-        accountToDelete?.let { account ->
+        val walletFiles = accountToDelete?.let { account ->
             getMoneroWalletFilesNameUseCase(account)
-        }?.also { walletFiles ->
-            removeMoneroWalletFilesUseCase(walletFiles)
         }
 
-        accountsCache.remove(id)
         storage.delete(id)
+        walletFiles?.let { removeMoneroWalletFilesUseCase(it) }
+        accountsCache.remove(id)
         _newAccountBackupRequiredFlow.update { account ->
             account?.takeUnless { it.id == id }
         }

@@ -12,23 +12,33 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
+import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.pin.ConfirmPinFragment
+import cash.p.terminal.modules.balance.BackupRequiredError
+import cash.p.terminal.modules.balance.BalanceViewModel
+import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
+import cash.p.terminal.modules.receive.ReceiveFragment
+import cash.p.terminal.modules.syncerror.showSyncErrorDialog
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.navigation.popBackStackSafely
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.wallet.isPirateCash
+import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewScreen
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewModel
 import cash.p.terminal.modules.balance.token.creationblock.CreationBlockScreen
@@ -140,23 +150,95 @@ private fun TokenBalanceNavHost(
     ) {
         composable<TokenBalanceRoute.Balance> {
             viewModel.refreshTransactionDisplaySettings()
+            val uiState = viewModel.uiState
             TokenBalanceScreen(
-                viewModel = viewModel,
-                transactionsViewModel = transactionsViewModel,
-                navController = fragmentNavController,
-                onStackingClicked = {
-                    fragmentNavController.slideFromRight(
-                        resId = R.id.stacking,
-                        input = if (wallet.isPirateCash()) StackingType.PCASH else StackingType.COSANTA
-                    )
-                },
-                onShowAllTransactionsClicked = onShowAllTransactionsClicked,
-                onClickSubtitle = onClickSubtitle,
-                onRefresh = viewModel::refresh,
-                refreshing = viewModel.refreshing,
-                onSettingsClick = {
-                    navController.navigate(TokenBalanceRoute.Settings)
-                }
+                params = TokenBalanceScreenParams(
+                    uiState = uiState,
+                    secondaryValue = viewModel.secondaryValue,
+                    events = viewModel.events,
+                    navController = fragmentNavController,
+                    refreshing = viewModel.refreshing,
+                    sendResult = viewModel.sendResult,
+                    moneroSpendReadiness = uiState.moneroSpendReadiness,
+                    moneroKeyImageSyncInProgress = uiState.moneroKeyImageSyncInProgress,
+                    moneroKeyImageSyncError = uiState.moneroKeyImageSyncError,
+                    moneroFullWalletRecoveryAvailable = uiState.moneroFullWalletRecoveryAvailable,
+                    actions = TokenBalanceScreenActions(
+                        onToggleFavorite = viewModel::toggleFavorite,
+                        onToggleBalanceVisibility = viewModel::toggleBalanceVisibility,
+                        onSearchClick = viewModel::onSearchClick,
+                        onSearchClose = viewModel::onSearchClose,
+                        onSearchQueryChange = viewModel::onSearchQueryChange,
+                        onSetTransactionType = viewModel::setTransactionType,
+                        onWillShow = viewModel::willShow,
+                        onTransactionClick = { transactionViewItem ->
+                            viewModel.getTransactionItem(transactionViewItem)?.let { transactionItem ->
+                                transactionsViewModel.tmpItemToShow = transactionItem
+                                fragmentNavController.slideFromBottom(R.id.transactionInfoFragment)
+                            }
+                        },
+                        onSensitiveTransactionClick = {
+                            HudHelper.vibrate(App.instance)
+                            transactionsViewModel.toggleTransactionInfoHidden(it.uid)
+                        },
+                        onBottomReached = viewModel::onBottomReached,
+                        onSetAmlCheckEnabled = { enabled ->
+                            if (enabled) fragmentNavController.premiumAction { viewModel.setAmlCheckEnabled(true) }
+                            else viewModel.setAmlCheckEnabled(false)
+                        },
+                        onDismissAmlPromo = { view ->
+                            viewModel.dismissAmlPromo()
+                            HudHelper.showPremiumMessage(view, R.string.aml_promo_dismiss_hud, SnackbarDuration.LONG)
+                        },
+                        onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
+                        onSendClick = { onPrepare -> viewModel.openSendOrPrepare(fragmentNavController, onPrepare) },
+                        onReceiveClick = {
+                            try {
+                                val receiveWallet = viewModel.getWalletForReceive()
+                                fragmentNavController.slideFromRight(
+                                    R.id.receiveFragment,
+                                    ReceiveFragment.Input(receiveWallet),
+                                )
+                            } catch (e: BackupRequiredError) {
+                                val text = Translator.getString(
+                                    R.string.ManageAccount_BackupRequired_Description,
+                                    e.account.name,
+                                    e.coinTitle,
+                                )
+                                fragmentNavController.slideFromBottom(
+                                    R.id.backupRequiredDialog,
+                                    BackupRequiredDialog.Input(e.account, text),
+                                )
+                            }
+                        },
+                        onShieldClick = viewModel::proposeShielding,
+                        onSyncErrorClick = { viewItem ->
+                            when (val syncErrorDetails = viewModel.getSyncErrorDetails(viewItem)) {
+                                is BalanceViewModel.SyncError.Dialog -> {
+                                    fragmentNavController.showSyncErrorDialog(
+                                        syncErrorDetails.wallet,
+                                        syncErrorDetails.errorMessage,
+                                    )
+                                }
+
+                                is BalanceViewModel.SyncError.NetworkNotAvailable -> Unit
+                            }
+                        },
+                        onSyncMoneroKeyImages = viewModel::syncMoneroKeyImages,
+                        onFullMoneroWalletRecovery = viewModel::fullMoneroWalletRecovery,
+                        onCancelMoneroKeyImageSync = viewModel::cancelMoneroKeyImageSync,
+                        onStackingClicked = {
+                            fragmentNavController.slideFromRight(
+                                resId = R.id.stacking,
+                                input = if (wallet.isPirateCash()) StackingType.PCASH else StackingType.COSANTA
+                            )
+                        },
+                        onShowAllTransactionsClicked = onShowAllTransactionsClicked,
+                        onClickSubtitle = onClickSubtitle,
+                        onRefresh = viewModel::refresh,
+                        onSettingsClick = { navController.navigate(TokenBalanceRoute.Settings) },
+                    ),
+                ),
             )
         }
         composablePage<TokenBalanceRoute.Settings> {
@@ -220,5 +302,18 @@ private fun TokenBalanceNavHost(
                 onClose = navController::navigateUpSafely,
             )
         }
+    }
+}
+
+private fun TokenBalanceViewModel.openSendOrPrepare(
+    navController: NavController,
+    onPrepare: () -> Unit,
+) {
+    val wallet = uiState.balanceViewItem?.wallet ?: return
+    if (uiState.moneroHardwareWallet && uiState.moneroSpendReadiness != MoneroSpendReadiness.Ready) {
+        onPrepare()
+        prepareMoneroSend()
+    } else {
+        navController.openSend(wallet)
     }
 }

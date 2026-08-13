@@ -5,6 +5,7 @@ import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.MoneroDeviceWalletProvisioner
 import cash.p.terminal.core.managers.MoneroTrezorReadiness
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.trezor.domain.model.TrezorModel
@@ -119,7 +120,7 @@ class CreateTrezorWalletUseCaseTest {
             every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
             every {
                 restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
-            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+            } returns RestoreSettings().apply {
                 birthdayHeight = SAVED_RESTORE_HEIGHT
             }
             coEvery {
@@ -147,7 +148,7 @@ class CreateTrezorWalletUseCaseTest {
             every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
             every {
                 restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
-            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+            } returns RestoreSettings().apply {
                 birthdayHeight = -1
             }
             coEvery {
@@ -225,15 +226,11 @@ class CreateTrezorWalletUseCaseTest {
         }
         return CreateTrezorWalletUseCase(
             trezorClient = TestTrezorClient(session),
-            accountManager = accountManager,
-            accountsStorage = accountsStorage,
-            hardwarePublicKeyStorage = hardwarePublicKeyStorage,
             dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
-            accountFactory = accountFactory,
-            walletActivator = walletActivator,
-            moneroReadiness = readiness,
-            moneroProvisioner = provisioner,
-            restoreSettingsManager = restoreSettingsManager,
+            accountDependencies = TrezorAccountDependencies(
+                accountManager, accountsStorage, hardwarePublicKeyStorage, accountFactory, walletActivator,
+            ),
+            moneroDependencies = TrezorMoneroDependencies(readiness, provisioner, restoreSettingsManager),
         )
     }
 

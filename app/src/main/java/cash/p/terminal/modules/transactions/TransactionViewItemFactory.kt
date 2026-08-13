@@ -1529,63 +1529,9 @@ class TransactionViewItemFactory(
         direct: Boolean,
         onChainProgress: Float?,
     ): TransactionViewItem {
-        val iconIn = getIconForToken(
-            coinUid = transaction.coinUidIn
-        )
-        val iconOut = getIconForToken(
-            coinUid = transaction.coinUidOut
-        )
-
-        val transactionIcon = TransactionViewItem.Icon.Double(
-            back = iconIn,
-            front = iconOut
-        )
-
-        val valueInFormatted = getFormattedAmount(
-            coinUid = transaction.coinUidIn,
-            amount = transaction.amountIn,
-            negative = true
-        )
-
-        val valueOutFormatted = getFormattedAmount(
-            coinUid = transaction.coinUidOut,
-            amount = transaction.amountOut,
-            negative = false
-        )
-
-        val primaryValue = if (direct) {
-            ColoredValue(valueInFormatted, ColorName.Lucian)
-        } else {
-            ColoredValue(valueOutFormatted, ColorName.Remus)  // Received = green
-        }
-        val secondaryValue = if (direct) {
-            ColoredValue(valueOutFormatted, ColorName.Remus)
-        } else {
-            ColoredValue(valueInFormatted, ColorName.Lucian)  // Sent = red
-        }
+        val values = swapValues(transaction, direct)
         val providerStatus = transaction.status.toStatus()
-        val payoutConfirmationProgress = onChainProgress.takeIf {
-            !direct && providerStatus == TransactionStatusEnum.FINISHED
-        }
-        val displayStatus = if (payoutConfirmationProgress != null) {
-            TransactionStatusEnum.CONFIRMING
-        } else {
-            providerStatus
-        }
-        val titleStringRes = when (displayStatus) {
-            TransactionStatusEnum.NEW -> R.string.transaction_swap_status_new
-            TransactionStatusEnum.WAITING -> R.string.transaction_swap_status_waiting
-            TransactionStatusEnum.CONFIRMING -> R.string.transaction_swap_status_confirming
-            TransactionStatusEnum.EXCHANGING -> R.string.transaction_swap_status_exchanging
-            TransactionStatusEnum.SENDING -> R.string.transaction_swap_status_sending
-            TransactionStatusEnum.FINISHED -> R.string.Transactions_Swap
-            TransactionStatusEnum.FAILED -> R.string.Transactions_Failed
-            TransactionStatusEnum.REFUNDED -> R.string.transaction_swap_status_refunded
-            TransactionStatusEnum.VERIFYING -> R.string.transaction_swap_status_verifying
-            TransactionStatusEnum.CREATED_OR_WAIT_USER -> R.string.transaction_swap_status_created_or_wait_user
-            TransactionStatusEnum.UNKNOWN -> R.string.transaction_swap_status_unknown
-        }
-        val transactionStatusUrl = transaction.toStatusUrl()
+        val payoutConfirmationProgress = payoutConfirmationProgress(onChainProgress, direct, providerStatus)
 
         return TransactionViewItem(
             uid = recordUid,
@@ -1594,20 +1540,64 @@ class TransactionViewItemFactory(
             } else {
                 (providerStatus.ordinal + 1) * (1f / (TransactionStatusEnum.FINISHED.ordinal + 1))
             },
-            title = Translator.getString(titleStringRes),
+            title = Translator.getString(swapTitleRes(payoutConfirmationProgress, providerStatus)),
             subtitle = UnstoppableProvider.displayTitle(transaction.unstoppableSubProviderId)
                 ?: transaction.provider.title,
-            primaryValue = primaryValue,
-            secondaryValue = secondaryValue,
+            primaryValue = values.primary,
+            secondaryValue = values.secondary,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
             formattedTime = formatTime(timestamp),
             spam = false,
-            icon = transactionIcon,
+            icon = values.icon,
             changeNowTransactionId = transaction.transactionId,
-            transactionStatusUrl = transactionStatusUrl
+            transactionStatusUrl = transaction.toStatusUrl()
         )
     }
+
+    private fun swapValues(transaction: SwapProviderTransaction, direct: Boolean): SwapValues {
+        val sent = getFormattedAmount(transaction.coinUidIn, transaction.amountIn, negative = true)
+        val received = getFormattedAmount(transaction.coinUidOut, transaction.amountOut, negative = false)
+        val outgoing = ColoredValue(sent, ColorName.Lucian)
+        val incoming = ColoredValue(received, ColorName.Remus)
+        return SwapValues(
+            primary = if (direct) outgoing else incoming,
+            secondary = if (direct) incoming else outgoing,
+            icon = TransactionViewItem.Icon.Double(
+                back = getIconForToken(transaction.coinUidIn),
+                front = getIconForToken(transaction.coinUidOut),
+            ),
+        )
+    }
+
+    private fun payoutConfirmationProgress(
+        onChainProgress: Float?,
+        direct: Boolean,
+        status: TransactionStatusEnum,
+    ): Float? = onChainProgress.takeIf { !direct && status == TransactionStatusEnum.FINISHED }
+
+    private fun swapTitleRes(
+        payoutConfirmationProgress: Float?,
+        providerStatus: TransactionStatusEnum,
+    ): Int = when (if (payoutConfirmationProgress != null) TransactionStatusEnum.CONFIRMING else providerStatus) {
+        TransactionStatusEnum.NEW -> R.string.transaction_swap_status_new
+        TransactionStatusEnum.WAITING -> R.string.transaction_swap_status_waiting
+        TransactionStatusEnum.CONFIRMING -> R.string.transaction_swap_status_confirming
+        TransactionStatusEnum.EXCHANGING -> R.string.transaction_swap_status_exchanging
+        TransactionStatusEnum.SENDING -> R.string.transaction_swap_status_sending
+        TransactionStatusEnum.FINISHED -> R.string.Transactions_Swap
+        TransactionStatusEnum.FAILED -> R.string.Transactions_Failed
+        TransactionStatusEnum.REFUNDED -> R.string.transaction_swap_status_refunded
+        TransactionStatusEnum.VERIFYING -> R.string.transaction_swap_status_verifying
+        TransactionStatusEnum.CREATED_OR_WAIT_USER -> R.string.transaction_swap_status_created_or_wait_user
+        TransactionStatusEnum.UNKNOWN -> R.string.transaction_swap_status_unknown
+    }
+
+    private data class SwapValues(
+        val primary: ColoredValue,
+        val secondary: ColoredValue,
+        val icon: TransactionViewItem.Icon.Double,
+    )
 
     private fun getFormattedAmount(
         coinUid: String,

@@ -1530,6 +1530,7 @@ Proceed only if you\'re sure.</string>
     <string name="error_hardware_wallet_some_tokens_not_found">Some tokens could not be added</string>
     <string name="send_error_address_unavailable">Address unavailable</string>
     <string name="send_error_amount_unavailable">Amount unavailable</string>
+    <string name="send_error_zcash_params_not_downloaded">Zcash hasn\'t downloaded the files it needs to send. Connect to the internet and try again.</string>
     <string name="send_error_fee_rate_unavailable">Fee rate unavailable</string>
     <string name="send_error_balance_unavailable">Balance unavailable</string>
     <string name="litecoin_mweb_invalid_amount">Invalid Litecoin MWEB amount</string>

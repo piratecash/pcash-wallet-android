@@ -146,6 +146,7 @@
     <string name="Restore_PrivateKey">Chave Privada</string>
     <string name="Restore_PrivateKeyHint">Insira a Chave Privada EVM, a Chave Raiz BIP32 ou a Chave Privada Estendida de Conta</string>
     <string name="Restore_PhraseHint">Insira 12, 15, 18, 21 ou 24 palavras</string>
+    <string name="monero_restore_seed">Frase de recuperação do Monero</string>
     <string name="Restore_NonStandardRestore">Restauração Não-Padrão</string>
     <string name="Restore_NonStandard_Description">Esta página fornece um mecanismo especial de restauração de carteira para usuários do P.CASH que possuem uma carteira fora do padrão. Essas carteiras podem ter sido criadas na versão P.CASH 0.27 - 0.28 usando uma frase de recuperação diferente do inglês e/ou um caractere especial na senha da carteira (ou seja, símbolo diacrítico).\n\nSe você for um usuário afetado, o saldo da sua carteira será ser mostrado 0 após restaurar tal carteira na versão 0.29 ou superior. Esta página permitirá que você restaure o acesso à sua carteira não padrão. Uma vez restaurado, é recomendável criar uma nova carteira (que será compatível com o padrão) e mover fundos para lá.</string>
     <string name="Restore_Bip_Recommended">(recommended)</string>
@@ -2131,6 +2132,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">Não foi possível adicionar alguns tokens</string>
     <string name="send_error_address_unavailable">Endereço indisponível</string>
     <string name="send_error_amount_unavailable">Montante indisponível</string>
+    <string name="send_error_zcash_params_not_downloaded">O Zcash ainda não descarregou os ficheiros necessários para enviar. Ligue-se à Internet e tente novamente.</string>
     <string name="send_error_fee_rate_unavailable">Taxa de comissão indisponível</string>
     <string name="send_error_balance_unavailable">Saldo indisponível</string>
     <string name="litecoin_mweb_invalid_amount">Montante Litecoin MWEB inválido</string>
