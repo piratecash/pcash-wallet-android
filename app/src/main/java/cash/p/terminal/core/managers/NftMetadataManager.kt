@@ -24,7 +24,8 @@ class NftMetadataManager(
         )
     }
 
-    private val _addressMetadataFlow = MutableSharedFlow<Pair<NftKey, NftAddressMetadata>?>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _addressMetadataFlow =
+        MutableSharedFlow<Pair<NftKey, NftAddressMetadata>?>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val addressMetadataFlow: Flow<Pair<NftKey, NftAddressMetadata>?> = _addressMetadataFlow
 
     suspend fun addressMetadata(blockchainType: BlockchainType, address: String): NftAddressMetadata {
@@ -48,7 +49,7 @@ class NftMetadataManager(
         storage.save(assetsBriefMetadata)
     }
 
-    fun assetShortMetadata(nftUid: NftUid) : NftAssetShortMetadata? {
+    fun assetShortMetadata(nftUid: NftUid): NftAssetShortMetadata? {
         return storage.assetShortMetadata(nftUid)
     }
 
@@ -64,7 +65,8 @@ class NftMetadataManager(
             .flatten()
 
     sealed class ProviderError(message: String?) : Throwable(message) {
-        class NoProviderForBlockchainType(blockchainType: BlockchainType) : ProviderError("blockchainType: ${blockchainType.uid}")
+        class NoProviderForBlockchainType(blockchainType: BlockchainType) :
+            ProviderError("blockchainType: ${blockchainType.uid}")
     }
 
 }

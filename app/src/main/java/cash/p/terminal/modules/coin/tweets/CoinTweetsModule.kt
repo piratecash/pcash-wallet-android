@@ -13,7 +13,9 @@ object CoinTweetsModule {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val service = CoinTweetsService(fullCoin.coin.uid, TweetsProvider(AppConfigProvider.twitterBearerToken), App.marketKit)
+            val service = CoinTweetsService(
+                fullCoin.coin.uid, TweetsProvider(AppConfigProvider.twitterBearerToken), App.marketKit
+            )
 
             return CoinTweetsViewModel(service, Extractor()) as T
         }

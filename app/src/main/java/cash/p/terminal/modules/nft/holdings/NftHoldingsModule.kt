@@ -16,9 +16,12 @@ object NftHoldingsModule {
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val totalService = TotalService(App.currencyManager, App.marketKit, App.baseTokenManager, App.balanceHiddenManager)
+            val totalService =
+                TotalService(App.currencyManager, App.marketKit, App.baseTokenManager, App.balanceHiddenManager)
             val xRateRepository = DefaultBalanceXRateRepository("nft-holding", App.currencyManager, App.marketKit)
-            val service = NftHoldingsService(account, App.nftAdapterManager, App.nftMetadataManager, App.nftMetadataSyncer, xRateRepository)
+            val service = NftHoldingsService(
+                account, App.nftAdapterManager, App.nftMetadataManager, App.nftMetadataSyncer, xRateRepository
+            )
             return NftHoldingsViewModel(service, TotalBalance(totalService, App.balanceHiddenManager)) as T
         }
     }

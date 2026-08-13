@@ -231,7 +231,9 @@ class SyncPendingMultiSwapUseCaseTest {
             )
         } returns listOf(failedRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -277,7 +279,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(incomingRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -560,7 +564,9 @@ class SyncPendingMultiSwapUseCaseTest {
             )
         } returns listOf(failedRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg2Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg2Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -619,7 +625,9 @@ class SyncPendingMultiSwapUseCaseTest {
             )
         } returns listOf(failedRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -682,7 +690,9 @@ class SyncPendingMultiSwapUseCaseTest {
             )
         } returns listOf(failedRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg2Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg2Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -738,7 +748,9 @@ class SyncPendingMultiSwapUseCaseTest {
         every { walletManager.activeWallets } returns listOf(outputWallet)
         every { transactionAdapterManager.getAdapter(outputSource) } returns txAdapter
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg2Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg2Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -786,7 +798,9 @@ class SyncPendingMultiSwapUseCaseTest {
                 txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
             } returns listOf(singleRecord)
             coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-            coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg2Status = PendingMultiSwap.STATUS_COMPLETED)
+            coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+                leg2Status = PendingMultiSwap.STATUS_COMPLETED
+            )
 
             useCase()
 
@@ -881,7 +895,9 @@ class SyncPendingMultiSwapUseCaseTest {
         } returns providerTx
 
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -902,7 +918,9 @@ class SyncPendingMultiSwapUseCaseTest {
 
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-123") } returns providerTx
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -923,7 +941,9 @@ class SyncPendingMultiSwapUseCaseTest {
 
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
         every { swapProviderTransactionsStorage.getByOutgoingRecordUid("0xabc") } returns providerTx
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -944,7 +964,9 @@ class SyncPendingMultiSwapUseCaseTest {
 
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
         every { swapProviderTransactionsStorage.getByOutgoingRecordUid("0xabc") } returns providerTx
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_FAILED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_FAILED
+        )
 
         useCase()
 
@@ -1143,7 +1165,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(record)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -1277,7 +1301,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(completedRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -1338,7 +1364,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(tonRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -1398,7 +1426,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(tonRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 
@@ -1449,7 +1479,9 @@ class SyncPendingMultiSwapUseCaseTest {
             txAdapter.getTransactions(any(), any(), any(), eq(FilterTransactionType.All), any())
         } returns listOf(evmRecord)
         coEvery { pendingMultiSwapStorage.getAllOnceByAccountId("test-account") } returns listOf(swap)
-        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(leg1Status = PendingMultiSwap.STATUS_COMPLETED)
+        coEvery { pendingMultiSwapStorage.getById("swap-1") } returns swap.copy(
+            leg1Status = PendingMultiSwap.STATUS_COMPLETED
+        )
 
         useCase()
 

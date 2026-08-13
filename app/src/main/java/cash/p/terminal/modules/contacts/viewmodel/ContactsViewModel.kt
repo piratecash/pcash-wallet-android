@@ -73,7 +73,8 @@ class ContactsViewModel(
     }
 
     fun shouldShowReplaceWarning(contact: Contact): Boolean {
-        return mode is Mode.AddAddressToExistingContact && contact.addresses.any { it.blockchain.type == mode.blockchainType }
+        val addAddressMode = mode as? Mode.AddAddressToExistingContact ?: return false
+        return contact.addresses.any { it.blockchain.type == addAddressMode.blockchainType }
     }
 
     fun shouldShowRestoreWarning(): Boolean {

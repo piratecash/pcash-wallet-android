@@ -141,7 +141,9 @@ internal fun ManageWalletsScreen(
                             title = TranslatableString.ResString(R.string.ManageCoins_AddToken),
                             icon = R.drawable.ic_add_yellow,
                             onClick = {
-                                navController.slideFromRightForResult<AddTokenFragment.Result>(R.id.addTokenFragment) { result ->
+                                navController.slideFromRightForResult<AddTokenFragment.Result>(
+                                    R.id.addTokenFragment
+                                ) { result ->
                                     val tokenToEnable = result.tokenToEnable
                                     if (tokenToEnable != null) {
                                         // Hardware wallet: enqueue the token for the scan pipeline

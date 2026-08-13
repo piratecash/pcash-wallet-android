@@ -14,14 +14,16 @@ open class EvmCommonGasDataService(
     protected val predefinedGasLimit: Long? = null
 ) {
 
-    open fun estimatedGasDataAsync(gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger? = null, toAddress: Address? = null): Single<GasData> {
+    open fun estimatedGasDataAsync(
+        gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger? = null, toAddress: Address? = null
+    ): Single<GasData> {
         if (predefinedGasLimit != null) {
             return Single.just(GasData(gasLimit = predefinedGasLimit, gasPrice = gasPrice))
         }
 
         val surchargeRequired = transactionData.input.isNotEmpty()
 
-        val stubTransactionData = if (stubAmount != null)  {
+        val stubTransactionData = if (stubAmount != null) {
             TransactionData(transactionData.to, BigInteger.ONE, transactionData.input)
         } else {
             transactionData
@@ -68,7 +70,9 @@ open class EvmCommonGasDataService(
     }
 
     companion object {
-        fun instance(evmKit: EthereumKit, blockchainType: BlockchainType, gasLimit: Long? = null): EvmCommonGasDataService {
+        fun instance(
+            evmKit: EthereumKit, blockchainType: BlockchainType, gasLimit: Long? = null
+        ): EvmCommonGasDataService {
             val l1FeeContractAddress = blockchainType.l1GasFeeContractAddress
 
             return if (l1FeeContractAddress == null) {

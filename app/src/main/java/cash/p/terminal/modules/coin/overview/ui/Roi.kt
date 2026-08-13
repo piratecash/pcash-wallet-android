@@ -51,6 +51,7 @@ fun Roi(roi: List<RoiViewItem>) {
                         )
                     }
                 }
+
                 is RoiViewItem.RowViewItem -> {
                     caption_grey(
                         modifier = Modifier.weight(1f),
@@ -69,7 +70,11 @@ fun Roi(roi: List<RoiViewItem>) {
                         if (value != null) {
                             val sign = if (value >= BigDecimal.ZERO) "+" else "-"
                             text = App.numberFormatter.format(value.abs(), 0, 2, sign, "%")
-                            color = if (value >= BigDecimal.ZERO) ComposeAppTheme.colors.remus else ComposeAppTheme.colors.lucian
+                            color = if (value >= BigDecimal.ZERO) {
+                                ComposeAppTheme.colors.remus
+                            } else {
+                                ComposeAppTheme.colors.lucian
+                            }
 
                         } else {
                             text = "---"

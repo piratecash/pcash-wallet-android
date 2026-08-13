@@ -2061,6 +2061,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="multi_swap_no_providers">Aucun fournisseur disponible</string>
     <string name="multi_swap_finding_best_provider">Recherche du meilleur fournisseur…</string>
     <string name="multi_swap_continue">Continuer l\'échange</string>
+    <string name="multi_swap_route_explanation">Pour obtenir le meilleur taux, un itinéraire via %2$s est utilisé. L\'échange sera effectué en deux étapes successives : d\'abord %1$s → %2$s, puis %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Itinéraire d\'échange</string>
+    <string name="multi_swap_execution_title">Échange</string>
+    <string name="multi_swap_step">Étape %d</string>
+    <string name="multi_swap_understood_continue">Compris, continuer</string>
     <string name="multi_swap_unfinished">Échange non terminé</string>
     <string name="multi_swap_unfinished_plural">Échanges non terminés (%d)</string>
     <string name="duration_short_hours">%1$dh</string>

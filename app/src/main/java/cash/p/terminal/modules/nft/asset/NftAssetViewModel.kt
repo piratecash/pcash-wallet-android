@@ -117,7 +117,9 @@ class NftAssetViewModel(private val service: NftAssetService) : ViewModel() {
         sale?.let {
             sale.bestListing?.let { listing ->
                 SaleViewItem(
-                    untilDate = TranslatableString.ResString(R.string.Nfts_Asset_OnSaleUntil, DateHelper.getFullDate(listing.untilDate)),
+                    untilDate = TranslatableString.ResString(
+                        R.string.Nfts_Asset_OnSaleUntil, DateHelper.getFullDate(listing.untilDate)
+                    ),
                     type = sale.type,
                     price = PriceViewItem(coinValue(listing.price), fiatValue(listing.price))
                 )

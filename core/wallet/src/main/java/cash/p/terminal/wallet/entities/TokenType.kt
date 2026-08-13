@@ -143,7 +143,11 @@ sealed class TokenType : Parcelable {
                 "address_type" -> {
                     if (reference.isNotBlank()) {
                         try {
-                            return AddressTyped(AddressType.valueOf(reference.lowercase().replaceFirstChar(Char::uppercase)))
+                            return AddressTyped(
+                                AddressType.valueOf(
+                                    reference.lowercase().replaceFirstChar(Char::uppercase)
+                                )
+                            )
                         } catch (e: IllegalArgumentException) {
                         }
                     }
@@ -152,7 +156,11 @@ sealed class TokenType : Parcelable {
                 "address_spec_type" -> {
                     if (reference.isNotBlank()) {
                         try {
-                            return AddressSpecTyped(AddressSpecType.valueOf(reference.lowercase().replaceFirstChar(Char::uppercase)))
+                            return AddressSpecTyped(
+                                AddressSpecType.valueOf(
+                                    reference.lowercase().replaceFirstChar(Char::uppercase)
+                                )
+                            )
                         } catch (e: IllegalArgumentException) {
                         }
                     }
@@ -161,7 +169,11 @@ sealed class TokenType : Parcelable {
                 "derived" -> {
                     if (reference.isNotBlank()) {
                         try {
-                            return Derived(Derivation.valueOf(reference.lowercase().replaceFirstChar(Char::uppercase)))
+                            return Derived(
+                                Derivation.valueOf(
+                                    reference.lowercase().replaceFirstChar(Char::uppercase)
+                                )
+                            )
                         } catch (e: IllegalArgumentException) {
                         }
                     }

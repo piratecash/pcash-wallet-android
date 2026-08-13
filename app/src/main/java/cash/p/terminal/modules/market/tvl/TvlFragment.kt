@@ -92,7 +92,9 @@ class TvlFragment : BaseComposeFragment() {
         val tvlData by tvlViewModel.tvlLiveData.observeAsState()
         val tvlDiffType by tvlViewModel.tvlDiffTypeLiveData.observeAsState()
         val isRefreshing by tvlViewModel.isRefreshingLiveData.observeAsState(false)
-        val chainSelectorDialogState by tvlViewModel.chainSelectorDialogStateLiveData.observeAsState(SelectorDialogState.Closed)
+        val chainSelectorDialogState by tvlViewModel.chainSelectorDialogStateLiveData.observeAsState(
+            SelectorDialogState.Closed
+        )
 
         Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
             AppBar(
@@ -145,7 +147,8 @@ class TvlFragment : BaseComposeFragment() {
                                 item {
                                     Chart(
                                         getSelectedPointCallback = chartViewModel::getSelectedPoint,
-                                        uiState = chartViewModel.uiState) {
+                                        uiState = chartViewModel.uiState
+                                    ) {
                                         chartViewModel.onSelectChartInterval(it)
                                         tvlViewModel.onSelectChartInterval(it)
                                     }
@@ -225,7 +228,7 @@ class TvlFragment : BaseComposeFragment() {
             ButtonSecondaryWithIcon(
                 modifier = Modifier.height(28.dp),
                 onClick = onClickChainSelector,
-                title =chainSelect.selected.title.getString(),
+                title = chainSelect.selected.title.getString(),
                 iconRight = painterResource(R.drawable.ic_down_arrow_20),
             )
             HSpacer(8.dp)

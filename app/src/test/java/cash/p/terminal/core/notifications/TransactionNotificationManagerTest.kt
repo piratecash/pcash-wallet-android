@@ -28,11 +28,31 @@ class TransactionNotificationManagerTest {
 
         mockkConstructor(NotificationCompat.Builder::class)
         val fakeNotification = mockk<Notification>()
-        every { anyConstructed<NotificationCompat.Builder>().setSmallIcon(any<Int>()) } answers { self as NotificationCompat.Builder }
-        every { anyConstructed<NotificationCompat.Builder>().setContentTitle(any()) } answers { self as NotificationCompat.Builder }
-        every { anyConstructed<NotificationCompat.Builder>().setContentText(any<CharSequence>()) } answers { self as NotificationCompat.Builder }
-        every { anyConstructed<NotificationCompat.Builder>().setAutoCancel(any()) } answers { self as NotificationCompat.Builder }
-        every { anyConstructed<NotificationCompat.Builder>().setContentIntent(any()) } answers { self as NotificationCompat.Builder }
+        every {
+            anyConstructed<NotificationCompat.Builder>().setSmallIcon(
+                any<Int>()
+            )
+        } answers { self as NotificationCompat.Builder }
+        every {
+            anyConstructed<NotificationCompat.Builder>().setContentTitle(
+                any()
+            )
+        } answers { self as NotificationCompat.Builder }
+        every {
+            anyConstructed<NotificationCompat.Builder>().setContentText(
+                any<CharSequence>()
+            )
+        } answers { self as NotificationCompat.Builder }
+        every {
+            anyConstructed<NotificationCompat.Builder>().setAutoCancel(
+                any()
+            )
+        } answers { self as NotificationCompat.Builder }
+        every {
+            anyConstructed<NotificationCompat.Builder>().setContentIntent(
+                any()
+            )
+        } answers { self as NotificationCompat.Builder }
         every { anyConstructed<NotificationCompat.Builder>().build() } returns fakeNotification
     }
 

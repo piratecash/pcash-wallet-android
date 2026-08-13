@@ -178,7 +178,13 @@ fun MarketSearchResults(
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .background(if (item.favourited) cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian else cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob)
+                                .background(
+                                    if (item.favourited) {
+                                        ComposeAppTheme.colors.lucian
+                                    } else {
+                                        ComposeAppTheme.colors.jacob
+                                    }
+                                )
                                 .align(Alignment.CenterEnd)
                                 .width(100.dp)
                                 .clickable {
@@ -195,9 +201,13 @@ fun MarketSearchResults(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                painter = painterResource(id = if (item.favourited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24),
+                                painter = painterResource(
+                                    id = if (item.favourited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24
+                                ),
                                 tint = ComposeAppTheme.colors.claude,
-                                contentDescription = stringResource(if (item.favourited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite),
+                                contentDescription = stringResource(
+                                    if (item.favourited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
+                                ),
                             )
                         }
                         val cardId = (section.title.getOrNull()?.let { stringResource(id = it) } ?: "") + coin.uid
@@ -288,7 +298,7 @@ private fun MarketCoin(
 @Composable
 fun MarketCoinPreview() {
     val coin = Coin("ether", "Ethereum", "ETH")
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         MarketCoin(
             coin.code,
             coin.name,

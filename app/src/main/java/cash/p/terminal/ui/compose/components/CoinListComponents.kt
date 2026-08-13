@@ -117,9 +117,13 @@ fun CoinList(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = if (item.favorited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24),
+                        painter = painterResource(
+                            id = if (item.favorited) R.drawable.ic_star_off_24 else R.drawable.ic_star_24
+                        ),
                         tint = ComposeAppTheme.colors.claude,
-                        contentDescription = stringResource(if (item.favorited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite),
+                        contentDescription = stringResource(
+                            if (item.favorited) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
+                        ),
                     )
                 }
                 DraggableCardSimple(
@@ -377,6 +381,7 @@ fun CategoryCard(
                         )
                     }
                 }
+
                 is DiscoveryItem.Category -> {
                     Crossfade(
                         targetState = type.coinCategory.imageUrl,
@@ -384,7 +389,8 @@ fun CategoryCard(
                         modifier = Modifier
                             .height(108.dp)
                             .width(76.dp)
-                            .align(Alignment.TopEnd)) { imageRes ->
+                            .align(Alignment.TopEnd)
+                    ) { imageRes ->
                         Image(
                             painter = rememberAsyncImagePainter(imageRes),
                             contentDescription = "category image",

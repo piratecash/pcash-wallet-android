@@ -28,7 +28,9 @@ class BitcoinCashAdapter(
     backgroundManager: BackgroundManager,
     wallet: Wallet,
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider), BitcoinCashKit.Listener, ISendBitcoinAdapter {
+) : BitcoinBaseAdapter(
+    kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider
+), BitcoinCashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
@@ -88,7 +90,8 @@ class BitcoinCashAdapter(
     override val blockchainType = BlockchainType.BitcoinCash
 
     override fun usedAddresses(change: Boolean): List<UsedAddress> =
-        kit.usedAddresses(change).map { UsedAddress(it.index, it.address, "https://blockchair.com/bitcoin-cash/address/${it.address}") }
+        kit.usedAddresses(change)
+            .map { UsedAddress(it.index, it.address, "https://blockchair.com/bitcoin-cash/address/${it.address}") }
 
     companion object {
         private const val KIT_CONFIRMATIONS_THRESHOLD = 1
@@ -192,7 +195,7 @@ class BitcoinCashAdapter(
         private fun getNetworkType(kitCoinType: MainNetBitcoinCash.CoinType = MainNetBitcoinCash.CoinType.Type145) =
             NetworkType.MainNet(kitCoinType)
 
-        fun firstAddress(accountType: AccountType, tokenType: TokenType) : String {
+        fun firstAddress(accountType: AccountType, tokenType: TokenType): String {
             val bitcoinCashCoinType = tokenType.bitcoinCashCoinType ?: throw IllegalArgumentException()
 
             val kitCoinType = when (bitcoinCashCoinType) {
@@ -213,6 +216,7 @@ class BitcoinCashAdapter(
 
                     return address.stringValue
                 }
+
                 is AccountType.HdExtendedKey -> {
                     val key = accountType.hdExtendedKey
                     val address = BitcoinCashKit.firstAddress(
@@ -222,6 +226,7 @@ class BitcoinCashAdapter(
 
                     return address.stringValue
                 }
+
                 is AccountType.BitcoinAddress -> {
                     return accountType.address
                 }

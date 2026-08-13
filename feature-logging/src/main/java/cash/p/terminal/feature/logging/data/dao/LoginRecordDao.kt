@@ -38,7 +38,10 @@ internal interface LoginRecordDao {
     @Query("SELECT COUNT(*) FROM LoginRecord WHERE userLevel >= :level")
     fun observeCount(level: Int): Flow<Int>
 
-    @Query("SELECT photoPath FROM LoginRecord WHERE userLevel >= :level AND timestamp < :beforeTimestamp AND photoPath IS NOT NULL")
+    @Query(
+        "SELECT photoPath FROM LoginRecord WHERE userLevel >= :level AND timestamp < :beforeTimestamp AND " +
+                "photoPath IS NOT NULL"
+    )
     suspend fun getPhotoPathsOlderThan(level: Int, beforeTimestamp: Long): List<String>
 
     @Query("DELETE FROM LoginRecord WHERE userLevel >= :level AND timestamp < :beforeTimestamp")

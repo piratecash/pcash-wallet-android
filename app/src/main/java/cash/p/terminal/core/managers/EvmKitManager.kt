@@ -99,7 +99,9 @@ class EvmKitManager(
 
     val statusInfo: Map<String, Any>?
         get() = evmKitWrapper?.let { wrapper ->
-            networkErrorTracker.mergedStatusInfo(wrapper.evmKit.statusInfo(), wrapper.blockchainType, currentAccount?.id)
+            networkErrorTracker.mergedStatusInfo(
+                wrapper.evmKit.statusInfo(), wrapper.blockchainType, currentAccount?.id
+            )
         }
 
     suspend fun getEvmKitWrapper(
@@ -239,7 +241,10 @@ class EvmKitManager(
                     }
                 } else if (state == BackgroundManagerState.EnterBackground) {
                     val wrapper = evmKitWrapper ?: return@collect
-                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(wrapper.blockchainType)) {
+                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(
+                            wrapper.blockchainType
+                        )
+                    ) {
                         wrapper.evmKit.stop()
                     } else {
                         Timber.tag("TxPoller").d("EvmKit(%s) staying alive", wrapper.blockchainType.uid)
@@ -322,6 +327,7 @@ class EvmKitWrapper(
         return when (signer) {
             is TrezorEvmSigner -> signer.signTransaction(rawTransaction)
                 .let { it.rawTransaction to it.signature }
+
             else -> rawTransaction to signer.signature(rawTransaction)
         }
     }

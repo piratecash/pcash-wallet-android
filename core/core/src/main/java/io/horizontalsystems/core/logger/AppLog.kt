@@ -29,7 +29,14 @@ object AppLog {
 
     fun warning(actionId: String, message: String, e: Throwable) {
         executor.submit {
-            logsDao.insert(LogEntry(System.currentTimeMillis(), Log.WARN, actionId, message + ": " + getStackTraceString(e)))
+            logsDao.insert(
+                LogEntry(
+                    System.currentTimeMillis(),
+                    Log.WARN,
+                    actionId,
+                    message + ": " + getStackTraceString(e)
+                )
+            )
         }
     }
 

@@ -30,7 +30,8 @@ class EvmSignerFactoryTest {
 
     // BIP32 test vector 1 master public extended key - a well-known, valid xpub.
     private val xPubKey =
-        "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8"
+        "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ES" +
+                "FjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8"
 
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage = mockk()
     private val trezorClient: ITrezorClient = mockk()

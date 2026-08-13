@@ -63,7 +63,7 @@ object AddressValidatorFactory {
 
             BlockchainType.Monero -> MoneroAddressValidator()
 
-            is BlockchainType.Unsupported -> throw IllegalStateException("Unsupported blockchain type: ${token.blockchainType}")
+            is BlockchainType.Unsupported -> error("Unsupported blockchain type: ${token.blockchainType}")
 
         }
     }

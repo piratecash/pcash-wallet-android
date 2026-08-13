@@ -2,6 +2,7 @@ package cash.p.terminal.modules.market.platform
 
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.iconUrl
 import cash.p.terminal.core.managers.MarketFavoritesManager
@@ -37,8 +38,10 @@ class MarketPlatformViewModel(
     private var isRefreshing = false
 
     val header = MarketModule.Header(
-        cash.p.terminal.strings.helpers.Translator.getString(R.string.MarketPlatformCoins_PlatformEcosystem, platform.name),
-        cash.p.terminal.strings.helpers.Translator.getString(
+        Translator.getString(
+            R.string.MarketPlatformCoins_PlatformEcosystem, platform.name
+        ),
+        Translator.getString(
             R.string.MarketPlatformCoins_PlatformEcosystemDescription,
             platform.name
         ),

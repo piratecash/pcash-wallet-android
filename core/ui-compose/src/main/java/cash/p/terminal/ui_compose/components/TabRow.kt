@@ -77,7 +77,11 @@ fun <T> Tabs(tabs: List<TabItem<T>>, modifier: Modifier = Modifier, onClick: (T)
                         ) {
                             Text(
                                 text = tab.title,
-                                color = if (selectedIndex == index) ComposeAppTheme.colors.leah else ComposeAppTheme.colors.grey,
+                                color = if (selectedIndex == index) {
+                                    ComposeAppTheme.colors.leah
+                                } else {
+                                    ComposeAppTheme.colors.grey
+                                },
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

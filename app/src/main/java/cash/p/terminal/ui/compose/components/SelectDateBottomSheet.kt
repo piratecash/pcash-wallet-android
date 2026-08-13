@@ -57,6 +57,9 @@ fun SelectDateBottomSheet(
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val hideAndDismiss: () -> Unit = {
+        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
+    }
 
     val minYear = remember(minDateMillis) { epochMillisToYear(minDateMillis) }
     val maxYear = remember(maxDateMillis) { epochMillisToYear(maxDateMillis) }
@@ -81,11 +84,7 @@ fun SelectDateBottomSheet(
     ) {
         BottomSheetHeader(
             title = stringResource(R.string.select_date_title),
-            onCloseClick = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    onDismiss()
-                }
-            }
+            onCloseClick = hideAndDismiss
         ) {
             subhead2_grey(
                 text = stringResource(R.string.select_date_description),
@@ -112,9 +111,7 @@ fun SelectDateBottomSheet(
                     datePickerState.selectedDateMillis?.let { millis ->
                         onDateSelect(millis.toUtcLocalDate())
                     }
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        onDismiss()
-                    }
+                    hideAndDismiss()
                 }
             )
             Spacer(Modifier.height(32.dp))

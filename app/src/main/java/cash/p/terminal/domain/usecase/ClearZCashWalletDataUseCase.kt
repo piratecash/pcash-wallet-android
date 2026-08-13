@@ -32,7 +32,7 @@ class ClearZCashWalletDataUseCase(
      */
     suspend operator fun invoke(accountId: String): ZcashEraseResult = mutex.withLock {
         val aliases = listOf(getValidAliasFromAccountId(accountId, null)) +
-            AddressSpecType.entries.map { getValidAliasFromAccountId(accountId, it) }
+                AddressSpecType.entries.map { getValidAliasFromAccountId(accountId, it) }
         val erasedCount = aliases.count { eraseWithRetry(it) }
         val result = when (erasedCount) {
             0 -> ZcashEraseResult.NONE
@@ -61,7 +61,10 @@ class ClearZCashWalletDataUseCase(
                 // This can happen due to race condition when adapter is being stopped
                 if (attempt < MAX_ERASE_RETRIES - 1) {
                     val delayMs = INITIAL_RETRY_DELAY_MS * (attempt + 1)
-                    Timber.d("Synchronizer still active for alias $alias, retrying in ${delayMs}ms (attempt ${attempt + 1}/$MAX_ERASE_RETRIES)")
+                    Timber.d(
+                        "Synchronizer still active for alias $alias, retrying in ${delayMs}ms " +
+                                "(attempt ${attempt + 1}/$MAX_ERASE_RETRIES)"
+                    )
                     delay(delayMs)
                 } else {
                     Timber.w(e, "Failed to erase synchronizer for alias $alias after $MAX_ERASE_RETRIES attempts")

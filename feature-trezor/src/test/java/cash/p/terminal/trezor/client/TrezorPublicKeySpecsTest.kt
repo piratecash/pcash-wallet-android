@@ -22,14 +22,17 @@ class TrezorPublicKeySpecsTest {
     private fun derived(blockchainType: BlockchainType, derivation: TokenType.Derivation) =
         TokenQuery(blockchainType, TokenType.Derived(derivation))
 
-    private fun native(blockchainType: BlockchainType) = TokenQuery(blockchainType, TokenType.Native)
+    private fun native(blockchainType: BlockchainType) =
+        TokenQuery(blockchainType, TokenType.Native)
 
     private fun bch(addressType: TokenType.AddressType) =
         TokenQuery(BlockchainType.BitcoinCash, TokenType.AddressTyped(addressType))
 
-    private fun specFor(query: TokenQuery) = TrezorPublicKeySpecs.buildQuerySpecs(listOf(query)).singleOrNull()
+    private fun specFor(query: TokenQuery) =
+        TrezorPublicKeySpecs.buildQuerySpecs(listOf(query)).singleOrNull()
 
-    private fun result(key: String) = TrezorKeyResult(key = key, publicKey = byteArrayOf(9), chainCode = byteArrayOf(8))
+    private fun result(key: String) =
+        TrezorKeyResult(key = key, publicKey = byteArrayOf(9), chainCode = byteArrayOf(8))
 
     // Table-driven mapping is the primary guarantee that BIP44 and BIP86 never get confused
     // (both serialize as `xpub`, so the post-fetch version check cannot tell them apart).
@@ -37,7 +40,11 @@ class TrezorPublicKeySpecsTest {
     fun buildQuerySpecs_bitcoinAllDerivations_mapPathAndScriptType() {
         val cases = listOf(
             Triple(TokenType.Derivation.Bip44, "m/44'/0'/0'", TrezorInputScriptType.SPENDADDRESS),
-            Triple(TokenType.Derivation.Bip49, "m/49'/0'/0'", TrezorInputScriptType.SPENDP2SHWITNESS),
+            Triple(
+                TokenType.Derivation.Bip49,
+                "m/49'/0'/0'",
+                TrezorInputScriptType.SPENDP2SHWITNESS
+            ),
             Triple(TokenType.Derivation.Bip84, "m/84'/0'/0'", TrezorInputScriptType.SPENDWITNESS),
             Triple(TokenType.Derivation.Bip86, "m/86'/0'/0'", TrezorInputScriptType.SPENDTAPROOT),
         )
@@ -45,7 +52,11 @@ class TrezorPublicKeySpecsTest {
             val spec = specFor(derived(BlockchainType.Bitcoin, derivation))!!
             assertEquals(path, spec.derivationPath)
             assertEquals(
-                TrezorPublicKeyRequest.Bitcoin("Bitcoin", TrezorDerivationPath.parse(path), scriptType),
+                TrezorPublicKeyRequest.Bitcoin(
+                    "Bitcoin",
+                    TrezorDerivationPath.parse(path),
+                    scriptType
+                ),
                 spec.request
             )
         }
@@ -53,9 +64,18 @@ class TrezorPublicKeySpecsTest {
 
     @Test
     fun buildQuerySpecs_litecoin_supports44_49_84_butNotBip86OrMweb() {
-        assertEquals("m/44'/2'/0'", specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip44))!!.derivationPath)
-        assertEquals("m/49'/2'/0'", specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip49))!!.derivationPath)
-        assertEquals("m/84'/2'/0'", specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip84))!!.derivationPath)
+        assertEquals(
+            "m/44'/2'/0'",
+            specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip44))!!.derivationPath
+        )
+        assertEquals(
+            "m/49'/2'/0'",
+            specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip49))!!.derivationPath
+        )
+        assertEquals(
+            "m/84'/2'/0'",
+            specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip84))!!.derivationPath
+        )
         assertNull(specFor(derived(BlockchainType.Litecoin, TokenType.Derivation.Bip86)))
         assertNull(specFor(TokenQuery(BlockchainType.Litecoin, TokenType.Mweb)))
     }
@@ -114,7 +134,10 @@ class TrezorPublicKeySpecsTest {
         val specs = TrezorPublicKeySpecs.buildQuerySpecs(
             listOf(
                 native(BlockchainType.Tron),
-                TokenQuery(BlockchainType.Tron, TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")),
+                TokenQuery(
+                    BlockchainType.Tron,
+                    TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+                ),
             )
         )
         assertEquals(2, specs.size)
@@ -134,15 +157,51 @@ class TrezorPublicKeySpecsTest {
 
     @Test
     fun supports_reflectsRequestForAvailability() {
-        assertTrue(TrezorPublicKeySpecs.supports(null, BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip44)))
-        assertTrue(TrezorPublicKeySpecs.supports(null, BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)))
-        assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Litecoin, TokenType.Derived(TokenType.Derivation.Bip86)))
+        assertTrue(
+            TrezorPublicKeySpecs.supports(
+                null,
+                BlockchainType.Bitcoin,
+                TokenType.Derived(TokenType.Derivation.Bip44)
+            )
+        )
+        assertTrue(
+            TrezorPublicKeySpecs.supports(
+                null,
+                BlockchainType.Bitcoin,
+                TokenType.Derived(TokenType.Derivation.Bip84)
+            )
+        )
+        assertFalse(
+            TrezorPublicKeySpecs.supports(
+                null,
+                BlockchainType.Litecoin,
+                TokenType.Derived(TokenType.Derivation.Bip86)
+            )
+        )
         assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Litecoin, TokenType.Mweb))
         assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Ton, TokenType.Native))
         // Tron is model-gated: available on Safe models (native and TRC-20 alike), absent on One.
-        assertTrue(TrezorPublicKeySpecs.supports(TrezorModel.Safe5, BlockchainType.Tron, TokenType.Native))
-        assertTrue(TrezorPublicKeySpecs.supports(TrezorModel.Safe5, BlockchainType.Tron, TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")))
-        assertFalse(TrezorPublicKeySpecs.supports(TrezorModel.One, BlockchainType.Tron, TokenType.Native))
+        assertTrue(
+            TrezorPublicKeySpecs.supports(
+                TrezorModel.Safe5,
+                BlockchainType.Tron,
+                TokenType.Native
+            )
+        )
+        assertTrue(
+            TrezorPublicKeySpecs.supports(
+                TrezorModel.Safe5,
+                BlockchainType.Tron,
+                TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+            )
+        )
+        assertFalse(
+            TrezorPublicKeySpecs.supports(
+                TrezorModel.One,
+                BlockchainType.Tron,
+                TokenType.Native
+            )
+        )
     }
 
     @Test
@@ -150,7 +209,11 @@ class TrezorPublicKeySpecsTest {
         val spec = specFor(native(BlockchainType.Solana))!!
         val hw = TrezorPublicKeySpecs.toHardwarePublicKey(
             spec,
-            TrezorKeyResult(key = "SolAddr", publicKey = byteArrayOf(1, 2, 3), chainCode = ByteArray(0)),
+            TrezorKeyResult(
+                key = "SolAddr",
+                publicKey = byteArrayOf(1, 2, 3),
+                chainCode = ByteArray(0)
+            ),
             accountId = "acc-1"
         )
         assertEquals("acc-1", hw.accountId)
@@ -165,7 +228,10 @@ class TrezorPublicKeySpecsTest {
     fun toHardwarePublicKey_bip84WithZpub_succeeds() {
         val spec = specFor(derived(BlockchainType.Bitcoin, TokenType.Derivation.Bip84))!!
         val zpub = HDExtendedKey(SEED, HDWallet.Purpose.BIP84).serializePublic()
-        assertEquals(zpub, TrezorPublicKeySpecs.toHardwarePublicKey(spec, result(zpub), "acc-1").key.value)
+        assertEquals(
+            zpub,
+            TrezorPublicKeySpecs.toHardwarePublicKey(spec, result(zpub), "acc-1").key.value
+        )
     }
 
     @Test(expected = TrezorKeyValidationException::class)
@@ -179,7 +245,10 @@ class TrezorPublicKeySpecsTest {
     fun toHardwarePublicKey_bip44WithXpub_succeeds() {
         val spec = specFor(derived(BlockchainType.Bitcoin, TokenType.Derivation.Bip44))!!
         val xpub = HDExtendedKey(SEED, HDWallet.Purpose.BIP44).serializePublic()
-        assertEquals(xpub, TrezorPublicKeySpecs.toHardwarePublicKey(spec, result(xpub), "acc-1").key.value)
+        assertEquals(
+            xpub,
+            TrezorPublicKeySpecs.toHardwarePublicKey(spec, result(xpub), "acc-1").key.value
+        )
     }
 
     @Test(expected = TrezorKeyValidationException::class)

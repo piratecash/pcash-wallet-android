@@ -180,7 +180,8 @@ class NftHoldingsService(
             )
         }
 
-        val coinUids = items.map { it.assetItems.mapNotNull { asset -> asset.price?.token?.coin?.uid } }.flatten().distinct()
+        val coinUids =
+            items.map { it.assetItems.mapNotNull { asset -> asset.price?.token?.coin?.uid } }.flatten().distinct()
         xRateRepository.setCoinUids(coinUids)
 
         val latestRates = xRateRepository.getLatestRates()

@@ -47,18 +47,31 @@ class SeedPhraseQrCryptoTest {
     }
 
     // Test data
-    private val words12 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about".split(" ")
-    private val words15 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon address".split(" ")
-    private val words18 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon agent".split(" ")
-    private val words21 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art".split(" ")
-    private val words24 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art".split(" ")
-    private val words25Monero = "tavern total bail plutonium faked faster beneath reinvest syndrome dagger razor nobody acoustic tubes people germs myriad next victim sipped oasis dagger razor acoustic acoustic".split(" ")
+    private val words12 =
+        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about".split(" ")
+    private val words15 =
+        ("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon address").split(" ")
+    private val words18 =
+        ("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon abandon abandon abandon agent").split(" ")
+    private val words21 =
+        ("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon abandon abandon abandon abandon abandon abandon art").split(" ")
+    private val words24 =
+        ("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon " +
+                "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art").split(" ")
+    private val words25Monero =
+        ("tavern total bail plutonium faked faster beneath reinvest syndrome dagger " +
+                "razor nobody acoustic tubes people germs myriad next victim sipped oasis dagger razor acoustic " +
+                "acoustic").split(" ")
 
     // Non-English BIP39 fixtures (all-zero entropy: word[0]*11 + word[3] of each language wordlist)
     private val wordsJapanese12 = List(11) { "あいこくしん" } + "あおぞら"
     private val wordsSimplifiedChinese12 = List(11) { "的" } + "在"
     private val wordsKorean12 = List(11) { "가격" } + "가능"
     private val wordsSpanish12 = List(11) { "ábaco" } + "abierto"
+
     // Traditional-Chinese-only chars: 這 (index 9 in TC, the SC equivalent is 这)
     private val wordsTraditionalChinese12 = List(11) { "的" } + "這"
     private val wordsFrench12 = List(11) { "abaisser" } + "abeille"
@@ -340,7 +353,9 @@ class SeedPhraseQrCryptoTest {
 
     @Test
     fun `decrypt fails for 13 words`() {
-        val words13 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about".split(" ")
+        val words13 =
+            "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+                .split(" ")
         val encrypted = crypto.encrypt(words13, "")
         val result = crypto.decrypt(encrypted)
         assertTrue(result.isFailure)

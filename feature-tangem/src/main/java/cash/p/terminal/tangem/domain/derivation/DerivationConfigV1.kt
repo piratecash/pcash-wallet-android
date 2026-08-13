@@ -22,7 +22,10 @@ import io.horizontalsystems.core.entities.BlockchainType
 object DerivationConfigV1 : DerivationConfig() {
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
-    override fun derivations(blockchainType: BlockchainType, customPurpose: String): Map<AddressType, DerivationPath> {
+    override fun derivations(
+        blockchainType: BlockchainType,
+        customPurpose: String
+    ): Map<AddressType, DerivationPath> {
         return when (blockchainType) {
             BlockchainType.Bitcoin -> mapOf(
                 AddressType.Legacy to DerivationPath("m/44'/0'/0'"),
@@ -33,6 +36,7 @@ object DerivationConfigV1 : DerivationConfig() {
                 AddressType.Legacy to DerivationPath("m/44'/2'/0'"),
                 AddressType.Default to DerivationPath("m/44'/2'/0'"),
             )
+
             BlockchainType.Stellar -> mapOf(AddressType.Default to DerivationPath("m/44'/148'/0'"))
             BlockchainType.Solana -> mapOf(AddressType.Default to DerivationPath("m/44'/501'/0'"))
             BlockchainType.BitcoinCash -> mapOf(
@@ -62,7 +66,9 @@ object DerivationConfigV1 : DerivationConfig() {
             BlockchainType.ECash,
             BlockchainType.Zcash,
             BlockchainType.Monero,
-            is BlockchainType.Unsupported -> throw IllegalArgumentException("Unsupported blockchain type: $blockchainType")
+            is BlockchainType.Unsupported -> throw IllegalArgumentException(
+                "Unsupported blockchain type: $blockchainType"
+            )
         }.mapValues {
             it.value.replacePurpose(customPurpose) ?: it.value
         }

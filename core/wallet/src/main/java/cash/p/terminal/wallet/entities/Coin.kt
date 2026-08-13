@@ -31,6 +31,7 @@ data class Coin(
     }
 
     override fun toString(): String {
-        return "Coin [uid: $uid; name: $name; code: $code; marketCapRank: $marketCapRank; coinGeckoId: $coinGeckoId; priority: $priority]"
+        return "Coin [uid: $uid; name: $name; code: $code; marketCapRank: $marketCapRank; " +
+                "coinGeckoId: $coinGeckoId; priority: $priority]"
     }
 }

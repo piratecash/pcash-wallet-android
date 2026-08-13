@@ -766,7 +766,9 @@ class LitecoinAdapterTest {
         ).first()
 
         assertEquals(
-            listOf(TransactionExplorerData("blockchair.com", "https://blockchair.com/litecoin/transaction/peg-in-hash")),
+            listOf(
+                TransactionExplorerData("blockchair.com", "https://blockchair.com/litecoin/transaction/peg-in-hash")
+            ),
             adapter.getTransactionExplorerData(record)
         )
     }

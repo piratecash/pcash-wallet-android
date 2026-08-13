@@ -71,7 +71,8 @@ import cash.p.terminal.modules.send.mockConnectivityManager
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendSolanaViewModelTest : KoinTest {
 
-    private interface TestSendSolanaAdapter : ISendSolanaAdapter, OfflineTransactionAdapter<SignedOfflineSolanaTransaction>
+    private interface TestSendSolanaAdapter : ISendSolanaAdapter,
+        OfflineTransactionAdapter<SignedOfflineSolanaTransaction>
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val adapter = mockk<TestSendSolanaAdapter>(relaxed = true)
@@ -226,8 +227,8 @@ class SendSolanaViewModelTest : KoinTest {
             adapter.signOffline(
                 match {
                     it is OfflineSolanaSignRequest &&
-                        it.amount == amount &&
-                        it.address == address.hex
+                            it.amount == amount &&
+                            it.address == address.hex
                 }
             )
         }

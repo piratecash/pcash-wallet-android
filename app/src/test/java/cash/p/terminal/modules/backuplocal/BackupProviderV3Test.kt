@@ -105,7 +105,9 @@ class BackupProviderV3Test {
         assertEquals("Monero mnemonic should have 25 words", 25, words.size)
 
         // Verify exact mnemonic
-        val expectedMnemonic = "owed soda imagine yawning divers dosage medicate duckling unbending dewdrop request ditch richly physics sleepless today lettuce seventh deodorant tarnished bounced mohawk annoyed beer duckling"
+        val expectedMnemonic =
+            "owed soda imagine yawning divers dosage medicate duckling unbending dewdrop request ditch richly physics" +
+                    " sleepless today lettuce seventh deodorant tarnished bounced mohawk annoyed beer duckling"
         assertEquals(expectedMnemonic, mnemonic)
     }
 
@@ -413,7 +415,8 @@ class BackupProviderV3Test {
             "align_payload": "RandomPaddingDataHereToReachTargetSize12345"
         }"""
 
-        val fullBackup = gson.fromJson(jsonWithPadding, cash.p.terminal.modules.backuplocal.fullbackup.FullBackup::class.java)
+        val fullBackup =
+            gson.fromJson(jsonWithPadding, cash.p.terminal.modules.backuplocal.fullbackup.FullBackup::class.java)
 
         assertNotNull(fullBackup)
         assertEquals("backup-id", fullBackup.id)

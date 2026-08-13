@@ -26,7 +26,9 @@ class BitcoinAdapter(
     backgroundManager: BackgroundManager,
     wallet: Wallet,
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
+) : BitcoinBaseAdapter(
+    kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider
+),
     BitcoinKit.Listener {
     constructor(
         wallet: Wallet,

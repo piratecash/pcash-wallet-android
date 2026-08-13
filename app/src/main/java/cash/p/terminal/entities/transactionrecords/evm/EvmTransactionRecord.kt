@@ -96,7 +96,9 @@ class EvmTransactionRecord(
                     value.token == value2.token
 
                 value is TransactionValue.TokenValue && value2 is TransactionValue.TokenValue ->
-                    value.tokenName == value2.tokenName && value.tokenCode == value2.tokenCode && value.tokenDecimals == value2.tokenDecimals
+                    value.tokenName == value2.tokenName &&
+                            value.tokenCode == value2.tokenCode &&
+                            value.tokenDecimals == value2.tokenDecimals
 
                 value is TransactionValue.NftValue && value2 is TransactionValue.NftValue ->
                     value.nftUid == value2.nftUid

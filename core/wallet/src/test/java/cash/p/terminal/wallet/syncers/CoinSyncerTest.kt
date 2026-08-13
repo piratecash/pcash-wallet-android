@@ -205,8 +205,12 @@ class CoinSyncerTest {
             )
         )
 
-        assertEquals(1, result.count { it.coinUid == "litecoin" && it.blockchainUid == "litecoin" && it.type == "mweb" })
-        assertEquals(4, result.count { it.coinUid == "litecoin" && it.blockchainUid == "litecoin" && it.type == "derived" })
+        assertEquals(
+            1,
+            result.count { it.coinUid == "litecoin" && it.blockchainUid == "litecoin" && it.type == "mweb" })
+        assertEquals(
+            4,
+            result.count { it.coinUid == "litecoin" && it.blockchainUid == "litecoin" && it.type == "derived" })
     }
 
     @Test

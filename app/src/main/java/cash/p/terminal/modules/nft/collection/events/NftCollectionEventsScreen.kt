@@ -47,7 +47,9 @@ import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import kotlinx.coroutines.launch
 
 @Composable
-fun NftCollectionEventsScreen(navController: NavController, blockchainType: BlockchainType, collectionUid: String, contracts: List<ContractInfo>) {
+fun NftCollectionEventsScreen(
+    navController: NavController, blockchainType: BlockchainType, collectionUid: String, contracts: List<ContractInfo>
+) {
     val viewModel = viewModel<NftCollectionEventsViewModel>(
         factory = NftCollectionEventsModule.Factory(
             NftEventListType.Collection(
@@ -69,9 +71,11 @@ fun NftCollectionEventsScreen(navController: NavController, blockchainType: Bloc
                 ViewState.Loading -> {
                     Loading()
                 }
+
                 is ViewState.Error -> {
                     ListErrorView(stringResource(R.string.SyncError), viewModel::onErrorClick)
                 }
+
                 ViewState.Success -> {
                     NftEvents(viewModel, navController)
                 }
@@ -284,6 +288,7 @@ fun NftEvents(
                 onDismiss = { eventTypeSelectorState = SelectorDialogState.Closed }
             )
         }
+
         SelectorDialogState.Closed -> {}
     }
 }

@@ -32,7 +32,9 @@ import io.horizontalsystems.core.entities.BlockchainType
 
 @Composable
 fun NftCollectionAssetsScreen(navController: NavController, blockchainType: BlockchainType, collectionUid: String) {
-    val viewModel = viewModel<NftCollectionAssetsViewModel>(factory = NftCollectionAssetsModule.Factory(blockchainType, collectionUid))
+    val viewModel = viewModel<NftCollectionAssetsViewModel>(
+        factory = NftCollectionAssetsModule.Factory(blockchainType, collectionUid)
+    )
 
     HSSwipeRefresh(
         refreshing = viewModel.isRefreshing,
@@ -45,9 +47,11 @@ fun NftCollectionAssetsScreen(navController: NavController, blockchainType: Bloc
                 ViewState.Loading -> {
                     Loading()
                 }
+
                 is ViewState.Error -> {
                     ListErrorView(stringResource(R.string.SyncError), viewModel::onErrorClick)
                 }
+
                 ViewState.Success -> {
                     NftAssets(navController, viewModel.assets, viewModel::onBottomReached, viewModel.loadingMore)
                 }

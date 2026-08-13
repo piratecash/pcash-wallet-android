@@ -48,15 +48,21 @@ class AddRpcViewModel(
                 throw MalformedURLException()
             }
         } catch (e: Throwable) {
-            urlCaution = Caution(cash.p.terminal.strings.helpers.Translator.getString(R.string.AddEvmSyncSource_Error_InvalidUrl), Caution.Type.Error)
+            urlCaution = Caution(
+                cash.p.terminal.strings.helpers.Translator.getString(R.string.AddEvmSyncSource_Error_InvalidUrl),
+                Caution.Type.Error
+            )
             syncState()
             return
         }
 
         val existingSources = evmSyncSourceManager.allSyncSources(blockchain.type)
 
-        if (existingSources.any { it.uri == sourceUri}) {
-            urlCaution = Caution(cash.p.terminal.strings.helpers.Translator.getString(R.string.AddEvmSyncSource_Warning_UrlExists), Caution.Type.Warning)
+        if (existingSources.any { it.uri == sourceUri }) {
+            urlCaution = Caution(
+                cash.p.terminal.strings.helpers.Translator.getString(R.string.AddEvmSyncSource_Warning_UrlExists),
+                Caution.Type.Warning
+            )
             syncState()
             return
         }

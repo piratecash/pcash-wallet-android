@@ -12,9 +12,6 @@ import java.math.RoundingMode
 class PriceImpactService {
     private val warningPriceImpact = BigDecimal(5)
     private val forbiddenPriceImpact = BigDecimal(20)
-    private val percentMultiplier = BigDecimal("100")
-    private val fiatPriceImpactScale = 2
-
     private var fiatAmountIn: BigDecimal? = null
     private var fiatAmountOut: BigDecimal? = null
     private var fiatPriceImpact: BigDecimal? = null
@@ -38,7 +35,7 @@ class PriceImpactService {
     val stateFlow = _stateFlow.asStateFlow()
 
     fun setPriceImpact(priceImpact: BigDecimal?, providerTitle: String?) {
-        priceImpactLevel = priceImpact.getPriceImpactLevel()
+        priceImpactLevel = priceImpactLevel(priceImpact)
         this.priceImpact = priceImpact
 
         val priceImpactAbs = priceImpact?.abs()
@@ -97,26 +94,8 @@ class PriceImpactService {
         val fiatAmountIn = fiatAmountIn
         val fiatAmountOut = fiatAmountOut
 
-        fiatPriceImpact = calculateDiff(fiatAmountOut, fiatAmountIn)
-        fiatPriceImpactLevel = fiatPriceImpact.getPriceImpactLevel()
-    }
-
-    private fun BigDecimal?.getPriceImpactLevel(): PriceImpactLevel {
-        return when {
-            this == null -> PriceImpactLevel.Normal
-            this < BigDecimal.ZERO -> PriceImpactLevel.Warning
-            this > BigDecimal.ZERO -> PriceImpactLevel.Good
-            else -> PriceImpactLevel.Normal
-        }
-    }
-
-    private fun calculateDiff(amountOut: BigDecimal?, amountIn: BigDecimal?): BigDecimal? {
-        if (amountOut == null || amountIn == null || amountIn.compareTo(BigDecimal.ZERO) == 0) return null
-
-        return amountOut.subtract(amountIn)
-            .multiply(percentMultiplier)
-            .divide(amountIn, fiatPriceImpactScale, RoundingMode.DOWN)
-            .stripTrailingZeros()
+        fiatPriceImpact = fiatPriceImpact(fiatAmountOut, fiatAmountIn)
+        fiatPriceImpactLevel = priceImpactLevel(fiatPriceImpact)
     }
 
     fun setFiatAmountIn(fiatAmountIn: BigDecimal?) {
@@ -143,6 +122,24 @@ class PriceImpactService {
         val fiatPriceImpactLevel: PriceImpactLevel?,
         val error: Throwable?
     )
+
+    companion object {
+        fun fiatPriceImpact(amountOut: BigDecimal?, amountIn: BigDecimal?): BigDecimal? {
+            if (amountOut == null || amountIn == null || amountIn.compareTo(BigDecimal.ZERO) == 0) return null
+
+            return amountOut.subtract(amountIn)
+                .multiply(BigDecimal("100"))
+                .divide(amountIn, 2, RoundingMode.DOWN)
+                .stripTrailingZeros()
+        }
+
+        fun priceImpactLevel(priceImpact: BigDecimal?): PriceImpactLevel = when {
+            priceImpact == null -> PriceImpactLevel.Normal
+            priceImpact < BigDecimal.ZERO -> PriceImpactLevel.Warning
+            priceImpact > BigDecimal.ZERO -> PriceImpactLevel.Good
+            else -> PriceImpactLevel.Normal
+        }
+    }
 }
 
 data class PriceImpactTooHigh(val providerTitle: String?) : Exception()

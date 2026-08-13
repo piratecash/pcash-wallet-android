@@ -51,7 +51,9 @@ class SelectContactFragment : BaseComposeFragment() {
 
 @Composable
 fun SelectContactScreen(navController: NavController, input: SelectContactFragment.Input?) {
-    val viewModel = viewModel<SelectContactViewModel>(initializer = SelectContactViewModel.init(input?.selected, input?.blockchainType))
+    val viewModel = viewModel<SelectContactViewModel>(
+        initializer = SelectContactViewModel.init(input?.selected, input?.blockchainType)
+    )
     val uiState = viewModel.uiState
 
     Scaffold(
