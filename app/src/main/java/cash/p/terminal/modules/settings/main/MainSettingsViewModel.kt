@@ -132,7 +132,6 @@ class MainSettingsViewModel(
 
     override fun createState(): MainSettingUiState {
         return MainSettingUiState(
-            isUpdateAvailable = updateAvailable.value,
             currentLanguage = currentLanguageDisplayName,
             baseCurrencyCode = baseCurrencyCode,
             appWebPageLink = appWebPageLink,
@@ -167,7 +166,6 @@ class MainSettingsViewModel(
 }
 
 data class MainSettingUiState(
-    val isUpdateAvailable: Boolean,
     val currentLanguage: String,
     val baseCurrencyCode: String,
     val appWebPageLink: String,
