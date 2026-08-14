@@ -1,33 +1,47 @@
-plugins {
-    id(libs.plugins.android.library.get().pluginId)
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+plugins {
+    kotlin("multiplatform")
+    id("com.android.kotlin.multiplatform.library")
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
 }
 
-android {
-    namespace = "cash.p.terminal.resources"
-    compileSdk = 36
+androidComponents {
+    onVariants { variant ->
+        variant.sources.res?.addStaticSourceDirectory("src/commonMain/composeResources")
+    }
+}
 
-    defaultConfig {
-        consumerProguardFiles("consumer-rules.pro")
-        vectorDrawables.generatedDensities?.clear()
-    }
-
-    buildTypes {
-        release {
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
+compose.resources {
+    packageOfResClass = "cash.p.terminal.resources"
+    publicResClass = true
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    androidLibrary {
+        namespace = "cash.p.terminal.resources"
+        compileSdk = rootProject.ext.get("compile_sdk_version") as Int
+        minSdk = rootProject.ext.get("min_sdk_version") as Int
+        androidResources.enable = true
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                api(libs.compose.multiplatform.resources)
+                implementation(libs.compose.multiplatform.runtime)
+            }
+        }
     }
 }

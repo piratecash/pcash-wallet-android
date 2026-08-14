@@ -1,4 +1,9 @@
+import org.gradle.api.tasks.JavaExec
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+val isMacOs = System.getProperty("os.name").startsWith("Mac")
+val applicationName = "P.CASH"
+val macIconFile = project.file("icons/p-cash.icns")
 
 plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
@@ -26,7 +31,28 @@ compose.desktop {
         mainClass = "cash.p.terminal.desktop.MainKt"
 
         nativeDistributions {
-            packageName = "p.cash"
+            packageName = applicationName
+            macOS {
+                iconFile.set(macIconFile)
+            }
+            windows {
+                iconFile.set(project.file("icons/p-cash.ico"))
+            }
+        }
+    }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    if (isMacOs && name == "hotRun") {
+        jvmArgs("-Xdock:name=$applicationName")
+        jvmArgs("-Xdock:icon=${macIconFile.absolutePath}")
+    }
+}
+
+afterEvaluate {
+    tasks.named<JavaExec>("run") {
+        if (isMacOs) {
+            jvmArgs("-Xdock:name=$applicationName")
         }
     }
 }

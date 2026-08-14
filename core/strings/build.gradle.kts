@@ -28,6 +28,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
 }
 
 kotlin {
@@ -37,6 +38,7 @@ kotlin {
 }
 
 dependencies {
+    api(project(":core:resources"))
     implementation(libs.androidx.annotation)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material)

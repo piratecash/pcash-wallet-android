@@ -42,6 +42,7 @@ kotlin {
 }
 
 dependencies {
+    api project(':core:resources')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation libs.appcompat
     implementation libs.android.core.ktx

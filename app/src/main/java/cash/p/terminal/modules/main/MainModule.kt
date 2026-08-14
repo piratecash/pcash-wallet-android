@@ -6,14 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
-import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.shared.main.MainDestination
 import cash.p.terminal.wallet.Account
-import kotlinx.parcelize.Parcelize
 
 object MainModule {
     fun start(context: Context, data: Uri? = null) {
@@ -49,25 +48,11 @@ object MainModule {
     }
 
     data class NavigationViewItem(
-        val mainNavItem: MainNavigation,
+        val mainNavItem: MainDestination,
         val selected: Boolean,
         val enabled: Boolean,
         val badge: BadgeType? = null
     )
-
-    @Parcelize
-    enum class MainNavigation(val iconRes: Int, val titleRes: Int) : Parcelable {
-        Market(R.drawable.ic_market_24, R.string.Market_Title),
-        Balance(R.drawable.ic_wallet_24, R.string.Balance_Title),
-        Transactions(R.drawable.ic_transactions, R.string.Transactions_Title),
-        Settings(R.drawable.ic_settings, R.string.Settings_Title);
-
-        companion object {
-            private val map = values().associateBy(MainNavigation::name)
-
-            fun fromString(type: String?): MainNavigation? = map[type]
-        }
-    }
 
     data class UiState(
         val selectedTabIndex: Int,
