@@ -14,7 +14,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BadgedBox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -44,7 +42,9 @@ import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.balance.ui.BalanceScreen
-import cash.p.terminal.modules.main.MainModule.MainNavigation
+import cash.p.terminal.shared.main.MainDestination
+import cash.p.terminal.shared.main.MainDestinationIcon
+import cash.p.terminal.shared.main.MainDestinationTitle
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.market.MarketScreen
 import cash.p.terminal.modules.pin.ConfirmPinFragment
@@ -180,7 +180,7 @@ private fun MainScreen(
     // On a non-first tab, back returns to the first (Balance) tab instead of leaving the app.
     // On the first tab this stays disabled, so back falls through to the activity callback (minimize).
     BackHandler(enabled = selectedPage != 0) {
-        viewModel.onSelect(MainNavigation.Balance)
+        viewModel.onSelect(MainDestination.Balance)
     }
 
     var showWalletSheet by remember { mutableStateOf(false) }
@@ -188,7 +188,7 @@ private fun MainScreen(
         if (!uiState.contentHidden) {
             val recordUid = intentLiveData?.getStringExtra(TransactionNotificationManager.EXTRA_RECORD_UID)
             if (recordUid != null) {
-                viewModel.onSelect(MainNavigation.Transactions)
+                viewModel.onSelect(MainDestination.Transactions)
                 val item = resolveTransactionItem(recordUid)
                 intentHandled()
                 if (item != null) {
@@ -217,9 +217,9 @@ private fun MainScreen(
                         HsBottomNavigationItem(
                             icon = {
                                 BadgedIcon(item.badge) {
-                                    Icon(
-                                        painter = painterResource(item.mainNavItem.iconRes),
-                                        contentDescription = stringResource(item.mainNavItem.titleRes)
+                                    MainDestinationIcon(
+                                        destination = item.mainNavItem,
+                                        contentDescription = MainDestinationTitle(item.mainNavItem),
                                     )
                                 }
                             },
@@ -232,7 +232,7 @@ private fun MainScreen(
                                 viewModel.onSelect(item.mainNavItem)
                             },
                             onLongClick = {
-                                if (item.mainNavItem == MainNavigation.Balance) {
+                                if (item.mainNavItem == MainDestination.Balance) {
                                     showWalletSheet = true
                                 }
                             }
@@ -244,7 +244,7 @@ private fun MainScreen(
     ) { paddingValues ->
         Column {
             LaunchedEffect(key1 = selectedPage, block = {
-                if (uiState.mainNavItems[selectedPage].mainNavItem != MainNavigation.Transactions) {
+                if (uiState.mainNavItems[selectedPage].mainNavItem != MainDestination.Transactions) {
                     transactionsViewModel.showAllTransactions(false)
                 }
                 pagerState.scrollToPage(selectedPage)
@@ -257,8 +257,8 @@ private fun MainScreen(
                 verticalAlignment = Alignment.Top
             ) { page ->
                 when (uiState.mainNavItems[page].mainNavItem) {
-                    MainNavigation.Market -> MarketScreen(fragmentNavController, paddingValues)
-                    MainNavigation.Balance -> BalanceScreen(
+                    MainDestination.Market -> MarketScreen(fragmentNavController, paddingValues)
+                    MainDestination.Balance -> BalanceScreen(
                         navController = fragmentNavController,
                         paddingValues = paddingValues,
                         onOpenTransactionInfo = { item ->
@@ -267,7 +267,7 @@ private fun MainScreen(
                         },
                     )
 
-                    MainNavigation.Transactions -> TransactionsScreen(
+                    MainDestination.Transactions -> TransactionsScreen(
                         navController = fragmentNavController,
                         paddingValues = paddingValues,
                         viewModel = transactionsViewModel,
@@ -283,7 +283,7 @@ private fun MainScreen(
                         }
                     )
 
-                    MainNavigation.Settings -> SettingsScreen(
+                    MainDestination.Settings -> SettingsScreen(
                         fragmentNavController,
                         paddingValues
                     )

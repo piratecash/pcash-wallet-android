@@ -16,7 +16,7 @@ import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
-import cash.p.terminal.modules.main.MainModule
+import cash.p.terminal.shared.main.MainDestination
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
@@ -587,9 +587,9 @@ class LocalStorageManager(
             _calculatorAutoLockOptionFlow.update { value }
         }
 
-    override var mainTab: MainModule.MainNavigation?
+    override var mainTab: MainDestination?
         get() = preferences.getString(MAIN_TAB, null)?.let {
-            MainModule.MainNavigation.fromString(it)
+            MainDestination.fromString(it)
         }
         set(value) {
             preferences.edit().putString(MAIN_TAB, value?.name).apply()

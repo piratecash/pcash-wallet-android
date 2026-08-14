@@ -11,6 +11,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
+private const val APPLICATION_NAME = "P.CASH"
+
 fun main() {
     startKoin {
         modules(networkModule, desktopModule)
@@ -18,7 +20,7 @@ fun main() {
     application {
         Window(
             onCloseRequest = ::exitApplication,
-            title = "p.cash",
+            title = APPLICATION_NAME,
         ) {
             PcashApp()
         }

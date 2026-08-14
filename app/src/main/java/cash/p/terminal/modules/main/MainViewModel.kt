@@ -18,7 +18,7 @@ import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
-import cash.p.terminal.modules.main.MainModule.MainNavigation
+import cash.p.terminal.shared.main.MainDestination
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.nft.collection.NftCollectionFragment
 import cash.p.terminal.modules.walletconnect.WCManager
@@ -69,8 +69,8 @@ class MainViewModel(
     private val launchPage: LaunchPage
         get() = localStorage.launchPage ?: LaunchPage.Auto
 
-    private var currentMainTab: MainNavigation
-        get() = localStorage.mainTab ?: MainNavigation.Balance
+    private var currentMainTab: MainDestination
+        get() = localStorage.mainTab ?: MainDestination.Balance
         set(value) {
             localStorage.mainTab = value
         }
@@ -81,21 +81,8 @@ class MainViewModel(
             localStorage.relaunchBySettingChange = value
         }
 
-    private val items: List<MainNavigation>
-        get() = if (marketsTabEnabled) {
-            listOf(
-                MainNavigation.Balance,
-                MainNavigation.Transactions,
-                MainNavigation.Market,
-                MainNavigation.Settings,
-            )
-        } else {
-            listOf(
-                MainNavigation.Balance,
-                MainNavigation.Transactions,
-                MainNavigation.Settings,
-            )
-        }
+    private val items: List<MainDestination>
+        get() = MainDestination.entries.filter { it != MainDestination.Market || marketsTabEnabled }
 
     private var selectedTabIndex = getTabIndexToOpen()
     private var deeplinkPage: DeeplinkPage? = null
@@ -227,7 +214,7 @@ class MainViewModel(
         // Check if we need to switch to Balance tab
         if (localStorage.selectBalanceTabOnNextLaunch) {
             localStorage.selectBalanceTabOnNextLaunch = false
-            onSelect(MainNavigation.Balance)
+            onSelect(MainDestination.Balance)
         }
 
         emitState()
@@ -238,8 +225,8 @@ class MainViewModel(
         }
     }
 
-    fun onSelect(mainNavItem: MainNavigation) {
-        if (mainNavItem != MainNavigation.Settings) {
+    fun onSelect(mainNavItem: MainDestination) {
+        if (mainNavItem != MainDestination.Settings) {
             currentMainTab = mainNavItem
         }
         selectedTabIndex = items.indexOf(mainNavItem)
@@ -262,8 +249,8 @@ class MainViewModel(
         }
     }
 
-    private fun getNavItem(item: MainNavigation, selected: Boolean) = when (item) {
-        MainNavigation.Market -> {
+    private fun getNavItem(item: MainDestination, selected: Boolean) = when (item) {
+        MainDestination.Market -> {
             MainModule.NavigationViewItem(
                 mainNavItem = item,
                 selected = selected,
@@ -271,7 +258,7 @@ class MainViewModel(
             )
         }
 
-        MainNavigation.Transactions -> {
+        MainDestination.Transactions -> {
             MainModule.NavigationViewItem(
                 mainNavItem = item,
                 selected = selected,
@@ -279,7 +266,7 @@ class MainViewModel(
             )
         }
 
-        MainNavigation.Settings -> {
+        MainDestination.Settings -> {
             MainModule.NavigationViewItem(
                 mainNavItem = item,
                 selected = selected,
@@ -288,7 +275,7 @@ class MainViewModel(
             )
         }
 
-        MainNavigation.Balance -> {
+        MainDestination.Balance -> {
             MainModule.NavigationViewItem(
                 mainNavItem = item,
                 selected = selected,
@@ -301,11 +288,11 @@ class MainViewModel(
         val tab = when {
             relaunchBySettingChange -> {
                 relaunchBySettingChange = false
-                MainNavigation.Settings
+                MainDestination.Settings
             }
 
             !marketsTabEnabled -> {
-                MainNavigation.Balance
+                MainDestination.Balance
             }
 
             else -> getLaunchTab()
@@ -314,22 +301,22 @@ class MainViewModel(
         return items.indexOf(tab)
     }
 
-    private fun getLaunchTab(): MainNavigation = when (launchPage) {
+    private fun getLaunchTab(): MainDestination = when (launchPage) {
         LaunchPage.Market,
-        LaunchPage.Watchlist -> MainNavigation.Market
+        LaunchPage.Watchlist -> MainDestination.Market
 
-        LaunchPage.Balance -> MainNavigation.Balance
+        LaunchPage.Balance -> MainDestination.Balance
         LaunchPage.Auto -> currentMainTab
     }
 
-    private fun getNavigationDataForDeeplink(deepLink: Uri): Pair<MainNavigation, DeeplinkPage?> {
+    private fun getNavigationDataForDeeplink(deepLink: Uri): Pair<MainDestination, DeeplinkPage?> {
         var tab = currentMainTab
         var deeplinkPage: DeeplinkPage? = null
         val deeplinkString = deepLink.toString()
 
         // Try parsing with shared DeeplinkParser first (handles premium and swap)
         deeplinkParser.parse(deepLink)?.let { parsedPage ->
-            return MainNavigation.Balance to parsedPage
+            return MainDestination.Balance to parsedPage
         }
 
         val deeplinkScheme: String =
@@ -341,7 +328,7 @@ class MainViewModel(
                     deeplinkString.contains("coin-page") -> {
                         uid?.let {
                             deeplinkPage = DeeplinkPage(R.id.coinFragment, CoinFragmentInput(it))
-                            tab = MainNavigation.Market
+                            tab = MainDestination.Market
                         }
                     }
 
@@ -352,7 +339,7 @@ class MainViewModel(
                                 R.id.nftCollectionFragment,
                                 NftCollectionFragment.Input(uid, blockchainTypeUid)
                             )
-                            tab = MainNavigation.Market
+                            tab = MainDestination.Market
                         }
                     }
 
@@ -361,7 +348,7 @@ class MainViewModel(
                         if (title != null && uid != null) {
                             val platform = Platform(uid, title)
                             deeplinkPage = DeeplinkPage(R.id.marketPlatformFragment, platform)
-                            tab = MainNavigation.Market
+                            tab = MainDestination.Market
                         }
                     }
                 }
@@ -372,7 +359,7 @@ class MainViewModel(
                 if (wcSupportState == WCManager.SupportState.Supported) {
                     deeplinkPage =
                         DeeplinkPage(R.id.wcListFragment, WCListFragment.Input(deeplinkString))
-                    tab = MainNavigation.Settings
+                    tab = MainDestination.Settings
                 }
             }
 

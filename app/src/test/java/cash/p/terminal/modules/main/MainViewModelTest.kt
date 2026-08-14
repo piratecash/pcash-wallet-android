@@ -12,6 +12,7 @@ import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.shared.main.MainDestination
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
 import io.horizontalsystems.core.IPinComponent
@@ -56,7 +57,11 @@ class MainViewModelTest {
     private val checkPremiumUseCase = mockk<CheckPremiumUseCase>(relaxed = true)
 
     private var currentAccounts: List<Account> = emptyList()
+    private var accountsEmpty = false
+    private var allTermsAccepted = true
+    private var storedMainTab: MainDestination? = null
     private val premiumTypesFlow = MutableStateFlow<Map<String, PremiumType>>(emptyMap())
+    private val marketsTabEnabledFlow = MutableStateFlow(true)
 
     @Before
     fun setup() {
@@ -65,10 +70,12 @@ class MainViewModelTest {
         every { pinComponent.isLockedFlow } returns MutableStateFlow(false)
         every { pinComponent.pinSetFlowable } returns Flowable.empty()
         every { pinComponent.isPinSet } returns true
-        every { localStorage.marketsTabEnabledFlow } returns MutableStateFlow(true)
+        every { localStorage.marketsTabEnabledFlow } returns marketsTabEnabledFlow
+        every { localStorage.mainTab } answers { storedMainTab }
+        every { localStorage.mainTab = any() } answers { storedMainTab = firstArg() }
         every { localStorage.isSystemPinRequired } returns true
         every { termsManager.termsAcceptedSignalFlow } returns emptyFlow()
-        every { termsManager.allTermsAccepted } returns true
+        every { termsManager.allTermsAccepted } answers { allTermsAccepted }
         every { rateAppManager.showRateAppFlow } returns emptyFlow()
         every { backupManager.allBackedUpFlow } returns emptyFlow()
         every { backupManager.allBackedUp } returns true
@@ -76,7 +83,7 @@ class MainViewModelTest {
         every { accountManager.accountsFlow } returns emptyFlow()
         every { accountManager.activeAccountStateFlow } returns emptyFlow()
         every { accountManager.hasNonStandardAccount } returns false
-        every { accountManager.isAccountsEmpty } returns false
+        every { accountManager.isAccountsEmpty } answers { accountsEmpty }
         every { accountManager.accounts } answers { currentAccounts }
         coEvery { logLoginAttemptUseCase.selfieEnabledAndHasProblem() } returns false
         every { appUpdateChecker.updateAvailable } returns MutableStateFlow(false)
@@ -119,6 +126,53 @@ class MainViewModelTest {
         advanceUntilIdle()
 
         assertEquals(mapOf("b" to PremiumType.COSA), viewModel.uiState.walletSwitchPremiumTypes)
+    }
+
+    @Test
+    fun navigationItems_marketsEnabledAndDisabled_updatesOrder() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(MainDestination.entries.toList(), viewModel.uiState.mainNavItems.map { it.mainNavItem })
+
+        marketsTabEnabledFlow.value = false
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(MainDestination.Balance, MainDestination.Transactions, MainDestination.Settings),
+            viewModel.uiState.mainNavItems.map { it.mainNavItem },
+        )
+    }
+
+    @Test
+    fun navigationItems_accountsEmpty_disablesTransactions() = runTest(dispatcher) {
+        accountsEmpty = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.mainNavItems.first { it.mainNavItem == MainDestination.Transactions }.enabled)
+    }
+
+    @Test
+    fun navigationItems_termsNotAccepted_showsSettingsBadge() = runTest(dispatcher) {
+        allTermsAccepted = false
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(
+            MainModule.BadgeType.BadgeDot,
+            viewModel.uiState.mainNavItems.first { it.mainNavItem == MainDestination.Settings }.badge,
+        )
+    }
+
+    @Test
+    fun onSelect_destinationPersistsSelection() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onSelect(MainDestination.Market)
+        advanceUntilIdle()
+
+        assertEquals(MainDestination.Market, storedMainTab)
+        assertEquals(MainDestination.Market, viewModel.uiState.mainNavItems.first { it.selected }.mainNavItem)
     }
 
     private fun createViewModel() = MainViewModel(
