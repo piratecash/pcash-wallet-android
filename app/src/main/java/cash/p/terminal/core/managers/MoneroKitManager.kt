@@ -50,7 +50,6 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +70,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -96,15 +94,12 @@ class MoneroKitManager(
     // Serializes account-lifecycle mutations (activate / unlink / stop) so the process-global
     // NetCipherHelper observer factory is set/cleared without racing a concurrent teardown.
     private val accountMutex = Mutex()
-    private val pollingSessionMutex = Mutex()
-    private val deletingAccountIds = mutableSetOf<String>()
     private val pollingSessionCount = AtomicInteger(0)
     private val coroutineScope =
         CoroutineScope(dispatcherProvider.io + CoroutineExceptionHandler { _, throwable ->
             Timber.e(throwable, "Coroutine error")
         })
     var moneroKitWrapper: MoneroKitWrapper? = null
-    private var wrapperAccount: Account? = null
     private val lifecycleJobs = mutableListOf<Job>()
 
     private var useCount = AtomicInteger(0)
@@ -125,20 +120,20 @@ class MoneroKitManager(
     }
 
     suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper = accountMutex.withLock {
-        checkAccountIsNotBeingDeleted(account)
-        // stopKit also nulls moneroKitWrapper and clears the factory
-        this.moneroKitWrapper?.takeUnless { currentAccount == account }?.let { stopKit() }
+        if (this.moneroKitWrapper != null && currentAccount != account) {
+            stopKit() // also nulls moneroKitWrapper and clears the factory
+        }
 
         if (this.moneroKitWrapper == null) {
             val accountType = account.type
-            this.moneroKitWrapper = when (accountType) {
-                is AccountType.MnemonicMonero,
-                is AccountType.Mnemonic,
-                is AccountType.TrezorDevice -> createKitInstance(account)
+            this.moneroKitWrapper = when {
+                accountType is AccountType.MnemonicMonero ||
+                        accountType is AccountType.Mnemonic ||
+                        accountType is AccountType.TrezorDevice
+                    -> createKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
             }
-            wrapperAccount = account
             // Install the passive network observer for THIS account before startKit triggers
             // node-selection pings, so transport errors are attributed to the active account.
             NetCipherHelper.setEventListenerFactory(
@@ -164,7 +159,8 @@ class MoneroKitManager(
                         partial?.isRestartableAfterFailedStart == true &&
                         e.isRetryableTrezorStartupFailure()
                 if (cleanupSucceeded && !retryOnLifecycleEvent) {
-                    clearKitState()
+                    moneroKitWrapper = null
+                    NetCipherHelper.setEventListenerFactory(null)
                 }
                 if (!retryOnLifecycleEvent) throw e
             }
@@ -192,7 +188,6 @@ class MoneroKitManager(
     }
 
     suspend fun unlink(account: Account) = accountMutex.withLock {
-        if (account.id in deletingAccountIds) return@withLock
         if (account == currentAccount) {
             if (useCount.decrementAndGet() < 1) {
                 try {
@@ -204,66 +199,6 @@ class MoneroKitManager(
             }
         }
     }
-
-    suspend fun deleteForAccount(
-        account: Account,
-        stopAdapters: suspend () -> Unit,
-        deleteAccount: suspend () -> Unit,
-    ) {
-        withContext(NonCancellable) {
-            accountMutex.withLock {
-                deletingAccountIds += account.id
-                if (account == currentAccount) cancelLifecycleJobs()
-            }
-        }
-        var deletionCommitted = false
-        try {
-            pollingSessionMutex.withLock {
-                accountMutex.withLock {
-                    if (isKitOwnedBy(account)) {
-                        stopKitForDeletion()
-                    }
-                    deleteAccount()
-                    if (isKitOwnedBy(account)) {
-                        clearKitState()
-                        useCount.set(0)
-                    }
-                    deletionCommitted = true
-                }
-                try {
-                    stopAdapters()
-                } catch (error: Throwable) {
-                    Timber.e(error, "Failed to stop Monero adapters after account deletion")
-                }
-            }
-        } finally {
-            withContext(NonCancellable) {
-                accountMutex.withLock {
-                    deletingAccountIds -= account.id
-                    if (!deletionCommitted && account == currentAccount && lifecycleJobs.isEmpty()) {
-                        subscribeToEvents()
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun stopKitForDeletion() {
-        try {
-            closeKit(saveWallet = false)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Throwable) {
-            Timber.e(error, "Failed to stop Monero wallet before deletion")
-            closeKit(saveWallet = false)
-        }
-    }
-
-    private fun checkAccountIsNotBeingDeleted(account: Account) =
-        check(account.id !in deletingAccountIds) { "Account is being deleted" }
-
-    private fun isKitOwnedBy(account: Account) =
-        account == wrapperAccount || account == currentAccount
 
     /**
      * Rescans [account] from [newHeight]. Operates only on the already-active wrapper
@@ -289,44 +224,29 @@ class MoneroKitManager(
         }
     }
 
-    internal suspend fun <T> withPollingSession(
-        block: suspend (MoneroKitWrapper) -> T,
-    ): T? = pollingSessionMutex.withLock {
-        val wrapper = accountMutex.withLock {
-            moneroKitWrapper?.takeUnless { currentAccount?.id in deletingAccountIds }?.also {
-                pollingSessionCount.onPollingStartedSuspend { resumeOrStartKit() }
-            }
-        } ?: return@withLock null
-        try {
-            block(wrapper)
-        } finally {
-            withContext(NonCancellable) {
-                accountMutex.withLock {
-                    pollingSessionCount.onPollingStoppedSuspend(backgroundManager) {
-                        if (currentAccount?.id !in deletingAccountIds) stopAndSaveKit()
-                    }
-                }
-            }
+    suspend fun startForPolling() {
+        pollingSessionCount.onPollingStartedSuspend {
+            resumeOrStartKit()
         }
     }
 
-    private suspend fun stopKit(saveWallet: Boolean = true) {
-        cancelLifecycleJobs()
+    suspend fun stopForPolling() {
+        pollingSessionCount.onPollingStoppedSuspend(backgroundManager) {
+            stopAndSaveKit()
+        }
+    }
+
+    private suspend fun stopKit() {
+        lifecycleJobs.forEach { it.cancel() }
+        lifecycleJobs.clear()
+        val wrapper = moneroKitWrapper
         try {
-            closeKit(saveWallet)
+            withContext(NonCancellable) { wrapper?.stop() }
         } catch (error: Throwable) {
             if (currentAccount != null) subscribeToEvents()
             throw error
         }
-        clearKitState()
-    }
-
-    private suspend fun closeKit(saveWallet: Boolean) =
-        withContext(NonCancellable) { moneroKitWrapper?.stop(saveWallet) }
-
-    private fun clearKitState() {
         currentAccount = null
-        wrapperAccount = null
         moneroKitWrapper = null
         NetCipherHelper.setEventListenerFactory(null)
     }
@@ -363,15 +283,16 @@ class MoneroKitManager(
 
         lifecycleJobs += coroutineScope.launch {
             backgroundManager.stateFlow.collect { state ->
-                accountMutex.withLock {
-                    if (state == BackgroundManagerState.EnterForeground) {
-                        resumeOrStartKitOnLifecycleEvent()
-                    } else if (state == BackgroundManagerState.EnterBackground) {
-                        if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Monero)) {
-                            stopAndSaveKit()
-                        } else {
-                            Timber.tag("TxPoller").d("MoneroKit staying alive")
-                        }
+                if (state == BackgroundManagerState.EnterForeground) {
+                    resumeOrStartKitOnLifecycleEvent()
+                } else if (state == BackgroundManagerState.EnterBackground) {
+                    if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(
+                            BlockchainType.Monero
+                        )
+                    ) {
+                        stopAndSaveKit()
+                    } else {
+                        Timber.tag("TxPoller").d("MoneroKit staying alive")
                     }
                 }
             }
@@ -380,15 +301,13 @@ class MoneroKitManager(
             connectivityManager.networkAvailabilityFlow
                 .onSubscription { emitConnectivityMissedAtStartup() }
                 .collect { connected ->
-                    accountMutex.withLock {
-                        if (!connected) {
-                            moneroKitWrapper?.onNetworkLost()
-                        } else if (backgroundManager.inForeground) {
-                            if (!resumeOrStartKitOnLifecycleEvent()) return@withLock
-                            // resumeOrStartKit is a no-op for an already running kit, so without an
-                            // explicit refresh the state would stay NotSynced until the next callback.
-                            moneroKitWrapper?.refresh()
-                        }
+                    if (!connected) {
+                        moneroKitWrapper?.onNetworkLost()
+                    } else if (backgroundManager.inForeground) {
+                        if (!resumeOrStartKitOnLifecycleEvent()) return@collect
+                        // resumeOrStartKit is a no-op for an already running kit, so without an
+                        // explicit refresh the state would stay NotSynced until the next callback.
+                        moneroKitWrapper?.refresh()
                     }
                 }
         }
@@ -396,15 +315,10 @@ class MoneroKitManager(
             moneroKitWrapper?.let { w ->
                 w.syncState.map { it is AdapterState.Synced }.distinctUntilChanged()
                     .collect { synced ->
-                        if (synced) accountMutex.withLock { tryOrNull { w.saveSynced() } }
+                        if (synced) tryOrNull { w.saveSynced() }
                     }
             }
         }
-    }
-
-    private suspend fun cancelLifecycleJobs() {
-        lifecycleJobs.forEach { it.cancelAndJoin() }
-        lifecycleJobs.clear()
     }
 
     // startKit() runs before the collector above subscribes and networkAvailabilityFlow has no
@@ -466,7 +380,6 @@ data class MoneroWalletHealthSnapshot(
     val walletIsSynchronized: Boolean,
     val nativeConnectionStatus: ConnectionStatus? = null,
     val nativeStatusError: String? = null,
-    val hasUnknownKeyImages: Boolean? = null,
 ) {
     val isCurrentAndConnected: Boolean
         get() = callbackWalletIsCurrent &&
@@ -701,6 +614,7 @@ class MoneroKitWrapper(
         IGetMoneroWalletFilesNameUseCase::class.java
     )
     private val logger = AppLogger("monero-kit").getScoped(account.id)
+
     @Volatile
     private var lastLoggedConnectionStatus: ConnectionStatus? = null
     private var lastLoggedSyncProgress: Int = -1
@@ -774,8 +688,6 @@ class MoneroKitWrapper(
     @Volatile
     private var storedForSync = false
 
-    @Volatile
-    private var nativeSyncState: AdapterState = AdapterState.Syncing()
     private val _syncState = MutableStateFlow<AdapterState>(AdapterState.Syncing())
     val syncState = _syncState.asStateFlow()
 
@@ -871,7 +783,8 @@ class MoneroKitWrapper(
                         explicitColdRecoveryPending = false
                     }
                     logger.info(
-                        "start: completed startService, connection=${moneroWalletService.connectionStatus}, walletStatus=${moneroWalletService.wallet?.status}"
+                        "start: completed startService, connection=${moneroWalletService.connectionStatus}, " +
+                                "walletStatus=${moneroWalletService.wallet?.status}"
                     )
                     fixWalletHeight()
                 } catch (e: Exception) {
@@ -1084,11 +997,10 @@ class MoneroKitWrapper(
     }
 
     private fun requireHardwareRestoreHeight(): Long =
-        requireNotNull(restoreSettingsManager.pendingMoneroRescanHeight(account)
+        restoreSettingsManager.pendingMoneroRescanHeight(account)
             ?: restoreSettingsManager.settings(account, BlockchainType.Monero).birthdayHeight
-            ?.takeIf { it >= 0 }) {
-            "Monero hardware wallet has no restore height"
-        }
+            ?.takeIf { it >= 0 }
+            ?: throw IllegalStateException("Monero hardware wallet has no restore height")
 
     private fun storeControlledHardwareRefresh(
         wallet: Wallet,
@@ -1136,7 +1048,8 @@ class MoneroKitWrapper(
         try {
             val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
             logger.info(
-                "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} connection=${walletStatus?.connectionStatus}"
+                "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} " +
+                        "connection=${walletStatus?.connectionStatus}"
             )
             // Route EVERY start() result through the self-gated helper (incl. a successful Connected
             // start, which arms lastLoggedConnectionStatus so the first onRefreshed is not a "new" transition).
@@ -1158,35 +1071,51 @@ class MoneroKitWrapper(
             }
         } catch (e: WalletCorruptedException) {
             logger.warning("startService: WalletCorruptedException received", e)
-            try {
-                if (fixIfCorruptedFile) {
-                    if (e.message?.contains("std::bad_alloc") == true) { // too big cache file
-                        val cacheFileSize = tryOrNull { getCacheFile().sizeInMb() } ?: ""
-                        val deleted = tryOrNull { getCacheFile()?.delete() } ?: false
-                        Timber.d("MoneroKitManager: detected bad_alloc error(size: $cacheFileSize), deleted cache file: $deleted")
-                        logger.info("startService: detected bad_alloc error(size: $cacheFileSize), deleting cache file, deleted=$deleted")
-                        startService(walletFileName, walletPassword, false)
-                        return
-                    }
-                    Timber.e(
-                        e,
-                        "WalletCorruptedException, trying to fix wallet, cache size: ${tryOrNull { getCacheFile().sizeInMb() } ?: "unknown"}"
-                    )
-                    logger.info("startService: attempting wallet fix after corruption")
-                    getBirthdayHeight(account)?.let {
-                        resetWalletAndRestart(it)
-                    }
-                } else {
-                    Timber.e(e, "WalletCorruptedException, fix disabled")
-                    logger.info("startService: wallet fix disabled, corruption remains")
-                }
-            } catch (ex: Exception) {
-                logger.warning("startService: failed while handling WalletCorruptedException", ex)
-                Timber.e(ex, "Failed to fix corrupted wallet")
-            }
+            handleWalletCorruption(e, walletFileName, walletPassword, fixIfCorruptedFile)
         } catch (e: Exception) {
             logger.warning("startService: unexpected exception", e)
             throw e
+        }
+    }
+
+    private suspend fun handleWalletCorruption(
+        error: WalletCorruptedException,
+        walletFileName: String,
+        walletPassword: String,
+        fixIfCorruptedFile: Boolean
+    ) {
+        try {
+            if (fixIfCorruptedFile) {
+                if (error.message?.contains("std::bad_alloc") == true) { // too big cache file
+                    val cacheFileSize = tryOrNull { getCacheFile().sizeInMb() } ?: ""
+                    val deleted = tryOrNull { getCacheFile()?.delete() } ?: false
+                    Timber.d(
+                        "MoneroKitManager: detected bad_alloc error(size: $cacheFileSize), deleted cache file: " +
+                                "$deleted"
+                    )
+                    logger.info(
+                        "startService: detected bad_alloc error(size: $cacheFileSize), deleting cache file, " +
+                                "deleted=$deleted"
+                    )
+                    startService(walletFileName, walletPassword, false)
+                    return
+                }
+                Timber.e(
+                    error,
+                    "WalletCorruptedException, trying to fix wallet, cache size: " +
+                            "${tryOrNull { getCacheFile().sizeInMb() } ?: "unknown"}"
+                )
+                logger.info("startService: attempting wallet fix after corruption")
+                getBirthdayHeight(account)?.let {
+                    resetWalletAndRestart(it)
+                }
+            } else {
+                Timber.e(error, "WalletCorruptedException, fix disabled")
+                logger.info("startService: wallet fix disabled, corruption remains")
+            }
+        } catch (handlingError: Exception) {
+            logger.warning("startService: failed while handling WalletCorruptedException", handlingError)
+            Timber.e(handlingError, "Failed to fix corrupted wallet")
         }
     }
 
@@ -1194,7 +1123,8 @@ class MoneroKitWrapper(
         delay(3_000)
         val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
         logger.info(
-            "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} connection=${retryStatus?.connectionStatus}"
+            "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} " +
+                    "connection=${retryStatus?.connectionStatus}"
         )
         recordNativeConnectionError(retryStatus?.connectionStatus, retryStatus?.errorString)
     }
@@ -1265,7 +1195,7 @@ class MoneroKitWrapper(
         }
         hardwareRescanPending = true
         try {
-            setSyncStateForSession(requireActiveReconciliationSession(), AdapterState.Syncing())
+            _syncState.value = AdapterState.Syncing()
             refreshHardwareKeyImages(HardwareKeyImageRefreshResult.Mode.ResetToRestoreHeight)
         } finally {
             hardwareRescanPending = false
@@ -2001,7 +1931,9 @@ class MoneroKitWrapper(
 
     fun statusInfo(): Map<String, Any> {
         logger.info(
-            "statusInfo: connection=${moneroWalletService.connectionStatus} wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
+            "statusInfo: connection=${moneroWalletService.connectionStatus} " +
+                    "wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted " +
+                    "restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
         )
         val base = mapOf<String, Any>(
             "connectionStatus" to moneroWalletService.connectionStatus,
@@ -2210,23 +2142,19 @@ class MoneroKitWrapper(
             0L
         }
 
-        if (shouldUpdateNativeSyncState()) {
-            setNativeSyncStateForSession(
+        if (controlledLiveRefreshCommitted || !hardwareRescanPending && !controlledLiveRefreshPending) {
+            setSyncStateForSession(
                 session,
                 resolveSyncState(nativeConnected, isSynchronized, currentHeight, totalHeight),
             )
         }
         updateHardwareReadiness(session, wallet, health)
-        publishNativeSyncStateForSession(session)
         return isRefreshCallbackFullyHandled(
             hardwareAccount = hardwareAccount,
             hasActiveReconciliationOperation = hasActiveReconciliationOperation(session),
             spendReadiness = _spendReadiness.value,
         )
     }
-
-    private fun shouldUpdateNativeSyncState(): Boolean =
-        controlledLiveRefreshCommitted || !hardwareRescanPending && !controlledLiveRefreshPending
 
     private fun notConnectedState() = AdapterState.NotSynced(IllegalStateException("Not connected"))
 
@@ -2334,9 +2262,8 @@ class MoneroKitWrapper(
         if (syncState is AdapterState.Synced) {
             Timber.d("MoneroKitWrapper: Synced")
         }
-        setNativeSyncStateForSession(activeSession, syncState)
+        setSyncStateForSession(activeSession, syncState)
         updateHardwareReadiness(activeSession, wallet, health)
-        publishNativeSyncStateForSession(activeSession)
     }
 
     private fun updateHardwareReadiness(
@@ -2357,8 +2284,10 @@ class MoneroKitWrapper(
         // do not let later generic refresh callbacks restart recovery; only an explicit key-image
         // sync (or a new wallet lifecycle) may replace this retryable failure state.
         try {
-            val hasUnknownKeyImages = if (canReadHardwareKeyImages(health)) {
-                health.hasUnknownKeyImages ?: wallet?.hasUnknownKeyImages()
+            val hasUnknownKeyImages = if (
+                wallet != null && health.isFullyHealthy && _syncState.value is AdapterState.Synced
+            ) {
+                wallet.hasUnknownKeyImages()
             } else {
                 null
             }
@@ -2377,16 +2306,18 @@ class MoneroKitWrapper(
         }
     }
 
-    private fun canReadHardwareKeyImages(health: MoneroWalletHealthSnapshot): Boolean =
-        health.isFullyHealthy && nativeSyncState is AdapterState.Synced
-
     private fun finalizeControlledHardwareRefresh(
         session: Long,
         wallet: Wallet?,
         health: MoneroWalletHealthSnapshot,
     ) {
         try {
-            if (!hasHealthyControlledRefresh(wallet, health)) {
+            if (
+                !controlledLiveRefreshCommitted ||
+                !health.isFullyHealthy ||
+                wallet == null ||
+                wallet.hasUnknownKeyImages()
+            ) {
                 setSpendReadinessForSession(session, MoneroSpendReadiness.Syncing)
                 controlledRefreshFinalization?.completeExceptionally(
                     IllegalStateException("Monero controlled refresh did not complete with a healthy wallet"),
@@ -2409,15 +2340,6 @@ class MoneroKitWrapper(
         }
     }
 
-    private fun hasHealthyControlledRefresh(
-        wallet: Wallet?,
-        health: MoneroWalletHealthSnapshot,
-    ): Boolean {
-        if (!controlledLiveRefreshCommitted) return false
-        if (!health.isFullyHealthy) return false
-        return wallet?.hasUnknownKeyImages() == false
-    }
-
     /** Production callback readiness routing, kept JNI-free for deterministic manager tests. */
     internal fun applyHardwareReadinessSnapshot(
         session: Long,
@@ -2426,7 +2348,7 @@ class MoneroKitWrapper(
     ): Boolean {
         if (!hardwareAccount || !isActiveReconciliationSession(session)) return true
         if (_spendReadiness.value == MoneroSpendReadiness.ReconciliationFailed) return true
-        if (nativeSyncState !is AdapterState.Synced || !health.isFullyHealthy ||
+        if (_syncState.value !is AdapterState.Synced || !health.isFullyHealthy ||
             hasUnknownKeyImages == null
         ) {
             val awaitingExpectedRescan =
@@ -2476,7 +2398,7 @@ class MoneroKitWrapper(
                 trustedKeyImageSyncFinalizationOutcome(
                     health = walletHealthReader.snapshot(wallet),
                     hasUnknownKeyImages = wallet.hasUnknownKeyImages(),
-                    syncState = nativeSyncState,
+                    syncState = _syncState.value,
                 )
             ) {
                 TrustedKeyImageSyncFinalizationOutcome.NeedsKeyImageSync -> {
@@ -2650,8 +2572,6 @@ class MoneroKitWrapper(
         }
         if (!spentStatusReconciler.isActive(session)) {
             _spendReadiness.compareAndSet(readiness, MoneroSpendReadiness.Syncing)
-        } else if (readiness.isTerminalKeyImageSyncOutcome) {
-            publishNativeSyncStateForSession(session)
         }
     }
 
@@ -2662,37 +2582,16 @@ class MoneroKitWrapper(
     }
 
     private fun setSyncStateForSession(session: Long, state: AdapterState) {
-        setNativeSyncStateForSession(session, state)
-        publishNativeSyncStateForSession(session)
-    }
-
-    private fun setNativeSyncStateForSession(session: Long, state: AdapterState) {
-        if (spentStatusReconciler.isActive(session)) {
-            nativeSyncState = state
-        }
-    }
-
-    private fun publishNativeSyncStateForSession(session: Long) {
         _syncState.update { currentState ->
             if (!spentStatusReconciler.isActive(session)) {
                 currentState
             } else if (connectivityManager.isConnected.value) {
-                visibleSyncState(nativeSyncState)
+                state
             } else {
                 notConnectedState()
             }
         }
     }
-
-    private fun visibleSyncState(nativeState: AdapterState): AdapterState =
-        if (
-            nativeState is AdapterState.Synced &&
-            _spendReadiness.value == MoneroSpendReadiness.ReconcilingSpentStatus
-        ) {
-            AdapterState.Syncing()
-        } else {
-            nativeState
-        }
 
     private fun setLastBlockInfoForSession(session: Long, lastBlockInfo: LastBlockInfo?) {
         if (spentStatusReconciler.isActive(session)) {
@@ -2709,7 +2608,6 @@ class MoneroKitWrapper(
     private fun activateReconciliationSession() {
         spentStatusReconciler.activate()
         keyImageSyncSession = null
-        nativeSyncState = AdapterState.Syncing()
         if (hardwareAccount) {
             _spendReadiness.value = MoneroSpendReadiness.Syncing
         }
@@ -2796,7 +2694,7 @@ internal fun hasMoneroNativeHealthFailure(health: MoneroWalletHealthSnapshot): B
         !health.nativeStatusIsOk ||
         !health.nativeConnectionIsConnected
 
-private fun nativeHealthFailureError(health: MoneroWalletHealthSnapshot): IllegalStateException =
+internal fun nativeHealthFailureError(health: MoneroWalletHealthSnapshot): IllegalStateException =
     IllegalStateException(
         health.nativeStatusError?.takeIf { it.isNotBlank() }
             ?: "Monero wallet native health check failed",

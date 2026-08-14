@@ -160,7 +160,9 @@ private fun BottomSheetSelectorMultiplePreview() {
         viewItems = listOf(
             BottomSheetSelectorViewItem("Option 1", "Description 1", null, null),
             BottomSheetSelectorViewItem("Option 2", "Description 2", null, null),
-            BottomSheetSelectorViewItem("Option 3", "Description super long to test component and how it works", null, null)
+            BottomSheetSelectorViewItem(
+                "Option 3", "Description super long to test component and how it works", null, null
+            )
         ),
         selectedIndexes = listOf(0, 2),
         icon = ImageSource.Local(R.drawable.ic_attention_red_20),

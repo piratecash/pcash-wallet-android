@@ -417,7 +417,7 @@ class SendEvmTransactionViewItemFactory(
                 add(ViewItem.Value(Translator.getString(R.string.Send_Confirmation_Method), it, ValueType.Regular))
             }
 
-            add(ViewItem.Input("Input",transactionData.input.toRawHexString()))
+            add(ViewItem.Input("Input", transactionData.input.toRawHexString()))
         }
 
         return listOf(SectionViewItem(viewItems))
@@ -561,7 +561,9 @@ sealed class ViewItem {
         val type: ValueType,
     ) : ViewItem()
 
-    class Address(val title: String, val value: String, val showAdd: Boolean, val blockchainType: BlockchainType) : ViewItem()
+    class Address(val title: String, val value: String, val showAdd: Boolean, val blockchainType: BlockchainType) :
+        ViewItem()
+
     class Input(val title: String, val value: String) : ViewItem()
     class TokenItem(val token: Token) : ViewItem()
     class ContactItem(val contact: Contact) : ViewItem()

@@ -60,7 +60,9 @@ class UnstoppableEvmSwapProvider(
     private val mutex = Mutex()
 
     private data class CachedRoute(val request: RouteRequest, val response: UnstoppableRoute, val timestamp: Long)
-    private data class RouteRequest(val sellAsset: String, val buyAsset: String, val sellAmount: String, val destinationAddress: String)
+    private data class RouteRequest(
+        val sellAsset: String, val buyAsset: String, val sellAmount: String, val destinationAddress: String
+    )
 
     override suspend fun supports(tokenFrom: Token, tokenTo: Token) = supports(tokenFrom) && supports(tokenTo)
 
@@ -68,7 +70,9 @@ class UnstoppableEvmSwapProvider(
         tokenResolver.supports(token)
     }
 
-    override suspend fun fetchQuote(tokenIn: Token, tokenOut: Token, amountIn: BigDecimal, settings: Map<String, Any?>): ISwapQuote =
+    override suspend fun fetchQuote(
+        tokenIn: Token, tokenOut: Token, amountIn: BigDecimal, settings: Map<String, Any?>
+    ): ISwapQuote =
         withContext(dispatcherProvider.io) {
             val assetIn = requireAsset(tokenIn)
             val assetOut = requireAsset(tokenOut)
@@ -79,11 +83,14 @@ class UnstoppableEvmSwapProvider(
 
             val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
                 ?: route.resolvedApprovalSpender?.let { spender ->
-                    EvmSwapHelper.actionApprove(EvmSwapHelper.getAllowance(tokenIn, spender), amountIn, spender, tokenIn)
+                    EvmSwapHelper.actionApprove(
+                        EvmSwapHelper.getAllowance(tokenIn, spender), amountIn, spender, tokenIn
+                    )
                 }
 
             SwapQuoteOffChain(
-                amountOut = route.expectedBuyAmount ?: BigDecimal.ZERO, priceImpact = null, fields = emptyList(), settings = emptyList(),
+                amountOut = route.expectedBuyAmount ?: BigDecimal.ZERO, priceImpact = null, fields = emptyList(),
+                settings = emptyList(),
                 tokenIn = tokenIn, tokenOut = tokenOut, amountIn = amountIn,
                 actionRequired = actionRequired,
                 estimationTime = route.estimatedTimeSeconds,
@@ -101,7 +108,8 @@ class UnstoppableEvmSwapProvider(
             // Committed order must pay out to the OUTPUT token's receive address, not the source one —
             // for cross-chain routes (e.g. Circle CCTP) these differ. sourceAddress stays the refund/from.
             val destinationAddress = walletUseCase.getReceiveAddress(tokenOut)
-            val request = RouteRequest(assetIn.identifier, assetOut.identifier, amountIn.toPlainString(), destinationAddress)
+            val request =
+                RouteRequest(assetIn.identifier, assetOut.identifier, amountIn.toPlainString(), destinationAddress)
 
             val cached = cachedRoute
             val route = if (
@@ -130,7 +138,8 @@ class UnstoppableEvmSwapProvider(
             val gasLimit = signable.gas?.let { parseHexBigInteger(it).toLong() }
 
             val swapProviderTransaction = providerSupport.buildSwapProviderTransaction(
-                provider = SwapProvider.UNSTOPPABLE, transactionId = transactionId, tokenIn = tokenIn, tokenOut = tokenOut,
+                provider = SwapProvider.UNSTOPPABLE, transactionId = transactionId, tokenIn = tokenIn,
+                tokenOut = tokenOut,
                 amountIn = amountIn, amountOut = amountOut, subProviderId = descriptor.apiId,
             )
 
@@ -212,7 +221,8 @@ class UnstoppableEvmSwapProvider(
         return if (stripped.isNullOrEmpty()) BigInteger.ZERO else BigInteger(stripped, 16)
     }
 
-    private suspend fun requireAsset(token: Token) = tokenResolver.resolve(token) ?: error("$id: no identifier for $token")
+    private suspend fun requireAsset(token: Token) =
+        tokenResolver.resolve(token) ?: error("$id: no identifier for $token")
 
     private companion object {
         val SLIPPAGE = BigDecimal("1")

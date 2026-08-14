@@ -33,8 +33,12 @@ object SendTronModule {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
         private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
         private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
-        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(OfflineTransactionPayloadEncoder::class.java)
-        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(OfflineSignedTransactionRepository::class.java)
+        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(
+            OfflineTransactionPayloadEncoder::class.java
+        )
+        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(
+            OfflineSignedTransactionRepository::class.java
+        )
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -52,7 +56,8 @@ object SendTronModule {
                     )
                     val addressService = SendTronAddressService(adapter, wallet.token)
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-                    val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Tron, TokenType.Native)) ?: throw IllegalArgumentException()
+                    val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Tron, TokenType.Native))
+                        ?: throw IllegalArgumentException()
 
                     SendTronViewModel(
                         wallet = wallet,

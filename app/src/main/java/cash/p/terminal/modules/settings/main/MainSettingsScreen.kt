@@ -157,7 +157,10 @@ private fun SettingSections(
                 R.string.Settings_WalletConnect,
                 R.drawable.ic_wallet_connect_20,
                 value = (uiState.wcCounterType as? MainSettingsModule.CounterType.SessionCounter)?.number?.toString(),
-                counterBadge = (uiState.wcCounterType as? MainSettingsModule.CounterType.PendingRequestCounter)?.number?.toString(),
+                counterBadge = (
+                        uiState.wcCounterType as?
+                                MainSettingsModule.CounterType.PendingRequestCounter
+                        )?.number?.toString(),
                 onClick = {
                     when (val state = viewModel.walletConnectSupportState) {
                         WCManager.SupportState.Supported -> {

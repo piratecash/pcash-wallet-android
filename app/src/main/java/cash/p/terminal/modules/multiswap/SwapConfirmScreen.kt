@@ -210,22 +210,20 @@ private fun SwapConfirmButtons(
 ) {
     val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
     val moneroSpendReadiness = uiState.moneroSpendReadiness
-    Column {
-        when {
-            uiState.loading -> SwapLoadingButton()
-            uiState.criticalError != null -> RefreshSwapButton(uiState.criticalError, actions.refresh)
-            moneroSpendReadiness != null && moneroSpendReadiness != MoneroSpendReadiness.Ready ->
-                MoneroSpendReadinessStatus(
-                    spendReadiness = moneroSpendReadiness,
-                    preparationInProgress = uiState.moneroPreparationInProgress,
-                    preparationError = uiState.moneroPreparationError,
-                    preparationRetryAvailable = uiState.moneroPreparationRetryAvailable,
-                    onRetry = actions.retryMoneroPreparation,
-                )
-            !uiState.validQuote -> InvalidQuoteButton(uiState, hasErrorCaution, actions)
-            uiState.expired -> ExpiredQuoteButton(actions.refresh)
-            else -> ReadySwapButton(uiState, runtime, actions, hasFeeProblem, hasErrorCaution)
-        }
+    when {
+        uiState.loading -> SwapLoadingButton()
+        uiState.criticalError != null -> RefreshSwapButton(uiState.criticalError, actions.refresh)
+        moneroSpendReadiness != null && moneroSpendReadiness != MoneroSpendReadiness.Ready ->
+            MoneroSpendReadinessStatus(
+                spendReadiness = moneroSpendReadiness,
+                preparationInProgress = uiState.moneroPreparationInProgress,
+                preparationError = uiState.moneroPreparationError,
+                preparationRetryAvailable = uiState.moneroPreparationRetryAvailable,
+                onRetry = actions.retryMoneroPreparation,
+            )
+        !uiState.validQuote -> InvalidQuoteButton(uiState, hasErrorCaution, actions)
+        uiState.expired -> ExpiredQuoteButton(actions.refresh)
+        else -> ReadySwapButton(uiState, runtime, actions, hasFeeProblem, hasErrorCaution)
     }
 }
 
@@ -281,64 +279,44 @@ private fun MoneroSpendReadinessStatus(
     preparationRetryAvailable: Boolean,
     onRetry: () -> Unit,
 ) {
-    Column {
-        TextImportantWarning(
-            modifier = Modifier.fillMaxWidth(),
-            text = stringResource(
-                if (spendReadiness.requiresTrezorPreparation()) {
-                    R.string.monero_prepare_trezor_description
-                } else {
-                    R.string.send_confirmation_syncing_warning
-                },
-            ),
-        )
-        MoneroPreparationAction(
-            preparationInProgress,
-            preparationError,
-            preparationRetryAvailable,
-            onRetry,
-        )
-        VSpacer(height = 12.dp)
-    }
-}
+    TextImportantWarning(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(
+            if (spendReadiness.requiresTrezorPreparation()) {
+                R.string.monero_prepare_trezor_description
+            } else {
+                R.string.send_confirmation_syncing_warning
+            },
+        ),
+    )
+    when {
+        preparationInProgress -> {
+            VSpacer(height = 8.dp)
+            ButtonPrimaryYellow(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.monero_updating_with_trezor),
+                enabled = false,
+                loadingIndicator = true,
+                onClick = {},
+            )
+        }
 
-@Composable
-private fun MoneroPreparationAction(
-    preparationInProgress: Boolean,
-    preparationError: Int?,
-    preparationRetryAvailable: Boolean,
-    onRetry: () -> Unit,
-) {
-    Column {
-        if (preparationRetryAvailable) {
+        preparationRetryAvailable -> {
             preparationError?.let { error ->
                 TextImportantWarning(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(error),
                 )
             }
-        }
-        when {
-            preparationInProgress -> {
-                VSpacer(height = 8.dp)
-                ButtonPrimaryYellow(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.monero_updating_with_trezor),
-                    enabled = false,
-                    onClick = {},
-                    loadingIndicator = true,
-                )
-            }
-            preparationRetryAvailable -> {
-                VSpacer(height = 8.dp)
-                ButtonPrimaryDefault(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Button_Retry),
-                    onClick = onRetry,
-                )
-            }
+            VSpacer(height = 8.dp)
+            ButtonPrimaryDefault(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.Button_Retry),
+                onClick = onRetry,
+            )
         }
     }
+    VSpacer(height = 12.dp)
 }
 
 @Composable

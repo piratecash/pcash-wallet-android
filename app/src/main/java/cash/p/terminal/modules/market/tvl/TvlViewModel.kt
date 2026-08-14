@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.modules.market.MarketModule
@@ -34,8 +35,10 @@ class TvlViewModel(
     val chainSelectorDialogStateLiveData = MutableLiveData<SelectorDialogState>()
 
     var header = MarketModule.Header(
-        title = cash.p.terminal.strings.helpers.Translator.getString(R.string.MarketGlobalMetrics_TvlInDefi),
-        description = cash.p.terminal.strings.helpers.Translator.getString(R.string.MarketGlobalMetrics_TvlInDefiDescription),
+        title = Translator.getString(R.string.MarketGlobalMetrics_TvlInDefi),
+        description = Translator.getString(
+            R.string.MarketGlobalMetrics_TvlInDefiDescription
+        ),
         icon = ImageSource.Remote("https://cdn.blocksdecoded.com/header-images/tvl@3x.png")
     )
 

@@ -9,7 +9,9 @@ import cash.p.terminal.entities.UserDeletedWallet
 @Dao
 interface UserDeletedWalletDao {
 
-    @Query("SELECT EXISTS(SELECT 1 FROM UserDeletedWallet WHERE accountId = :accountId AND tokenQueryId = :tokenQueryId)")
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM UserDeletedWallet WHERE accountId = :accountId AND tokenQueryId = :tokenQueryId)"
+    )
     suspend fun exists(accountId: String, tokenQueryId: String): Boolean
 
     @Query("SELECT tokenQueryId FROM UserDeletedWallet WHERE accountId = :accountId")

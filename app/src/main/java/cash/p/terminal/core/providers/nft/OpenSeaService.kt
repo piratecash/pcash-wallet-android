@@ -15,7 +15,8 @@ class OpenSeaService(
         APIClient.build(
             baseUrl = "https://api.opensea.io/api/v1/",
             headers = mapOf(
-                "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",
+                "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like " +
+                        "Gecko) Chrome/50.0.2661.102 Safari/537.36",
                 "X-API-KEY" to openSeaApiKey
             )
         ).create(OpenSeaApi::class.java)
@@ -61,7 +62,9 @@ class OpenSeaService(
     suspend fun collectionEvents(uid: String, type: String?, cursor: String?): OpenSeaNftApiResponse.Events =
         hsService.events(collectionUid = uid, eventType = type, cursor = cursor)
 
-    suspend fun assetEvents(contractAddress: String, tokenId: String, type: String?, cursor: String?): OpenSeaNftApiResponse.Events =
+    suspend fun assetEvents(
+        contractAddress: String, tokenId: String, type: String?, cursor: String?
+    ): OpenSeaNftApiResponse.Events =
         hsService.events(contractAddress = contractAddress, tokenId = tokenId, eventType = type, cursor = cursor)
 
     suspend fun assets(contractAddresses: List<String>, tokenIds: List<String>): OpenSeaNftApiResponse.Assets =

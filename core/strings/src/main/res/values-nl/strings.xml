@@ -2080,6 +2080,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="multi_swap_no_providers">Geen providers beschikbaar</string>
     <string name="multi_swap_finding_best_provider">Beste aanbieder zoeken…</string>
     <string name="multi_swap_continue">Ruil voortzetten</string>
+    <string name="multi_swap_route_explanation">Voor de beste koers wordt een route via %2$s gebruikt. De ruil wordt in twee opeenvolgende stappen uitgevoerd: eerst %1$s → %2$s, daarna %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Ruilroute</string>
+    <string name="multi_swap_execution_title">Ruil</string>
+    <string name="multi_swap_step">Stap %d</string>
+    <string name="multi_swap_understood_continue">Begrepen, doorgaan</string>
     <string name="multi_swap_unfinished">Onvoltooide ruil</string>
     <string name="multi_swap_unfinished_plural">Onvoltooide ruilingen (%d)</string>
     <string name="duration_short_hours">%1$du</string>
@@ -2208,6 +2213,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen door omdraaien</string>
     <string name="balance_hide_on_flip_description">Draai het scherm van het apparaat naar beneden om je saldo snel te verbergen en te tonen.</string>
+    <string name="balance_hide_on_flip_unsupported">Dit apparaat ondersteunt Verbergen door omdraaien niet.</string>
     <string name="balance_hide_on_flip_info_title">Saldo verborgen</string>
     <string name="balance_hide_on_flip_info_description">Om je saldo te verbergen of te tonen, draai je gewoon het scherm van het apparaat naar beneden, of schakel je het uit in de beveiligingsinstellingen.</string>
     <string name="balance_hide_on_flip_dont_show_again">Niet meer tonen</string>

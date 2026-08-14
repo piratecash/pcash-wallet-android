@@ -9,6 +9,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.body_grey
@@ -53,7 +54,7 @@ fun CoinScreenTitle(
 @Preview
 @Composable
 fun CoinScreenTitlePreviewNoRank() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         CoinScreenTitle(
             coinName = "Synthetix Network TokenSynthetix Network Token",
             marketCapRank = null,
@@ -67,9 +68,10 @@ fun CoinScreenTitlePreviewNoRank() {
 @Preview
 @Composable
 fun CoinScreenTitlePreviewLongTitle() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         CoinScreenTitle(
-            coinName = "Synthetix Network Token Synthetix Network Token Synthetix Network Token Synthetix Network Token",
+            coinName = "Synthetix Network Token Synthetix Network Token Synthetix Network Token Synthetix Network " +
+                    "Token",
             marketCapRank = 123,
             coinIconUrl = "https://cdn.blocksdecoded.com/coin-icons/32px/bitcoin@3x.png",
             alternativeCoinIconUrl = null,
@@ -81,7 +83,7 @@ fun CoinScreenTitlePreviewLongTitle() {
 @Preview
 @Composable
 fun CoinScreenTitlePreviewShortTitle() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         CoinScreenTitle(
             coinName = "Bitcoin",
             marketCapRank = 1,

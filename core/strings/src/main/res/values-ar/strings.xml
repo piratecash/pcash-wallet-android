@@ -2096,6 +2096,11 @@
     <string name="multi_swap_no_providers">لا يوجد مزودون متاحون</string>
     <string name="multi_swap_finding_best_provider">جارٍ البحث عن أفضل مزود…</string>
     <string name="multi_swap_continue">متابعة التبادل</string>
+    <string name="multi_swap_route_explanation">للحصول على أفضل سعر، يُستخدم مسار عبر %2$s. سيتم تنفيذ المبادلة في خطوتين متتاليتين: أولاً %1$s → %2$s، ثم %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">مسار المبادلة</string>
+    <string name="multi_swap_execution_title">مبادلة</string>
+    <string name="multi_swap_step">الخطوة %d</string>
+    <string name="multi_swap_understood_continue">فهمت، متابعة</string>
     <string name="multi_swap_unfinished">تبادل غير مكتمل</string>
     <string name="multi_swap_unfinished_plural">تبادلات غير مكتملة (%d)</string>
     <string name="duration_short_hours">%1$dس</string>
@@ -2228,6 +2233,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">الإخفاء بالقلب</string>
     <string name="balance_hide_on_flip_description">اقلب شاشة الجهاز إلى الأسفل لإخفاء رصيدك وإظهاره بسرعة.</string>
+    <string name="balance_hide_on_flip_unsupported">هذا الجهاز لا يدعم الإخفاء بالقلب.</string>
     <string name="balance_hide_on_flip_info_title">تم إخفاء الرصيد</string>
     <string name="balance_hide_on_flip_info_description">لإخفاء رصيدك أو إظهاره، ما عليك سوى قلب شاشة الجهاز إلى الأسفل أو إيقافه من إعدادات الأمان.</string>
     <string name="balance_hide_on_flip_dont_show_again">عدم الإظهار مرة أخرى</string>

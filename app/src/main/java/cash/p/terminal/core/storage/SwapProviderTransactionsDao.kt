@@ -71,7 +71,8 @@ interface SwapProviderTransactionsDao {
 
     @Query(
         "SELECT * FROM SwapProviderTransaction WHERE " +
-                "(coinUidIn = :coinUid AND blockchainTypeIn = :blockchainType AND date >= :dateFrom AND date <= :dateTo) " +
+                "(coinUidIn = :coinUid AND blockchainTypeIn = :blockchainType AND date >= :dateFrom AND date <= " +
+                ":dateTo) " +
                 "AND (:amountIn is NULL OR amountIn == :amountIn) ORDER BY date DESC LIMIT 1"
     )
     fun getByTokenIn(
@@ -94,7 +95,8 @@ interface SwapProviderTransactionsDao {
 
     @Query(
         "SELECT * FROM SwapProviderTransaction WHERE " +
-                "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND accountId IN ('', :accountId) AND date >= :dateFrom AND date <= :dateTo) ORDER BY date DESC LIMIT 1"
+                "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND accountId IN ('', :accountId) AND" +
+                " date >= :dateFrom AND date <= :dateTo) ORDER BY date DESC LIMIT 1"
     )
     fun getByTokenOut(
         coinUid: String,
@@ -142,13 +144,19 @@ interface SwapProviderTransactionsDao {
     @Query("SELECT * FROM SwapProviderTransaction WHERE date = :date")
     fun observeByDate(date: Long): Flow<SwapProviderTransaction?>
 
-    @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid, amountOutReal = :amountOutReal WHERE date = :date")
+    @Query(
+        "UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid, amountOutReal = :amountOutReal " +
+                "WHERE date = :date"
+    )
     fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal)
 
     @Query("UPDATE SwapProviderTransaction SET outgoingRecordUid = :outgoingRecordUid WHERE date = :date")
     fun setOutgoingRecordUid(date: Long, outgoingRecordUid: String)
 
-    @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE date = :date")
+    @Query(
+        "UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = " +
+                ":finishedAt WHERE date = :date"
+    )
     fun updateStatusFields(date: Long, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
 
     @Query("UPDATE SwapProviderTransaction SET transactionId = :newTransactionId WHERE date = :date")
@@ -186,7 +194,8 @@ interface SwapProviderTransactionsDao {
         limit: Int
     ): List<SwapProviderTransaction>
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM SwapProviderTransaction
         WHERE provider = :provider
         AND coinUidOut = :coinUidOut
@@ -199,7 +208,8 @@ interface SwapProviderTransactionsDao {
         AND date <= :dateTo
         ORDER BY ABS(CAST(amountOut AS REAL) - :expectedAmount) ASC
         LIMIT 1
-    """)
+    """
+    )
     fun getByProviderAndTokenOut(
         provider: String,
         coinUidOut: String,

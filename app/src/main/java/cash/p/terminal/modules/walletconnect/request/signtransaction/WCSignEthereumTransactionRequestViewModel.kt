@@ -3,6 +3,7 @@ package cash.p.terminal.modules.walletconnect.request.signtransaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.core.App
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.ethereum.CautionViewItem
@@ -87,7 +88,9 @@ class WCSignEthereumTransactionRequestViewModel(
             buildList {
                 add(
                     ViewItem.Value(
-                        cash.p.terminal.strings.helpers.Translator.getString(R.string.WalletConnect_SignMessageRequest_dApp),
+                        Translator.getString(
+                            R.string.WalletConnect_SignMessageRequest_dApp
+                        ),
                         dAppName,
                         ValueType.Regular
                     )
@@ -117,7 +120,9 @@ class WCSignEthereumTransactionRequestViewModel(
         val signedBytes = TransactionBuilder.encode(signedRawTransaction, signature, evmKit.evmKit.chain.id)
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->
-            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, signedBytes.to0xHexString())
+            WCDelegate.respondPendingRequest(
+                sessionRequest.request.id, sessionRequest.topic, signedBytes.to0xHexString()
+            )
         }
     }
 

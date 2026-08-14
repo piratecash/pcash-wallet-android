@@ -43,7 +43,7 @@ class CoinMajorHoldersViewModel(
     override fun createState() = UiState(
         viewState = viewState,
         top10Share = top10Share,
-        totalHoldersCount  = totalHoldersCount,
+        totalHoldersCount = totalHoldersCount,
         seeAllUrl = seeAllUrl,
         chartData = chartData,
         topHolders = topHolders,
@@ -83,9 +83,10 @@ class CoinMajorHoldersViewModel(
         }
     }
 
-    private suspend fun getTokenHolders(coinUid: String, blockchainUid: String): TokenHolders = withContext(Dispatchers.IO) {
-        marketKit.tokenHoldersSingle(coinUid, blockchainUid).await()
-    }
+    private suspend fun getTokenHolders(coinUid: String, blockchainUid: String): TokenHolders =
+        withContext(Dispatchers.IO) {
+            marketKit.tokenHoldersSingle(coinUid, blockchainUid).await()
+        }
 
     private fun getChartData(top10ShareFloat: Float, blockchain: Blockchain): List<StackBarSlice> {
         val remaining = 100f - top10ShareFloat

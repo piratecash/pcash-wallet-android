@@ -10,6 +10,7 @@ import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
 import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.modules.multiswap.MultiSwapOnChainMonitor
+import cash.p.terminal.modules.multiswap.PriceImpactService
 import cash.p.terminal.modules.multiswap.PriceImpactLevel
 import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.SwapAmountDirection
@@ -189,7 +190,7 @@ class MultiSwapExchangeViewModel(
         leg2QuotingJob?.cancel()
         leg2QuoteFetched = true
         leg2Quoting = true
-        val previousSelectedProvider = selectedLeg2Quote?.provider
+        val previousSelectedProvider = selectedLeg2Quote?.provider?.id ?: swap.leg2ProviderId
         leg2Quotes = emptyList()
         selectedLeg2Quote = null
         timerService.reset()
@@ -208,7 +209,7 @@ class MultiSwapExchangeViewModel(
                 )
                 leg2Quoting = false
                 leg2Quotes = quotes
-                selectedLeg2Quote = quotes.firstOrNull { it.provider == previousSelectedProvider }
+                selectedLeg2Quote = quotes.firstOrNull { it.provider.id == previousSelectedProvider }
                     ?: quotes.firstOrNull()
                 startTimerIfNeeded()
                 currentSwap?.let { uiState = mapToUiState(it) }
@@ -373,7 +374,13 @@ class MultiSwapExchangeViewModel(
         val leg2Status = mapStatus(swap.leg2Status)
 
         val hasQuotes = selectedLeg2Quote != null
-        val buttonState = resolveButtonState(leg1Status, leg2Status, hasQuotes, timerState.timeout, quoting = leg2Quoting)
+        val buttonState = resolveButtonState(
+            leg1Status,
+            leg2Status,
+            hasQuotes,
+            timerState.timeout,
+            quoting = leg2Quoting,
+        )
         val actionCreate = if (buttonState == ButtonState.Enabled) {
             if (tokenIntermediate != null && tokenOut != null) {
                 selectedLeg2Quote?.provider?.getCreateTokenActionRequired(listOf(tokenIntermediate, tokenOut))
@@ -397,6 +404,8 @@ class MultiSwapExchangeViewModel(
         // Leg2 amounts: use quote data if available, otherwise stored/expected values
         val leg2AmountOut = selectedLeg2Quote?.amountOut ?: swap.leg2AmountOut ?: swap.expectedAmountOut
         val fiatAmountOut = fiatAmount(tokenOut, leg2AmountOut)
+        val leg1PriceImpact = PriceImpactService.fiatPriceImpact(fiatAmountIntermediate, fiatAmountIn)
+        val leg2PriceImpact = PriceImpactService.fiatPriceImpact(fiatAmountOut, fiatAmountIntermediate)
 
         return MultiSwapExchangeUiState(
             leg1 = LegUiState(
@@ -418,6 +427,8 @@ class MultiSwapExchangeViewModel(
                 coinIconUrlOut = coinImageUrl(swap.coinUidIntermediate),
                 amountInFormatted = numberFormatter.formatCoinFull(swap.amountIn, null, 8),
                 amountOutFormatted = swap.leg1AmountOut?.let { numberFormatter.formatCoinFull(it, null, 8) },
+                priceImpact = leg1PriceImpact,
+                priceImpactLevel = PriceImpactService.priceImpactLevel(leg1PriceImpact),
                 riskType = leg1Provider?.riskType,
             ),
             leg2 = LegUiState(
@@ -439,6 +450,8 @@ class MultiSwapExchangeViewModel(
                 coinIconUrlOut = coinImageUrl(swap.coinUidOut),
                 amountInFormatted = swap.leg1AmountOut?.let { numberFormatter.formatCoinFull(it, null, 8) },
                 amountOutFormatted = numberFormatter.formatCoinFull(leg2AmountOut, null, 8),
+                priceImpact = leg2PriceImpact,
+                priceImpactLevel = PriceImpactService.priceImpactLevel(leg2PriceImpact),
                 riskType = leg2Provider?.riskType,
                 estimationTime = selectedLeg2Quote?.estimationTime,
             ),
@@ -530,7 +543,11 @@ data class MultiSwapExchangeUiState(
     val leg2ProviderClickable: Boolean = false,
     val leg2Quoting: Boolean = false,
     val actionCreate: ActionCreate? = null,
+    val presentation: MultiSwapExchangePresentation = MultiSwapExchangePresentation.Execution,
+    val routeExplanationTokens: List<String> = emptyList(),
 )
+
+enum class MultiSwapExchangePresentation { RouteInfo, Execution }
 
 data class LegUiState(
     val status: LegStatus,

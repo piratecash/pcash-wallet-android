@@ -54,7 +54,7 @@ val TokenQuery.isSupported: Boolean
         BlockchainType.Bitcoin,
         BlockchainType.Litecoin -> {
             tokenType is TokenType.Derived ||
-                isLitecoinMweb
+                    isLitecoinMweb
         }
 
         BlockchainType.BitcoinCash -> {
@@ -144,6 +144,7 @@ val BlockchainType.restoreSettingTypes: List<RestoreSettingType>
     get() = when (this) {
         BlockchainType.Zcash,
         BlockchainType.Monero -> listOf(RestoreSettingType.BirthdayHeight)
+
         else -> listOf()
     }
 
@@ -325,12 +326,20 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
             when (this) {
                 BlockchainType.Bitcoin -> coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
                 BlockchainType.Litecoin -> coinTypes.contains(ExtendedKeyCoinType.Litecoin)
-                BlockchainType.Dogecoin -> coinTypes.contains(ExtendedKeyCoinType.Dogecoin) || coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
-                BlockchainType.Dash -> (coinTypes.contains(ExtendedKeyCoinType.Dash) || coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) && accountType.hdExtendedKey.purposes.contains(
+                BlockchainType.Dogecoin -> coinTypes.contains(ExtendedKeyCoinType.Dogecoin) || coinTypes.contains(
+                    ExtendedKeyCoinType.Bitcoin
+                )
+
+                BlockchainType.Dash -> (coinTypes.contains(ExtendedKeyCoinType.Dash) || coinTypes.contains(
+                    ExtendedKeyCoinType.Bitcoin
+                )) && accountType.hdExtendedKey.purposes.contains(
                     HDWallet.Purpose.BIP44
                 )
+
                 BlockchainType.BitcoinCash,
-                BlockchainType.ECash -> coinTypes.contains(ExtendedKeyCoinType.Bitcoin) && accountType.hdExtendedKey.purposes.contains(
+                BlockchainType.ECash -> coinTypes.contains(
+                    ExtendedKeyCoinType.Bitcoin
+                ) && accountType.hdExtendedKey.purposes.contains(
                     HDWallet.Purpose.BIP44
                 )
 
@@ -461,9 +470,18 @@ fun Token.supports(accountType: AccountType): Boolean {
                         if (!accountType.hdExtendedKey.purposes.contains(type.derivation.purpose)) {
                             false
                         } else when (blockchainType) {
-                            BlockchainType.Bitcoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
-                            BlockchainType.Litecoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Litecoin)
-                            BlockchainType.Dogecoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Dogecoin) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
+                            BlockchainType.Bitcoin -> accountType.hdExtendedKey.coinTypes.contains(
+                                ExtendedKeyCoinType.Bitcoin
+                            )
+
+                            BlockchainType.Litecoin -> accountType.hdExtendedKey.coinTypes.contains(
+                                ExtendedKeyCoinType.Litecoin
+                            )
+
+                            BlockchainType.Dogecoin -> accountType.hdExtendedKey.coinTypes.contains(
+                                ExtendedKeyCoinType.Dogecoin
+                            ) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
+
                             else -> false
                         }
                     } else {
@@ -472,14 +490,16 @@ fun Token.supports(accountType: AccountType): Boolean {
                 }
 
                 BlockchainType.Dash -> {
-                    (accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Dash) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) &&
-                        accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
+                    (accountType.hdExtendedKey.coinTypes.contains(
+                        ExtendedKeyCoinType.Dash
+                    ) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) &&
+                            accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
                 }
 
                 BlockchainType.BitcoinCash,
                 BlockchainType.ECash -> {
                     accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin) &&
-                        accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
+                            accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
                 }
 
                 else -> false
@@ -597,7 +617,8 @@ val TokenType.title: String
 val TokenType.description: String
     get() = when (this) {
         TokenType.Mweb -> Translator.getString(R.string.token_type_litecoin_mweb)
-        is TokenType.Derived -> derivation.accountTypeDerivation.addressType + derivation.accountTypeDerivation.recommended
+        is TokenType.Derived ->
+            derivation.accountTypeDerivation.addressType + derivation.accountTypeDerivation.recommended
         is TokenType.AddressTyped -> Translator.getString(type.bitcoinCashCoinType.description)
         is TokenType.AddressSpecTyped -> Translator.getString(type.zCashCoinType.description)
         else -> ""

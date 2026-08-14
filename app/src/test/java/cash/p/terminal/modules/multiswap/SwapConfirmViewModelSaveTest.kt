@@ -430,15 +430,17 @@ class SwapConfirmViewModelSaveTest {
         val vm = createViewModel(provider)
         advanceUntilIdle()
 
-        vm.onTransactionCompleted(SendTransactionResult.Btc(uid = "btc-uid", canonicalHashReversedHex = "btc-canonical-hash"))
+        vm.onTransactionCompleted(
+            SendTransactionResult.Btc(uid = "btc-uid", canonicalHashReversedHex = "btc-canonical-hash")
+        )
 
         assertNotEquals("btc-uid", "btc-canonical-hash")
         coVerify(exactly = 1) {
             swapProviderTransactionsStorage.save(
                 match {
                     it.outgoingRecordUid == "btc-uid" &&
-                        it.transactionId == "btc-canonical-hash" &&
-                        it.provider == SwapProvider.THORCHAIN
+                            it.transactionId == "btc-canonical-hash" &&
+                            it.provider == SwapProvider.THORCHAIN
                 }
             )
         }
@@ -478,7 +480,9 @@ class SwapConfirmViewModelSaveTest {
         val vm = createViewModel(provider)
         advanceUntilIdle()
 
-        vm.onTransactionCompleted(SendTransactionResult.Btc(uid = "btc-uid", canonicalHashReversedHex = "btc-canonical-hash"))
+        vm.onTransactionCompleted(
+            SendTransactionResult.Btc(uid = "btc-uid", canonicalHashReversedHex = "btc-canonical-hash")
+        )
 
         verify(exactly = 1) { provider.onTransactionCompleted(any(), any()) }
         verify(exactly = 0) { swapProviderTransactionsStorage.save(any()) }

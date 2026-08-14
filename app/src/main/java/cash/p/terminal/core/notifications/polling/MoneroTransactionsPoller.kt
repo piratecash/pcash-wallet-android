@@ -7,7 +7,9 @@ import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 
@@ -19,10 +21,23 @@ class MoneroTransactionsPoller(
     override val blockchainTypes = setOf(BlockchainType.Monero)
 
     override suspend fun pollOnce(wallets: List<Wallet>): List<TransactionRecord> {
+        val wrapper = moneroKitManager.moneroKitWrapper
+        if (wrapper == null) {
+            Timber.tag("TxPoller").w("Monero wrapper is null, skipping poll")
+            return emptyList()
+        }
+
         return withTimeoutOrNull(TransactionsPoller.POLLING_TIMEOUT_MS) {
-            moneroKitManager.withPollingSession { wrapper ->
+            var started = false
+            try {
+                moneroKitManager.startForPolling()
+                started = true
                 wrapper.syncState.first { it is AdapterState.Synced }
                 readTransactions(wallets)
+            } finally {
+                if (started) {
+                    withContext(NonCancellable) { moneroKitManager.stopForPolling() }
+                }
             }
         } ?: emptyList<TransactionRecord>().also {
             Timber.tag("TxPoller").w("Monero poll timed out")

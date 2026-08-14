@@ -83,8 +83,16 @@ class CurveAnimator2(
 
             frameValues = toValues
         } else {
-            frameStartTimestamp = getForFrame(fromStartTimestamp.toFloat(), toStartTimestamp.toFloat(), animatedFraction).toLong()
-            frameEndTimestamp = getForFrame(fromEndTimestamp.toFloat(), toEndTimestamp.toFloat(), animatedFraction).toLong()
+            frameStartTimestamp = getForFrame(
+                fromStartTimestamp.toFloat(),
+                toStartTimestamp.toFloat(),
+                animatedFraction
+            ).toLong()
+            frameEndTimestamp = getForFrame(
+                fromEndTimestamp.toFloat(),
+                toEndTimestamp.toFloat(),
+                animatedFraction
+            ).toLong()
 
             frameMinValue = getForFrame(fromMinValue, toMinValue, animatedFraction)
             frameMaxValue = getForFrame(fromMaxValue, toMaxValue, animatedFraction)

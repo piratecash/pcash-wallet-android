@@ -98,6 +98,7 @@ class SendBitcoinViewModel(
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
     private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder = getKoinInstance()
     private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository = getKoinInstance()
+
     @Suppress("UNCHECKED_CAST")
     private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineBitcoinTransaction>
     override val offlineSigningController = OfflineSigningController<OfflineSignResult>(
@@ -202,7 +203,8 @@ class SendBitcoinViewModel(
             addressError = addressState.addressError,
             amountCaution = amountState.amountCaution,
             feeRateCaution = feeRateState.feeRateCaution,
-            canBeSend = amountState.canBeSend && addressState.canBeSend && feeRateState.canBeSend && (!poison || riskAccepted),
+            canBeSend = amountState.canBeSend && addressState.canBeSend && feeRateState.canBeSend && (!poison ||
+                    riskAccepted),
             showAddressInput = showAddressInput,
             utxoData = if (utxoExpertModeEnabled && isAdvancedSettingsAvailable) utxoData else null,
             isAdvancedSettingsAvailable = isAdvancedSettingsAvailable,
@@ -270,8 +272,13 @@ class SendBitcoinViewModel(
     }
 
     private fun updateUtxoData(usedUtxosSize: Int) {
+        val type = if (customUnspentOutputs == null) {
+            SendBitcoinModule.UtxoType.Auto
+        } else {
+            SendBitcoinModule.UtxoType.Manual
+        }
         utxoData = SendBitcoinModule.UtxoData(
-            type = if (customUnspentOutputs == null) SendBitcoinModule.UtxoType.Auto else SendBitcoinModule.UtxoType.Manual,
+            type = type,
             value = "$usedUtxosSize / ${adapter.unspentOutputs.size}"
         )
     }
@@ -464,7 +471,7 @@ class SendBitcoinViewModel(
             ?: missingSendRequestValue(R.string.send_error_fee_rate_unavailable)
         val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
             ?.balanceData?.available ?: amountState.availableBalance
-            ?: missingSendRequestValue(R.string.send_error_balance_unavailable)
+        ?: missingSendRequestValue(R.string.send_error_balance_unavailable)
 
         return SendRequest(validAddress, amount, feeRate, sdkBalance)
     }

@@ -85,8 +85,11 @@ class RotatingCircleProgressView : View {
     }
 
     private fun updateRectAngleBounds() {
-        mCircleRect.set(circlePadding + mThickness, circlePadding + mThickness,
-                mSize.toFloat() - circlePadding.toFloat() - mThickness, mSize.toFloat() - circlePadding.toFloat() - mThickness)
+        mCircleRect.set(
+            circlePadding + mThickness, circlePadding + mThickness,
+            mSize.toFloat() - circlePadding.toFloat() - mThickness,
+            mSize.toFloat() - circlePadding.toFloat() - mThickness
+        )
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -110,7 +113,10 @@ class RotatingCircleProgressView : View {
                     animationProgressStart = currentProgress
                     currentProgressTime = 0
                 } else {
-                    animatedProgressValue = animationProgressStart + progressDiff * decelerateInterpolator.getInterpolation(currentProgressTime / 300.0f)
+                    animatedProgressValue =
+                        animationProgressStart + progressDiff * decelerateInterpolator.getInterpolation(
+                            currentProgressTime / 300.0f
+                        )
                 }
             }
             invalidate()

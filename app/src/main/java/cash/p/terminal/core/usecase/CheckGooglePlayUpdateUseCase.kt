@@ -23,8 +23,14 @@ class CheckGooglePlayUpdateUseCase {
                 when {
                     appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE -> {
                         when {
-                            appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE) -> UpdateResult.ImmediateUpdateAvailable
-                            appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) -> UpdateResult.FlexibleUpdateAvailable
+                            appUpdateInfo.isUpdateTypeAllowed(
+                                AppUpdateType.IMMEDIATE
+                            ) -> UpdateResult.ImmediateUpdateAvailable
+
+                            appUpdateInfo.isUpdateTypeAllowed(
+                                AppUpdateType.FLEXIBLE
+                            ) -> UpdateResult.FlexibleUpdateAvailable
+
                             else -> UpdateResult.NoUpdate
                         }
                     }

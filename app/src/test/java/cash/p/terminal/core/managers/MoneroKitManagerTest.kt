@@ -155,11 +155,11 @@ class MoneroKitManagerTest {
     }
 
     @Test
-    fun withPollingSession_reopensStoppedWallet() = testScope.runTest {
+    fun startForPolling_reopensStoppedWallet() = testScope.runTest {
         val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
         coEvery { mockWrapper.resume() } returns false
 
-        manager.withPollingSession { }
+        manager.startForPolling()
         advanceUntilIdle()
 
         coVerify { mockWrapper.resume() }
@@ -167,10 +167,10 @@ class MoneroKitManagerTest {
     }
 
     @Test
-    fun withPollingSession_background_stopsAndSaves() = testScope.runTest {
+    fun stopForPolling_background_stopsAndSaves() = testScope.runTest {
         val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterBackground))
 
-        manager.withPollingSession { }
+        manager.stopForPolling()
         advanceUntilIdle()
 
         coVerify(exactly = 1) { mockWrapper.stop(saveWallet = true) }
@@ -206,87 +206,6 @@ class MoneroKitManagerTest {
         assertSame(mockWrapper, manager.moneroKitWrapper)
         assertSame(account, manager.currentAccount)
         assertEquals(1, (fieldValue(manager, "useCount") as AtomicInteger).get())
-    }
-
-    @Test
-    fun deleteForAccount_firstNativeCloseFails_thenSucceeds_deletesAccountAndClearsKitOwnership() = testScope.runTest {
-        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
-        setField(manager, "currentAccount", account)
-        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
-        var accountDeleted = false
-        coEvery { mockWrapper.stop(saveWallet = false) } throws IllegalStateException("close failed") andThen Unit
-        manager.deleteForAccount(account, { assertTrue(accountDeleted) }, { accountDeleted = true })
-        assertNull(manager.moneroKitWrapper)
-        assertNull(manager.currentAccount)
-        assertEquals(0, (fieldValue(manager, "useCount") as AtomicInteger).get())
-        coVerify(exactly = 2) { mockWrapper.stop(saveWallet = false) }
-        coVerify(exactly = 0) { mockWrapper.stop(saveWallet = true) }
-    }
-
-    @Test
-    fun deleteForAccount_twoNativeCloseFailures_retainsOwnershipAndDoesNotDeleteOrStopAdapters() =
-        testScope.runTest {
-            val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
-            setField(manager, "currentAccount", account)
-            (fieldValue(manager, "useCount") as AtomicInteger).set(1)
-            coEvery { mockWrapper.stop(saveWallet = false) } throws IllegalStateException("close failed")
-            var accountDeleted = false
-            var adaptersStopped = false
-            assertFailsWith<IllegalStateException> {
-                manager.deleteForAccount(
-                    account,
-                    stopAdapters = { adaptersStopped = true },
-                    deleteAccount = { accountDeleted = true },
-                )
-            }
-            assertFalse(accountDeleted)
-            assertFalse(adaptersStopped)
-            assertSame(mockWrapper, manager.moneroKitWrapper)
-            assertSame(account, manager.currentAccount)
-            assertEquals(1, (fieldValue(manager, "useCount") as AtomicInteger).get())
-            coVerify(exactly = 2) { mockWrapper.stop(saveWallet = false) }
-        }
-
-    @Test
-    fun deleteForAccount_accountDeletionFails_retainsOwnershipAndRestartsOnForeground() = testScope.runTest {
-        val backgroundStateFlow = MutableStateFlow(BackgroundManagerState.EnterForeground)
-        val manager = createManager(backgroundStateFlow)
-        setField(manager, "currentAccount", account)
-        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
-        coEvery { mockWrapper.resume() } returns false
-        var adaptersStopped = false
-        assertFailsWith<IllegalStateException> {
-            manager.deleteForAccount(account, { adaptersStopped = true }) { error("delete failed") }
-        }
-        advanceUntilIdle()
-        assertFalse(adaptersStopped)
-        assertSame(mockWrapper, manager.moneroKitWrapper)
-        assertSame(account, manager.currentAccount)
-        assertEquals(1, (fieldValue(manager, "useCount") as AtomicInteger).get())
-        coVerify { mockWrapper.resume() }
-        coVerify { mockWrapper.start() }
-    }
-    @Test
-    fun deleteForAccount_waitsForActivePollingSession() = testScope.runTest {
-        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
-        val entered = CompletableDeferred<Unit>()
-        val release = CompletableDeferred<Unit>()
-        setField(manager, "currentAccount", account)
-        val polling = async {
-            manager.withPollingSession {
-                entered.complete(Unit)
-                release.await()
-            }
-        }
-        entered.await()
-        val deletion = async { manager.deleteForAccount(account, {}, {}) }
-        advanceUntilIdle()
-        assertFalse(deletion.isCompleted)
-        release.complete(Unit)
-        polling.await()
-        deletion.await()
-        coVerify(exactly = 1) { mockWrapper.stop(saveWallet = false) }
-        coVerify(exactly = 0) { mockWrapper.stop(saveWallet = true) }
     }
 
     @Test
@@ -492,36 +411,17 @@ class MoneroKitManagerTest {
     }
 
     @Test
-    fun deleteForAccount_partialStartupWrapper_closesAndClearsOwnershipBeforeDeletion() = testScope.runTest {
+    fun getMoneroKitWrapper_trezorCleanupRetainedOwnership_throwsTransientFailure() = testScope.runTest {
         val wrapper = createWrapper()
         val manager = createKitInstanceSpy(MutableStateFlow(BackgroundManagerState.EnterBackground), wrapper)
-        val trezorAccount = trezorAccount()
         val startupFailure = HardwareWalletOperationException(HardwareWalletErrorCode.DeviceNotFound, "USB unavailable")
-        val cleanupFailure = IllegalStateException("cleanup failed")
 
         every { wrapper.isRestartableAfterFailedStart } returns false
         coEvery { wrapper.start() } throws startupFailure
-        coEvery { wrapper.stop(saveWallet = true) } throws cleanupFailure
 
         assertSame(startupFailure, assertFailsWith<HardwareWalletOperationException> {
-            manager.getMoneroKitWrapper(trezorAccount)
+            manager.getMoneroKitWrapper(trezorAccount())
         })
-        assertSame(wrapper, manager.moneroKitWrapper)
-        assertNull(manager.currentAccount)
-
-        val repeatedCleanupFailure = assertFailsWith<IllegalStateException> {
-            manager.getMoneroKitWrapper(trezorAccount)
-        }
-        assertEquals(cleanupFailure.message, repeatedCleanupFailure.message)
-
-        var accountDeleted = false
-        coEvery { wrapper.stop(saveWallet = false) } returns Unit
-        manager.deleteForAccount(trezorAccount, {}, { accountDeleted = true })
-
-        assertTrue(accountDeleted)
-        assertNull(manager.moneroKitWrapper)
-        assertNull(manager.currentAccount)
-        coVerify(exactly = 1) { wrapper.stop(saveWallet = false) }
     }
 
     @Test
@@ -566,7 +466,6 @@ class MoneroKitManagerTest {
 
         assertSame(startupFailure, actual)
         assertNull(manager.moneroKitWrapper)
-        assertNull(fieldValue(manager, "wrapperAccount"))
     }
 
     // The foreground state collector also calls into the wrapper on subscription, so the recorded

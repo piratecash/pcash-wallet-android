@@ -114,7 +114,11 @@ internal fun TorStatusView(
                     maxLines = 1,
                     modifier = Modifier.weight(1f),
                     style = ComposeAppTheme.typography.subhead2,
-                    color = if (torViewState.showRetryButton) ComposeAppTheme.colors.lucian else ComposeAppTheme.colors.leah,
+                    color = if (torViewState.showRetryButton) {
+                        ComposeAppTheme.colors.lucian
+                    } else {
+                        ComposeAppTheme.colors.leah
+                    },
                 )
 
                 if (torViewState.showRetryButton) {

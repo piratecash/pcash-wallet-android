@@ -197,35 +197,36 @@ internal class BackupProviderV4BinaryTest : BackupProviderRestoreTestFixture() {
     }
 
     @Test
-    fun restoreSingleWalletBackup_manuallyAddedTokenAuthenticatedSource_approved_restoresItFromFileMetadata() = runTest {
-        curate(usdtQueryId)
-        val saved = captureRestoredWallets()
+    fun restoreSingleWalletBackup_manuallyAddedTokenAuthenticatedSource_approved_restoresItFromFileMetadata() =
+        runTest {
+            curate(usdtQueryId)
+            val saved = captureRestoredWallets()
 
-        backupProvider.restoreSingleWalletBackup(
-            walletBackupItem(
-                enabledWallets = listOf(
-                    backedUpWallet(usdtQueryId),
-                    backedUpWallet(manuallyAddedQueryId).copy(
-                        coinName = "My Token",
-                        coinCode = "MYT",
-                        decimals = 8
-                    )
+            backupProvider.restoreSingleWalletBackup(
+                walletBackupItem(
+                    enabledWallets = listOf(
+                        backedUpWallet(usdtQueryId),
+                        backedUpWallet(manuallyAddedQueryId).copy(
+                            coinName = "My Token",
+                            coinCode = "MYT",
+                            decimals = 8
+                        )
+                    ),
+                    source = BackupSource.Authenticated
                 ),
-                source = BackupSource.Authenticated
-            ),
-            approved = setOf(manuallyAddedQueryId)
-        )
+                approved = setOf(manuallyAddedQueryId)
+            )
 
-        assertEquals(
-            listOf(usdtQueryId, manuallyAddedQueryId),
-            saved.captured.map { it.tokenQueryId }
-        )
-        val manuallyAdded = saved.captured.last()
-        assertEquals("My Token", manuallyAdded.coinName)
-        assertEquals("MYT", manuallyAdded.coinCode)
-        assertEquals(8, manuallyAdded.coinDecimals)
-        assertNull(manuallyAdded.coinImage)
-    }
+            assertEquals(
+                listOf(usdtQueryId, manuallyAddedQueryId),
+                saved.captured.map { it.tokenQueryId }
+            )
+            val manuallyAdded = saved.captured.last()
+            assertEquals("My Token", manuallyAdded.coinName)
+            assertEquals("MYT", manuallyAdded.coinCode)
+            assertEquals(8, manuallyAdded.coinDecimals)
+            assertNull(manuallyAdded.coinImage)
+        }
 
     @Test
     fun restoreSingleWalletBackup_sameContractInTwoCases_savesOneCuratedRow() = runTest {

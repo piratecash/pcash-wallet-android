@@ -288,7 +288,9 @@ private fun AssetContent(
                             .clickable {
                                 navController.slideFromRight(
                                     R.id.nftCollectionFragment,
-                                    NftCollectionFragment.Input(asset.providerCollectionUid, asset.nftUid.blockchainType.uid)
+                                    NftCollectionFragment.Input(
+                                        asset.providerCollectionUid, asset.nftUid.blockchainType.uid
+                                    )
                                 )
                             },
                         verticalAlignment = Alignment.CenterVertically

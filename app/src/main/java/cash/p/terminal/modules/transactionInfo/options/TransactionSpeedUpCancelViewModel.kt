@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.core.App
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.ethereum.EvmCoinServiceFactory
@@ -19,6 +20,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 // import java.math.BigInteger // MOBILE-593
 
 internal class TransactionSpeedUpCancelViewModel(
@@ -30,13 +32,17 @@ internal class TransactionSpeedUpCancelViewModel(
 ) : ViewModelUiState<TransactionSpeedUpCancelUiState>() {
 
     val title: String = when (optionType) {
-        SpeedUpCancelType.SpeedUp -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TransactionInfoOptions_SpeedUp_Title)
-        // SpeedUpCancelType.Cancel -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TransactionInfoOptions_Cancel_Title) // MOBILE-593
+        SpeedUpCancelType.SpeedUp -> Translator.getString(
+            R.string.TransactionInfoOptions_SpeedUp_Title
+        )
+        // SpeedUpCancelType.Cancel -> Translator.getString(R.string.TransactionInfoOptions_Cancel_Title) // MOBILE-593
     }
 
     val buttonTitle: String = when (optionType) {
-        SpeedUpCancelType.SpeedUp -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TransactionInfoOptions_SpeedUp_Button)
-        // SpeedUpCancelType.Cancel -> cash.p.terminal.strings.helpers.Translator.getString(R.string.TransactionInfoOptions_Cancel_Button) // MOBILE-593
+        SpeedUpCancelType.SpeedUp -> Translator.getString(
+            R.string.TransactionInfoOptions_SpeedUp_Button
+        )
+        // SpeedUpCancelType.Cancel -> Translator.getString(R.string.TransactionInfoOptions_Cancel_Button) // MOBILE-593
     }
 
     private var sendTransactionState: SendTransactionServiceState = sendTransactionService.stateFlow.value

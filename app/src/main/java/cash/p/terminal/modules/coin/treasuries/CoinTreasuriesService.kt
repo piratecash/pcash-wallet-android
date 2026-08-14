@@ -52,7 +52,9 @@ class CoinTreasuriesService(
     private fun fetch(forceRefresh: Boolean) {
         coroutineScope.launch {
             try {
-                val coinTreasuries = repository.coinTreasuriesSingle(coin.uid, currency.code, treasuryType, sortDescending, forceRefresh).await()
+                val coinTreasuries =
+                    repository.coinTreasuriesSingle(coin.uid, currency.code, treasuryType, sortDescending, forceRefresh)
+                        .await()
                 stateSubject.onNext(DataState.Success(coinTreasuries))
             } catch (e: Throwable) {
                 stateSubject.onNext(DataState.Error(e))

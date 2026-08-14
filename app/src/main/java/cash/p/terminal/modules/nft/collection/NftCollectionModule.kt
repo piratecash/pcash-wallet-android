@@ -19,7 +19,9 @@ object NftCollectionModule {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val service = NftCollectionOverviewService(blockchainType, collectionUid, App.nftMetadataManager.provider(blockchainType), App.marketKit)
+            val service = NftCollectionOverviewService(
+                blockchainType, collectionUid, App.nftMetadataManager.provider(blockchainType), App.marketKit
+            )
             return NftCollectionOverviewViewModel(
                 service,
                 App.numberFormatter,

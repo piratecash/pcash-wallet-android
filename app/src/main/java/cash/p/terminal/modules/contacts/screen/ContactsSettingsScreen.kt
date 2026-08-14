@@ -73,21 +73,22 @@ fun ContactsSettingsScreen(
         }
     }
 
-    val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        uri?.let {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                try {
-                    outputStream.bufferedWriter().use { bw ->
-                        bw.write(backupJson)
-                        bw.flush()
-                        HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done, SnackbarDuration.SHORT)
+    val backupLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+            uri?.let {
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    try {
+                        outputStream.bufferedWriter().use { bw ->
+                            bw.write(backupJson)
+                            bw.flush()
+                            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done, SnackbarDuration.SHORT)
+                        }
+                    } catch (e: Throwable) {
+                        HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
                     }
-                } catch (e: Throwable) {
-                    HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
                 }
             }
         }
-    }
 
     ContactsSettingsContent(
         deleteContactsPinEnabled = deleteContactsPinEnabled,

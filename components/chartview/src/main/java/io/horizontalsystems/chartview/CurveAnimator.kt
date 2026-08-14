@@ -89,8 +89,16 @@ class CurveAnimator(
 
             frameValues = toValues
         } else {
-            frameStartTimestamp = getForFrame(fromStartTimestamp.toFloat(), toStartTimestamp.toFloat(), animatedFraction).toLong()
-            frameEndTimestamp = getForFrame(fromEndTimestamp.toFloat(), toEndTimestamp.toFloat(), animatedFraction).toLong()
+            frameStartTimestamp = getForFrame(
+                fromStartTimestamp.toFloat(),
+                toStartTimestamp.toFloat(),
+                animatedFraction
+            ).toLong()
+            frameEndTimestamp = getForFrame(
+                fromEndTimestamp.toFloat(),
+                toEndTimestamp.toFloat(),
+                animatedFraction
+            ).toLong()
 
             frameMinValue = getForFrame(fromMinValue, toMinValue, animatedFraction)
             frameMaxValue = getForFrame(fromMaxValue, toMaxValue, animatedFraction)
@@ -130,7 +138,8 @@ class CurveAnimator(
         // value = ay + minValue
         // y = (value - minValue) / a
         // a = (value - minValue) / y
-        val yRatio = (frameMaxValue - frameMinValue) / (yMax - curveTopOffset - curveBottomOffset - 2 * extraVerticalOffset)
+        val yRatio =
+            (frameMaxValue - frameMinValue) / (yMax - curveTopOffset - curveBottomOffset - 2 * extraVerticalOffset)
 
         return frameValues.map { (timestamp, value) ->
             val x = (timestamp - frameStartTimestamp) / xRatio + horizontalOffset
@@ -171,8 +180,7 @@ class CurveAnimator(
                     if (timestampsToMutable.isNotEmpty()) {
                         t2 = timestampsToMutable.removeFirst()
                     }
-                }
-                else if (t1 < t2) {
+                } else if (t1 < t2) {
                     if (timestampsFromMutable.isNotEmpty()) {
                         t1 = timestampsFromMutable.removeFirst()
                     } else if (timestampsToMutable.isNotEmpty()) {

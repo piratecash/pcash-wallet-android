@@ -30,9 +30,15 @@ import kotlinx.coroutines.withContext
 
 internal class CreateTrezorWalletUseCase(
     private val trezorClient: ITrezorClient,
+    private val accountManager: IAccountManager,
+    private val accountsStorage: IAccountsStorage,
+    private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
     private val dispatcherProvider: DispatcherProvider,
-    private val accountDependencies: TrezorAccountDependencies,
-    private val moneroDependencies: TrezorMoneroDependencies,
+    private val accountFactory: IAccountFactory,
+    private val walletActivator: WalletActivator,
+    private val moneroReadiness: MoneroTrezorReadiness,
+    private val moneroProvisioner: MoneroDeviceWalletProvisioner,
+    private val restoreSettingsManager: RestoreSettingsManager,
 ) : ICreateTrezorWalletUseCase {
 
     override suspend fun invoke(
@@ -41,7 +47,7 @@ internal class CreateTrezorWalletUseCase(
     ): AccountType.TrezorDevice {
         val read = readDevice()
         val accountType = read.accountType()
-        val account = accountDependencies.accountFactory.account(
+        val account = accountFactory.account(
             name = accountName,
             type = accountType,
             origin = AccountOrigin.Created,
@@ -96,18 +102,18 @@ internal class CreateTrezorWalletUseCase(
         publicKeys: List<HardwarePublicKey>,
         moneroRestoreHeightProvider: TrezorMoneroRestoreHeightProvider,
     ) {
-        moneroDependencies.readiness.requireSupported(read.features)
+        moneroReadiness.requireSupported(read.features)
         val walletPublicKey = (account.type as AccountType.TrezorDevice).walletPublicKey
         val restoreHeight = savedMoneroRestoreHeight(walletPublicKey)
             ?: moneroRestoreHeightProvider.getRestoreHeight()
         require(restoreHeight >= 0) { "Monero restore height must be non-negative" }
         var accountSaved = false
         try {
-            moneroDependencies.provisioner.provision(
+            moneroProvisioner.provision(
                 account = account,
                 restoreHeight = restoreHeight,
                 onWalletCreated = {
-                    accountDependencies.accountManager.save(account = account, updateActive = false)
+                    accountManager.save(account = account, updateActive = false)
                     accountSaved = true
                 },
             )
@@ -116,7 +122,7 @@ internal class CreateTrezorWalletUseCase(
             if (accountSaved) {
                 withContext(NonCancellable) {
                     try {
-                        accountDependencies.accountManager.delete(account.id)
+                        accountManager.delete(account.id)
                     } catch (cleanupError: Throwable) {
                         error.addSuppressed(cleanupError)
                     }
@@ -129,19 +135,19 @@ internal class CreateTrezorWalletUseCase(
     private fun savedMoneroRestoreHeight(walletPublicKey: String): Long? {
         if (walletPublicKey.isBlank()) return null
 
-        moneroDependencies.restoreSettingsManager.trezorMoneroRestoreHeight(walletPublicKey)?.let {
+        restoreSettingsManager.trezorMoneroRestoreHeight(walletPublicKey)?.let {
             return it
         }
 
-        return accountDependencies.accountManager.getDeletedAccountIds()
+        return accountManager.getDeletedAccountIds()
             .asSequence()
-            .mapNotNull(accountDependencies.accountsStorage::loadAccount)
+            .mapNotNull(accountsStorage::loadAccount)
             .filter { deletedAccount ->
                 (deletedAccount.type as? AccountType.TrezorDevice)?.walletPublicKey ==
                     walletPublicKey
             }
             .mapNotNull { deletedAccount ->
-                moneroDependencies.restoreSettingsManager.settings(
+                restoreSettingsManager.settings(
                     deletedAccount,
                     BlockchainType.Monero,
                 ).birthdayHeight?.takeIf { it >= 0 }
@@ -154,7 +160,7 @@ internal class CreateTrezorWalletUseCase(
         tokenQueries: List<TokenQuery>,
         publicKeys: List<HardwarePublicKey>,
     ) {
-        accountDependencies.accountManager.save(account = account, updateActive = false)
+        accountManager.save(account = account, updateActive = false)
         persistAccountData(account, tokenQueries, publicKeys)
     }
 
@@ -164,7 +170,7 @@ internal class CreateTrezorWalletUseCase(
         publicKeys: List<HardwarePublicKey>,
     ) {
         withContext(dispatcherProvider.io) {
-            accountDependencies.hardwarePublicKeyStorage.save(publicKeys)
+            hardwarePublicKeyStorage.save(publicKeys)
         }
         val activatableTokens = tokenQueries.filter { token ->
             token == TokenQuery.monero ||
@@ -173,8 +179,8 @@ internal class CreateTrezorWalletUseCase(
                         it.tokenType == token.tokenType
                 }
         }
-        accountDependencies.walletActivator.activateWalletsSuspended(account, activatableTokens)
-        accountDependencies.accountManager.setActiveAccountId(account.id)
+        walletActivator.activateWalletsSuspended(account, activatableTokens)
+        accountManager.setActiveAccountId(account.id)
     }
 
     private companion object {
@@ -210,17 +216,3 @@ internal class CreateTrezorWalletUseCase(
         }
     }
 }
-
-internal class TrezorAccountDependencies(
-    val accountManager: IAccountManager,
-    val accountsStorage: IAccountsStorage,
-    val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
-    val accountFactory: IAccountFactory,
-    val walletActivator: WalletActivator,
-)
-
-internal class TrezorMoneroDependencies(
-    val readiness: MoneroTrezorReadiness,
-    val provisioner: MoneroDeviceWalletProvisioner,
-    val restoreSettingsManager: RestoreSettingsManager,
-)

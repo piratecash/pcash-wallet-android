@@ -39,7 +39,9 @@ private fun FullBackupNavHost(fragmentNavController: NavController) {
         composable("select_backup_items") {
             SelectBackupItemsScreen(
                 onNextClick = { accountIdsList ->
-                    val accountIds = if (accountIdsList.isNotEmpty()) "?accountIds=" + accountIdsList.joinToString(separator = ",") else ""
+                    val accountIds = if (accountIdsList.isNotEmpty()) "?accountIds=" + accountIdsList.joinToString(
+                        separator = ","
+                    ) else ""
                     navController.navigate("terms_page$accountIds")
                 },
                 onBackClick = {

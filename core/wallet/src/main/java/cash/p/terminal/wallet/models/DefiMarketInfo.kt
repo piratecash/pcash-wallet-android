@@ -18,7 +18,10 @@ data class DefiMarketInfo(
     val chains: List<String>,
     val chainTvls: Map<String, BigDecimal?>,
 ) {
-    constructor(defiMarketInfoResponse: DefiMarketInfoResponse, fullCoin: cash.p.terminal.wallet.entities.FullCoin?) : this(
+    constructor(
+        defiMarketInfoResponse: DefiMarketInfoResponse,
+        fullCoin: cash.p.terminal.wallet.entities.FullCoin?
+    ) : this(
         fullCoin,
         defiMarketInfoResponse.name,
         defiMarketInfoResponse.logoUrl,

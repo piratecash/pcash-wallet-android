@@ -384,7 +384,9 @@ fun Account.toTonWallet(
                 it.blockchainType == resolvedBlockchainType.uid
             }
             if (hardwarePublicKey == null || hardwarePublicKey.type != HardwarePublicKeyType.ADDRESS) {
-                throw UnsupportedException("Hardware public key not found for TON (accountId=$id, blockchainType=$resolvedBlockchainType)")
+                throw UnsupportedException(
+                    "Hardware public key not found for TON (accountId=$id, blockchainType=$resolvedBlockchainType)"
+                )
             }
             TonWallet.FullAccess(
                 PublicKeyEd25519(ByteString(hardwarePublicKey.key.value.hexStringToByteArray())),
@@ -393,5 +395,7 @@ fun Account.toTonWallet(
         }
     }
 
-    else -> throw IllegalArgumentException("Account type ${this.javaClass.simpleName} can not be converted to TonKit.WalletType")
+    else -> throw IllegalArgumentException(
+        "Account type ${this.javaClass.simpleName} can not be converted to TonKit.WalletType"
+    )
 }

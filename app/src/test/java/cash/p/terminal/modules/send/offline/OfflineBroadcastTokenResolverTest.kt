@@ -265,8 +265,10 @@ class OfflineBroadcastTokenResolverTest {
         )
 
         const val PUBLIC_XPUB =
-            "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBVbfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
+            "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBV" +
+                    "bfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
         const val PRIVATE_XPRV =
-            "xprv9yvGv56N8NooX3S9CBmS9rwLLM3dgzyrB1pHp5aL6sYozkHptgvT7UbCTuyXF1HUAaPiG24iDBbnp7EQr8eSJkANf9EodqUiATBXrtAAHjj"
+            "xprv9yvGv56N8NooX3S9CBmS9rwLLM3dgzyrB1pHp5aL6sYozkHptgvT7UbCTuyXF1HUAaPi" +
+                    "G24iDBbnp7EQr8eSJkANf9EodqUiATBXrtAAHjj"
     }
 }

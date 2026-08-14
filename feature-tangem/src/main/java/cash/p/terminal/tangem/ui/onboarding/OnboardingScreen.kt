@@ -164,7 +164,9 @@ internal fun OnboardingScreen(
 
                     OnboardingStep.CREATE_ACCESS_CODE -> CreateAccessCodeScreen(
                         onCreateCodeClick = {
-                            navController.slideFromBottomForResult<AddAccessCodeDialog.Result>(R.id.addAccessCodeDialog) {
+                            navController.slideFromBottomForResult<AddAccessCodeDialog.Result>(
+                                R.id.addAccessCodeDialog
+                            ) {
                                 if (it.code.isNotEmpty()) {
                                     viewModel.setAccessCode(it.code)
                                 }

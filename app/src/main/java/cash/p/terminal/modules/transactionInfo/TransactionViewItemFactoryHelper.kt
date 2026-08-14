@@ -487,7 +487,7 @@ object TransactionViewItemFactoryHelper {
         val input = valueIn?.toSwapValue() ?: return null
         val output = valueOut?.toSwapValue() ?: return null
         return formatSwapPrice(output, input, rates[input.coinUid]) to
-            formatSwapPrice(input, output, rates[output.coinUid])
+                formatSwapPrice(input, output, rates[output.coinUid])
     }
 
     private fun TransactionValue.toSwapValue(): SwapValue? {
@@ -672,7 +672,8 @@ object TransactionViewItemFactoryHelper {
                     )
                 }
 
-                if (transaction.transactionRecordType == TransactionRecordType.EVM_SWAP && transaction.valueOut != null) {
+                if (transaction.transactionRecordType == TransactionRecordType.EVM_SWAP && transaction.valueOut !=
+                    null) {
                     val recipientItems = mutableListOf<TransactionInfoViewItem>()
 
                     val recipient = transaction.recipient
@@ -713,7 +714,8 @@ object TransactionViewItemFactoryHelper {
             }
 
             is SolanaTransactionRecord -> {
-                if (transaction.transactionRecordType == TransactionRecordType.SOLANA_OUTGOING && transaction.fee != null) {
+                if (transaction.transactionRecordType == TransactionRecordType.SOLANA_OUTGOING && transaction.fee !=
+                    null) {
                     items.add(getFeeItem(transaction.fee, rates[transaction.fee.coinUid], status))
                 }
             }

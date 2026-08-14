@@ -2065,6 +2065,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="multi_swap_no_providers">Keine Anbieter verfügbar</string>
     <string name="multi_swap_finding_best_provider">Besten Anbieter suchen…</string>
     <string name="multi_swap_continue">Tausch fortsetzen</string>
+    <string name="multi_swap_route_explanation">Für den besten Kurs wird eine Route über %2$s verwendet. Der Tausch erfolgt in zwei Schritten: zuerst %1$s → %2$s, dann %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Tauschroute</string>
+    <string name="multi_swap_execution_title">Tausch</string>
+    <string name="multi_swap_step">%d. Schritt</string>
+    <string name="multi_swap_understood_continue">Verstanden, weiter</string>
     <string name="multi_swap_unfinished">Unvollständiger Tausch</string>
     <string name="multi_swap_unfinished_plural">Unvollständige Tausche (%d)</string>
     <string name="duration_short_hours">%1$dh</string>
@@ -2193,6 +2198,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen durch Umdrehen</string>
     <string name="balance_hide_on_flip_description">Drehen Sie das Gerät mit dem Bildschirm nach unten, um Ihren Kontostand schnell aus- und einzublenden.</string>
+    <string name="balance_hide_on_flip_unsupported">Dieses Gerät unterstützt Verbergen durch Umdrehen nicht.</string>
     <string name="balance_hide_on_flip_info_title">Kontostand verborgen</string>
     <string name="balance_hide_on_flip_info_description">Um Ihren Kontostand aus- oder einzublenden, drehen Sie das Gerät einfach mit dem Bildschirm nach unten oder deaktivieren Sie die Funktion in den Sicherheitseinstellungen.</string>
     <string name="balance_hide_on_flip_dont_show_again">Nicht mehr anzeigen</string>

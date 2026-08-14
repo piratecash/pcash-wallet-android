@@ -24,7 +24,9 @@ class CosantaAdapter(
     backgroundManager: BackgroundManager,
     wallet: Wallet,
     feeRateProvider: IFeeRateProvider? = null
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
+) : BitcoinBaseAdapter(
+    kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider
+),
     CosantaKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -149,6 +151,7 @@ class CosantaAdapter(
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
+
                 is AccountType.HardwareCard -> {
                     val hardwareWalletEcdaBitcoinSigner = buildHardwareWalletEcdaBitcoinSigner(
                         accountId = account.id,

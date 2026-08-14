@@ -150,27 +150,28 @@ internal class BackupProviderDeclinedTokensTest : BackupProviderRestoreTestFixtu
     }
 
     @Test
-    fun restoreSingleWalletBackup_authenticatedSourceManuallyAddedToken_returnsTokensNeedReviewAndSavesNothing() = runTest {
-        val outcome = backupProvider.restoreSingleWalletBackup(
-            walletBackupItem(
-                enabledWallets = listOf(backedUpWallet(manuallyAddedQueryId)),
-                source = BackupSource.Authenticated
-            )
-        )
-
-        assertEquals(
-            RestoreOutcome.TokensNeedReview(
-                listOf(
-                    WalletDeclinedTokens(
-                        restoredAccount.id,
-                        "Restored",
-                        listOf(DeclinedToken(manuallyAddedQueryId, "Tether", "USDT", decimals = 6))
-                    )
+    fun restoreSingleWalletBackup_authenticatedSourceManuallyAddedToken_returnsTokensNeedReviewAndSavesNothing() =
+        runTest {
+            val outcome = backupProvider.restoreSingleWalletBackup(
+                walletBackupItem(
+                    enabledWallets = listOf(backedUpWallet(manuallyAddedQueryId)),
+                    source = BackupSource.Authenticated
                 )
-            ),
-            outcome
-        )
-    }
+            )
+
+            assertEquals(
+                RestoreOutcome.TokensNeedReview(
+                    listOf(
+                        WalletDeclinedTokens(
+                            restoredAccount.id,
+                            "Restored",
+                            listOf(DeclinedToken(manuallyAddedQueryId, "Tether", "USDT", decimals = 6))
+                        )
+                    )
+                ),
+                outcome
+            )
+        }
 
     @Test
     fun restoreSingleWalletBackup_authenticatedSourceManuallyAddedTokenApproved_restoresItFromFileMetadata() = runTest {

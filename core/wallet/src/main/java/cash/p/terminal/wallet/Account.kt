@@ -93,20 +93,18 @@ data class Account(
     }
 }
 
-fun Account.canBeDuplicated(): Boolean
-    = type is AccountType.Mnemonic || type is AccountType.MnemonicMonero
+fun Account.canBeDuplicated(): Boolean =
+    type is AccountType.Mnemonic || type is AccountType.MnemonicMonero
 
-fun Account.supportsTonConnect(): Boolean
-        = type is AccountType.Mnemonic || type is AccountType.HardwareCard
+fun Account.supportsTonConnect(): Boolean =
+    type is AccountType.Mnemonic || type is AccountType.HardwareCard
 
-fun Account.isBackedUpOrNotRequired(): Boolean
-    = hasAnyBackup || !supportsBackup
+fun Account.isBackedUpOrNotRequired(): Boolean = hasAnyBackup || !supportsBackup
 
-fun Account.canSwap(): Boolean
-    = !isWatchAccount && isBackedUpOrNotRequired()
+fun Account.canSwap(): Boolean = !isWatchAccount && isBackedUpOrNotRequired()
 
-fun Account.eligibleForPremium(): Boolean
-    = premiumEligibility() == PremiumAccountEligibility.ELIGIBLE
+fun Account.eligibleForPremium(): Boolean =
+    premiumEligibility() == PremiumAccountEligibility.ELIGIBLE
 
 fun Account.premiumEligibility(): PremiumAccountEligibility {
     return when {
@@ -118,6 +116,7 @@ fun Account.premiumEligibility(): PremiumAccountEligibility {
         else -> PremiumAccountEligibility.WRONG_TYPE
     }
 }
+
 @Parcelize
 sealed class AccountType : Parcelable {
     @Parcelize
@@ -219,9 +218,11 @@ sealed class AccountType : Parcelable {
         }
 
         override fun toString(): String {
-            return "MnemonicMonero(words=(${words.toMasked()}), password='${password.toMasked()}', height=$height, walletInnerName='$walletInnerName')"
+            return "MnemonicMonero(words=(${words.toMasked()}), password='${password.toMasked()}', height=$height, " +
+                    "walletInnerName='$walletInnerName')"
         }
     }
+
     @Parcelize
     data class EvmPrivateKey(val key: BigInteger) : AccountType() {
         override fun equals(other: Any?): Boolean {
@@ -388,6 +389,7 @@ sealed class AccountType : Parcelable {
             is TrezorDevice,
             is Mnemonic,
             is EvmPrivateKey -> true
+
             else -> false
         }
 

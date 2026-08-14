@@ -127,7 +127,8 @@ class MetricsPageFragment : BaseComposeFragment() {
                                     Chart(
                                         uiState = chartViewModel.uiState,
                                         getSelectedPointCallback = chartViewModel::getSelectedPoint,
-                                        onSelectChartInterval = chartViewModel::onSelectChartInterval)
+                                        onSelectChartInterval = chartViewModel::onSelectChartInterval
+                                    )
                                 }
                                 stickyHeader {
                                     HeaderSorting(borderBottom = true, borderTop = true) {
@@ -137,9 +138,13 @@ class MetricsPageFragment : BaseComposeFragment() {
                                             onClick = {
                                                 viewModel.toggleSorting()
                                             },
-                                            title =uiState.toggleButtonTitle,
+                                            title = uiState.toggleButtonTitle,
                                             iconRight = painterResource(
-                                                if (uiState.sortDescending) R.drawable.ic_arrow_down_20 else R.drawable.ic_arrow_up_20
+                                                if (uiState.sortDescending) {
+                                                    R.drawable.ic_arrow_down_20
+                                                } else {
+                                                    R.drawable.ic_arrow_up_20
+                                                }
                                             ),
                                         )
                                         HSpacer(width = 16.dp)

@@ -144,33 +144,33 @@ class OfflineTransactionPayloadEncoder {
     // the single source of truth for broadcast.
     private fun isValidPayload(payload: Payload, blockchainUid: String): Boolean =
         payload.version == VERSION_INT &&
-            payload.encoding == RAW_HEX_ENCODING &&
-            payload.blockchainUid == blockchainUid &&
-            isHex(payload.rawHex) &&
-            payload.checksum == checksum(payload.rawHex) &&
-            isTxHash(payload.txHash, blockchainUid) &&
-            isValidToken(payload.token, blockchainUid) &&
-            isValidFee(payload.fee, blockchainUid) &&
-            isValidSolanaRetry(payload.solanaRetry, blockchainUid) &&
-            isValidTonRetry(payload.tonRetry, blockchainUid) &&
-            isValidTronRetry(payload.tronRetry, blockchainUid) &&
-            isValidStellarRetry(payload.stellarRetry, blockchainUid) &&
-            payload.toAddress.isNotBlank() &&
-            isNonNegativeAtomic(payload.amountAtomic)
+                payload.encoding == RAW_HEX_ENCODING &&
+                payload.blockchainUid == blockchainUid &&
+                isHex(payload.rawHex) &&
+                payload.checksum == checksum(payload.rawHex) &&
+                isTxHash(payload.txHash, blockchainUid) &&
+                isValidToken(payload.token, blockchainUid) &&
+                isValidFee(payload.fee, blockchainUid) &&
+                isValidSolanaRetry(payload.solanaRetry, blockchainUid) &&
+                isValidTonRetry(payload.tonRetry, blockchainUid) &&
+                isValidTronRetry(payload.tronRetry, blockchainUid) &&
+                isValidStellarRetry(payload.stellarRetry, blockchainUid) &&
+                payload.toAddress.isNotBlank() &&
+                isNonNegativeAtomic(payload.amountAtomic)
 
     private fun isValidToken(token: PayloadToken, blockchainUid: String): Boolean {
         val query = TokenQuery.fromId(token.tokenQueryId) ?: return false
         return query.blockchainType.uid == blockchainUid &&
-            token.coinCode.isNotBlank() &&
-            token.decimals >= 0
+                token.coinCode.isNotBlank() &&
+                token.decimals >= 0
     }
 
     private fun isValidFee(fee: PayloadFee?, blockchainUid: String): Boolean {
         fee ?: return true
         val query = TokenQuery.fromId(fee.tokenQueryId) ?: return false
         return query.blockchainType.uid == blockchainUid &&
-            fee.decimals >= 0 &&
-            isNonNegativeAtomic(fee.atomic)
+                fee.decimals >= 0 &&
+                isNonNegativeAtomic(fee.atomic)
     }
 
     private fun isTxHash(value: String, blockchainUid: String): Boolean =
@@ -192,8 +192,8 @@ class OfflineTransactionPayloadEncoder {
     ): Boolean =
         if (blockchainUid == BlockchainType.Solana.uid) {
             solanaRetry != null &&
-                solanaRetry.blockHash.isNotBlank() &&
-                solanaRetry.lastValidBlockHeight > 0
+                    solanaRetry.blockHash.isNotBlank() &&
+                    solanaRetry.lastValidBlockHeight > 0
         } else {
             solanaRetry == null
         }
@@ -204,9 +204,9 @@ class OfflineTransactionPayloadEncoder {
     ): Boolean =
         if (blockchainUid == BlockchainType.Ton.uid) {
             tonRetry != null &&
-                tonRetry.validUntil > 0 &&
-                tonRetry.senderAddress.isNotBlank() &&
-                tonRetry.seqno >= 0
+                    tonRetry.validUntil > 0 &&
+                    tonRetry.senderAddress.isNotBlank() &&
+                    tonRetry.seqno >= 0
         } else {
             tonRetry == null
         }
@@ -227,9 +227,9 @@ class OfflineTransactionPayloadEncoder {
     ): Boolean =
         if (blockchainUid == BlockchainType.Stellar.uid) {
             stellarRetry != null &&
-                stellarRetry.sourceAccountId.isNotBlank() &&
-                stellarRetry.sequenceNumber > 0 &&
-                stellarRetry.validUntil > 0
+                    stellarRetry.sourceAccountId.isNotBlank() &&
+                    stellarRetry.sequenceNumber > 0 &&
+                    stellarRetry.validUntil > 0
         } else {
             stellarRetry == null
         }
@@ -240,7 +240,9 @@ class OfflineTransactionPayloadEncoder {
     private fun checksum(rawHex: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
             .digest(rawHex.lowercase().encodeToByteArray())
-        return Base64.encodeToString(digest.copyOf(CHECKSUM_BYTES), Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        return Base64.encodeToString(
+            digest.copyOf(CHECKSUM_BYTES), Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+        )
     }
 
     private fun Token.toPayloadToken() = PayloadToken(
@@ -387,7 +389,7 @@ class OfflineTransactionPayloadEncoder {
 
         private fun isHex(value: String): Boolean =
             value.isNotEmpty() && value.length % 2 == 0 &&
-                value.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }
+                    value.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }
 
         private const val VERSION_INT = 1
         private const val RAW_HEX_ENCODING = "rawhex"

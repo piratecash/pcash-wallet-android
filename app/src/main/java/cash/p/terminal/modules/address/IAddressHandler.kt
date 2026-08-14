@@ -188,7 +188,9 @@ class AddressHandlerBase58(network: Network, override val blockchainType: Blockc
 
     override fun parseAddress(value: String): Address {
         val address = converter.convert(value)
-        return BitcoinAddress(hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType)
+        return BitcoinAddress(
+            hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType
+        )
     }
 }
 
@@ -204,7 +206,9 @@ class AddressHandlerBech32(network: Network, override val blockchainType: Blockc
 
     override fun parseAddress(value: String): Address {
         val address = converter.convert(value)
-        return BitcoinAddress(hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType)
+        return BitcoinAddress(
+            hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType
+        )
     }
 }
 
@@ -220,7 +224,9 @@ class AddressHandlerBitcoinCash(network: Network, override val blockchainType: B
 
     override fun parseAddress(value: String): Address {
         val address = converter.convert(value)
-        return BitcoinAddress(hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType)
+        return BitcoinAddress(
+            hex = address.stringValue, domain = null, blockchainType = blockchainType, scriptType = address.scriptType
+        )
     }
 }
 

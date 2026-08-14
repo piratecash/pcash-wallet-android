@@ -95,7 +95,9 @@ class SwapConfirmViewModel(
     private val accountId: String = wallet.account.id
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
-    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(
+        SwapProviderTransactionsStorage::class.java
+    )
 
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
@@ -492,7 +494,9 @@ class SwapConfirmViewModel(
                 sendResult = SendResult.Failed(caution)
             } catch (t: Throwable) {
                 val caution = if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
-                    HSCaution(TranslatableString.ResString(R.string.EthereumTransaction_Error_InsufficientBalance_Title))
+                    HSCaution(
+                        TranslatableString.ResString(R.string.EthereumTransaction_Error_InsufficientBalance_Title)
+                    )
                 } else {
                     HSCaution(TranslatableString.PlainString(t.javaClass.simpleName))
                 }

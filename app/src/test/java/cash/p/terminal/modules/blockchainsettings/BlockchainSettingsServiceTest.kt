@@ -70,7 +70,10 @@ class BlockchainSettingsServiceTest {
         every { solanaRpcSourceManager.blockchain } returns solana
         every { solanaRpcSourceManager.rpcSource } returns RpcSource.TritonOne
 
-        every { marketKit.blockchains(BlockchainSettingsModule.statusOnlyBlockchainTypes.map { it.uid }) } returns listOf(
+        every {
+            marketKit.blockchains(
+                BlockchainSettingsModule.statusOnlyBlockchainTypes.map { it.uid })
+        } returns listOf(
             stellar,
             tron,
         )
@@ -129,7 +132,10 @@ class BlockchainSettingsServiceTest {
         every { solanaRpcSourceManager.blockchain } returns null
         every { solanaRpcSourceManager.rpcSource } returns RpcSource.TritonOne
 
-        every { marketKit.blockchains(BlockchainSettingsModule.statusOnlyBlockchainTypes.map { it.uid }) } returns listOf(tron)
+        every {
+            marketKit.blockchains(
+                BlockchainSettingsModule.statusOnlyBlockchainTypes.map { it.uid })
+        } returns listOf(tron)
 
         val service = createService()
 

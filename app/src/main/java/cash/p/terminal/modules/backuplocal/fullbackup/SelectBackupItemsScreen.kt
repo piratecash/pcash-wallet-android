@@ -65,9 +65,11 @@ fun SelectBackupItemsScreen(
             }
         }
     ) {
-        LazyColumn(modifier = Modifier
-            .padding(it)
-            .windowInsetsPadding(windowInsets)) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(it)
+                .windowInsetsPadding(windowInsets)
+        ) {
 
             when (uiState.viewState) {
                 ViewState.Success -> {
@@ -86,7 +88,9 @@ fun SelectBackupItemsScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         body_leah(text = wallet.name)
                                         if (wallet.backupRequired) {
-                                            subhead2_lucian(text = stringResource(id = R.string.BackupManager_BackupRequired))
+                                            subhead2_lucian(
+                                                text = stringResource(id = R.string.BackupManager_BackupRequired)
+                                            )
                                         } else {
                                             subhead2_grey(
                                                 text = wallet.type,

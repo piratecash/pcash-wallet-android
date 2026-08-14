@@ -2235,6 +2235,11 @@
     <string name="multi_swap_no_providers">Немає доступних провайдерів</string>
     <string name="multi_swap_finding_best_provider">Пошук найкращого провайдера…</string>
     <string name="multi_swap_continue">Продовжити обмін</string>
+    <string name="multi_swap_route_explanation">Для отримання найвигіднішого курсу використовується маршрут через %2$s. Обмін буде виконано у два послідовні кроки: спочатку %1$s → %2$s, потім %2$s → %3$s.</string>
+    <string name="multi_swap_route_title">Маршрут обміну</string>
+    <string name="multi_swap_execution_title">Обмін</string>
+    <string name="multi_swap_step">Крок %d</string>
+    <string name="multi_swap_understood_continue">Зрозуміло, продовжити</string>
     <string name="multi_swap_unfinished">Незавершений обмін</string>
     <string name="multi_swap_unfinished_plural">Незавершені обміни (%d)</string>
     <string name="duration_short_hours">%1$dгод</string>
@@ -2354,6 +2359,7 @@
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Приховування перевертанням</string>
     <string name="balance_hide_on_flip_description">Переверніть екран пристрою вниз, щоб швидко приховати та показати баланс.</string>
+    <string name="balance_hide_on_flip_unsupported">Цей пристрій не підтримує приховування перевертанням.</string>
     <string name="balance_hide_on_flip_info_title">Баланс приховано</string>
     <string name="balance_hide_on_flip_info_description">Щоб приховати або показати свій баланс, просто переверніть екран пристрою вниз або вимкніть його в налаштуваннях безпеки.</string>
     <string name="balance_hide_on_flip_dont_show_again">Більше не показувати</string>

@@ -57,7 +57,9 @@ class GuidesRepository(
                     guidesManager.getGuideCategories()
                 }
 
-                val categories = getCategoriesByLocalLanguage(guideCategories, languageManager.currentLocale.language, languageManager.fallbackLocale.language)
+                val categories = getCategoriesByLocalLanguage(
+                    guideCategories, languageManager.currentLocale.language, languageManager.fallbackLocale.language
+                )
                 guideCategoriesSubject.onNext(DataState.Success(categories))
             } catch (e: Throwable) {
                 guideCategoriesSubject.onNext(DataState.Error(e))
@@ -65,9 +67,12 @@ class GuidesRepository(
         }
     }
 
-    private fun getCategoriesByLocalLanguage(categoriesMultiLanguage: Array<GuideCategoryMultiLang>, language: String, fallbackLanguage: String) =
+    private fun getCategoriesByLocalLanguage(
+        categoriesMultiLanguage: Array<GuideCategoryMultiLang>, language: String, fallbackLanguage: String
+    ) =
         categoriesMultiLanguage.map { categoriesMultiLang ->
-            val categoryTitle = categoriesMultiLang.category[language] ?: categoriesMultiLang.category[fallbackLanguage] ?: ""
+            val categoryTitle =
+                categoriesMultiLang.category[language] ?: categoriesMultiLang.category[fallbackLanguage] ?: ""
 
             val sections = categoriesMultiLang.sections.map { sectionMultiLang ->
                 val sectionTitle = sectionMultiLang.title[language] ?: sectionMultiLang.title[fallbackLanguage] ?: ""

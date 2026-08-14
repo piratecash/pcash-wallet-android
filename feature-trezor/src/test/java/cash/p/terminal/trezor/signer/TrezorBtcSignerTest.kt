@@ -40,7 +40,8 @@ class TrezorBtcSignerTest {
     // signer exercises the real connect() path and we can capture the arguments to signBitcoin.
     private val session: TrezorClientSession = mockk()
     private val trezorClient = object : ITrezorClient {
-        override suspend fun <T> connect(block: suspend TrezorClientSession.() -> T): T = session.block()
+        override suspend fun <T> connect(block: suspend TrezorClientSession.() -> T): T =
+            session.block()
     }
     private val coinSlot = slot<String>()
     private val signTxSlot = slot<TrezorBtcSignTx>()
@@ -72,7 +73,10 @@ class TrezorBtcSignerTest {
     fun setUp() {
         coEvery {
             session.signBitcoin(capture(coinSlot), capture(signTxSlot), capture(prevTxSlot))
-        } returns TrezorBtcSignResult(serializedTx = deviceSerializedTx, signatures = listOf(deviceSignature))
+        } returns TrezorBtcSignResult(
+            serializedTx = deviceSerializedTx,
+            signatures = listOf(deviceSignature)
+        )
     }
 
     private fun signer() = TrezorBtcSigner(coin, derivationPath, trezorClient).apply {
@@ -82,7 +86,14 @@ class TrezorBtcSignerTest {
 
     @Test
     fun signFullTransaction_mapsInputsOutputsAndReturnsHexResult() {
-        val input = inputToSign(prevTxHash, prevIndex = 1L, value = 60_000L, ScriptType.P2WPKH, external = true, index = 5)
+        val input = inputToSign(
+            prevTxHash,
+            prevIndex = 1L,
+            value = 60_000L,
+            ScriptType.P2WPKH,
+            external = true,
+            index = 5
+        )
         val changeKey = publicKey(external = false, index = 2)
         val mutableTransaction = mutableTransaction(
             inputs = listOf(input),
@@ -132,7 +143,14 @@ class TrezorBtcSignerTest {
     @Test
     fun signFullTransaction_longOpReturnMemo_extractsPayloadAfterMultiByteVarint() {
         val memo = "A".repeat(300) // 300 bytes >= 253 -> 3-byte compact-size length prefix
-        val input = inputToSign(prevTxHash, prevIndex = 0L, value = 60_000L, ScriptType.P2WPKH, external = true, index = 0)
+        val input = inputToSign(
+            prevTxHash,
+            prevIndex = 0L,
+            value = 60_000L,
+            ScriptType.P2WPKH,
+            external = true,
+            index = 0
+        )
         val mutableTransaction = mutableTransaction(listOf(input), listOf(opReturnOutput(memo)))
 
         runBlocking { signer().signFullTransaction(mutableTransaction) }
@@ -143,7 +161,14 @@ class TrezorBtcSignerTest {
 
     @Test
     fun signFullTransaction_prevTxKeyedAndLookedUpByDisplayTxid() {
-        val input = inputToSign(prevTxHash, prevIndex = 0L, value = 60_000L, ScriptType.P2PKH, external = true, index = 0)
+        val input = inputToSign(
+            prevTxHash,
+            prevIndex = 0L,
+            value = 60_000L,
+            ScriptType.P2PKH,
+            external = true,
+            index = 0
+        )
         val mutableTransaction = mutableTransaction(
             inputs = listOf(input),
             outputs = listOf(addressOutput("bc1recipient", 59_000L))
@@ -161,19 +186,40 @@ class TrezorBtcSignerTest {
         assertEquals(prevTx.header.version, parsed.version)
         assertEquals(prevTx.header.lockTime, parsed.lockTime)
         assertEquals(prevTx.outputs.single().value, parsed.outputs.single().amount)
-        assertArrayEquals(prevTx.outputs.single().lockingScript, parsed.outputs.single().scriptPubkey)
+        assertArrayEquals(
+            prevTx.outputs.single().lockingScript,
+            parsed.outputs.single().scriptPubkey
+        )
         // prev-tx input prev_hash is also in display (reversed) order.
-        assertArrayEquals(prevTx.inputs.single().previousOutputTxHash.reversedArray(), parsed.inputs.single().prevHash)
+        assertArrayEquals(
+            prevTx.inputs.single().previousOutputTxHash.reversedArray(),
+            parsed.inputs.single().prevHash
+        )
         assertArrayEquals(prevTx.inputs.single().sigScript, parsed.inputs.single().scriptSig)
     }
 
     @Test
     fun signFullTransaction_reusesSinglePrevTxAcrossInputs() {
         val inputs = listOf(
-            inputToSign(prevTxHash, prevIndex = 0L, value = 30_000L, ScriptType.P2PKH, external = true, index = 0),
-            inputToSign(prevTxHash, prevIndex = 1L, value = 20_000L, ScriptType.P2PKH, external = true, index = 1)
+            inputToSign(
+                prevTxHash,
+                prevIndex = 0L,
+                value = 30_000L,
+                ScriptType.P2PKH,
+                external = true,
+                index = 0
+            ),
+            inputToSign(
+                prevTxHash,
+                prevIndex = 1L,
+                value = 20_000L,
+                ScriptType.P2PKH,
+                external = true,
+                index = 1
+            )
         )
-        val mutableTransaction = mutableTransaction(inputs, listOf(addressOutput("bc1recipient", 45_000L)))
+        val mutableTransaction =
+            mutableTransaction(inputs, listOf(addressOutput("bc1recipient", 45_000L)))
 
         runBlocking { signer().signFullTransaction(mutableTransaction) }
 
@@ -186,15 +232,26 @@ class TrezorBtcSignerTest {
         assertEquals(TrezorInputScriptType.SPENDADDRESS, inputScriptTypeFor(ScriptType.P2PKH))
         assertEquals(TrezorInputScriptType.SPENDP2SHWITNESS, inputScriptTypeFor(ScriptType.P2SH))
         assertEquals(TrezorInputScriptType.SPENDWITNESS, inputScriptTypeFor(ScriptType.P2WPKH))
-        assertEquals(TrezorInputScriptType.SPENDP2SHWITNESS, inputScriptTypeFor(ScriptType.P2WPKHSH))
+        assertEquals(
+            TrezorInputScriptType.SPENDP2SHWITNESS,
+            inputScriptTypeFor(ScriptType.P2WPKHSH)
+        )
         assertEquals(TrezorInputScriptType.SPENDTAPROOT, inputScriptTypeFor(ScriptType.P2TR))
     }
 
     @Test
     fun signFullTransaction_missingPreviousTransaction_throws() {
         val unknownHash = ByteArray(32) { 0x11 }
-        val input = inputToSign(unknownHash, prevIndex = 0L, value = 10_000L, ScriptType.P2PKH, external = true, index = 0)
-        val mutableTransaction = mutableTransaction(listOf(input), listOf(addressOutput("bc1recipient", 9_000L)))
+        val input = inputToSign(
+            unknownHash,
+            prevIndex = 0L,
+            value = 10_000L,
+            ScriptType.P2PKH,
+            external = true,
+            index = 0
+        )
+        val mutableTransaction =
+            mutableTransaction(listOf(input), listOf(addressOutput("bc1recipient", 9_000L)))
 
         var thrown: Throwable? = null
         try {
@@ -202,12 +259,23 @@ class TrezorBtcSignerTest {
         } catch (e: Throwable) {
             thrown = e
         }
-        assertTrue("Expected TrezorSigningException but got $thrown", thrown is TrezorSigningException)
+        assertTrue(
+            "Expected TrezorSigningException but got $thrown",
+            thrown is TrezorSigningException
+        )
     }
 
     private fun inputScriptTypeFor(scriptType: ScriptType): TrezorInputScriptType {
-        val input = inputToSign(prevTxHash, prevIndex = 0L, value = 60_000L, scriptType, external = true, index = 0)
-        val mutableTransaction = mutableTransaction(listOf(input), listOf(addressOutput("bc1recipient", 59_000L)))
+        val input = inputToSign(
+            prevTxHash,
+            prevIndex = 0L,
+            value = 60_000L,
+            scriptType,
+            external = true,
+            index = 0
+        )
+        val mutableTransaction =
+            mutableTransaction(listOf(input), listOf(addressOutput("bc1recipient", 59_000L)))
         runBlocking { signer().signFullTransaction(mutableTransaction) }
         return signTxSlot.captured.inputs.single().scriptType
     }
@@ -219,8 +287,17 @@ class TrezorBtcSignerTest {
             previousOutputIndex = 0L,
             sequence = 0xFFFFFFFFL
         ).apply { sigScript = byteArrayOf(0x47, 0x30, 0x44) }
-        val p2pkhScript = byteArrayOf(0x76, 0xA9.toByte(), 0x14) + ByteArray(20) { 3 } + byteArrayOf(0x88.toByte(), 0xAC.toByte())
-        val output = TransactionOutput(value = 60_000L, index = 0, script = p2pkhScript, type = ScriptType.P2PKH)
+        val p2pkhScript = byteArrayOf(
+            0x76,
+            0xA9.toByte(),
+            0x14
+        ) + ByteArray(20) { 3 } + byteArrayOf(0x88.toByte(), 0xAC.toByte())
+        val output = TransactionOutput(
+            value = 60_000L,
+            index = 0,
+            script = p2pkhScript,
+            type = ScriptType.P2PKH
+        )
         return FullTransaction(header = header, inputs = listOf(input), outputs = listOf(output))
     }
 
@@ -233,7 +310,8 @@ class TrezorBtcSignerTest {
         index: Int
     ): InputToSign {
         val txInput = TransactionInput(prevHash, prevIndex, sequence = 0xFFFFFFFFL)
-        val prevOutput = TransactionOutput(value = value, index = 0, script = byteArrayOf(), type = scriptType)
+        val prevOutput =
+            TransactionOutput(value = value, index = 0, script = byteArrayOf(), type = scriptType)
         return InputToSign(txInput, prevOutput, publicKey(external, index))
     }
 
@@ -243,10 +321,22 @@ class TrezorBtcSignerTest {
     }
 
     private fun addressOutput(address: String, value: Long) =
-        TransactionOutput(value = value, index = 0, script = byteArrayOf(), type = ScriptType.P2WPKH, address = address)
+        TransactionOutput(
+            value = value,
+            index = 0,
+            script = byteArrayOf(),
+            type = ScriptType.P2WPKH,
+            address = address
+        )
 
     private fun changeOutput(address: String, value: Long, scriptType: ScriptType) =
-        TransactionOutput(value = value, index = 1, script = byteArrayOf(), type = scriptType, address = address)
+        TransactionOutput(
+            value = value,
+            index = 1,
+            script = byteArrayOf(),
+            type = scriptType,
+            address = address
+        )
 
     private fun opReturnOutput(memo: String): TransactionOutput {
         // Build the locking script exactly as the kit does: OP_RETURN + compactSize(len) + utf8 bytes.

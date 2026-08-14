@@ -25,7 +25,7 @@ class TweetsProvider(private val bearerToken: String?) {
             @Query("user.fields") userFields: String,
             @Query("max_results") maxResults: Int,
             @Header("Authorization") authHeader: String,
-            ): Single<TweetsPageResponse>
+        ): Single<TweetsPageResponse>
     }
 
     data class UsersResponse(val data: List<TwitterUser>)
@@ -51,7 +51,8 @@ class TweetsProvider(private val bearerToken: String?) {
         return service
             .getTweets(
                 userId = user.id,
-                expansions = "attachments.poll_ids,attachments.media_keys,referenced_tweets.id,referenced_tweets.id.author_id",
+                expansions = "attachments.poll_ids,attachments.media_keys,referenced_tweets.id,referenced_tweets.id" +
+                        ".author_id",
                 mediaFields = "media_key,preview_image_url,type,url",
                 tweetFields = "id,author_id,created_at,attachments",
                 userFields = "profile_image_url",

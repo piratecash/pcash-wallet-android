@@ -69,7 +69,9 @@ fun AddressEnterInfoBottomSheet(
 @Composable
 fun InfoBlock(checkType: AddressCheckType) {
     val info1 = when (checkType) {
-        AddressCheckType.SmartContract -> AnnotatedString(stringResource(R.string.Send_Address_NotSmartContractCheck_Info1))
+        AddressCheckType.SmartContract -> AnnotatedString(
+            stringResource(R.string.Send_Address_NotSmartContractCheck_Info1)
+        )
 
         AddressCheckType.Phishing -> AnnotatedString(stringResource(R.string.Send_Address_PhishingCheck_Info1))
 

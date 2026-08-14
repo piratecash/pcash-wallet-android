@@ -39,7 +39,9 @@ class Eip20AdapterStakingSubscriptionTest {
     private val receiveAddress = "0x0000000000000000000000000000000000000001"
 
     private fun stubCommon(balanceProcessor: PublishProcessor<BigInteger>) {
-        every { evmTransactionRepository.transactionSyncSourceStorage } returns mockk<TransactionSyncSourceStorage>(relaxed = true)
+        every { evmTransactionRepository.transactionSyncSourceStorage } returns mockk<TransactionSyncSourceStorage>(
+            relaxed = true
+        )
         every { evmTransactionRepository.buildErc20Kit(context, any()) } returns eip20Kit
         every { repositoryReceiveAddress.eip55 } returns receiveAddress
         every { evmTransactionRepository.receiveAddress } returns repositoryReceiveAddress

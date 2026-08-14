@@ -2,9 +2,7 @@ package cash.p.terminal.core.adapters.zcash
 
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import cash.p.terminal.core.TestDispatcherProvider
-import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.wallet.AdapterState
-import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.SdkSynchronizer
 import cash.z.ecc.android.sdk.Synchronizer
 import cash.z.ecc.android.sdk.WalletInitMode
@@ -14,7 +12,6 @@ import cash.z.ecc.android.sdk.model.BlockHeight
 import cash.z.ecc.android.sdk.model.PercentDecimal
 import cash.z.ecc.android.sdk.model.TransactionOverview
 import cash.z.ecc.android.sdk.model.ZcashNetwork
-import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
@@ -29,7 +26,6 @@ import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.suspendCancellableCoroutine

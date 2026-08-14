@@ -114,7 +114,11 @@ fun QRScannerScreen(
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    var showPermissionNeededDialog by remember { mutableStateOf(cameraPermissionState.status != PermissionStatus.Granted) }
+    var showPermissionNeededDialog by remember {
+        mutableStateOf(
+            cameraPermissionState.status != PermissionStatus.Granted
+        )
+    }
     val view = LocalView.current
 
     val galleryLauncher =

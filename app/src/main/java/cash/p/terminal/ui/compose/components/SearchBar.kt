@@ -177,7 +177,11 @@ fun SearchBar(
                                 ),
                             text = menuItem.title.getString(),
                             style = ComposeAppTheme.typography.headline2,
-                            color = if (menuItem.enabled) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.yellow50
+                            color = if (menuItem.enabled) {
+                                ComposeAppTheme.colors.jacob
+                            } else {
+                                ComposeAppTheme.colors.yellow50
+                            }
                         )
                     }
                 }

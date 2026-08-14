@@ -16,7 +16,8 @@ object SendModule {
         abstract val approximate: Boolean
 
         data class CoinValueInfo(val coinValue: CoinValue, override val approximate: Boolean = false) : AmountInfo()
-        data class CurrencyValueInfo(val currencyValue: CurrencyValue, override val approximate: Boolean = false) : AmountInfo()
+        data class CurrencyValueInfo(val currencyValue: CurrencyValue, override val approximate: Boolean = false) :
+            AmountInfo()
 
         val value: BigDecimal
             get() = when (this) {
@@ -97,6 +98,6 @@ class SendErrorMinimumSendAmount(amount: Any) : HSCaution(
     TranslatableString.ResString(R.string.Send_Error_MinimumAmount, amount)
 )
 
-class SendErrorMaximumSendAmount(amount: Any): HSCaution(
+class SendErrorMaximumSendAmount(amount: Any) : HSCaution(
     TranslatableString.ResString(R.string.Send_Error_MaximumAmount, amount)
 )

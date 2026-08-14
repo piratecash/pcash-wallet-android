@@ -229,12 +229,14 @@ class StellarKitManager(
             val stellarWallet = HardwareWalletStellarSigner(hardwarePublicKey = hardwarePublicKey)
             StellarKit.getInstance(stellarWallet, Network.MainNet, App.instance, account.id).receiveAddress
         }
+
         is AccountType.TrezorDevice -> {
             val key = runBlocking {
                 hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Stellar)
             } ?: throw UnsupportedException("Trezor does not have a key for Stellar")
             key.key.value
         }
+
         else -> StellarKit.getAccountId(account.type.toStellarWallet())
     }
 }
@@ -260,5 +262,7 @@ fun AccountType.toStellarWallet() = when (this) {
     is AccountType.Mnemonic -> StellarWallet.Seed(seed)
     is AccountType.StellarAddress -> StellarWallet.WatchOnly(address)
     is AccountType.StellarSecretKey -> StellarWallet.SecretKey(key)
-    else -> throw IllegalArgumentException("Account type ${this.javaClass.simpleName} can not be converted to StellarWallet.Wallet")
+    else -> throw IllegalArgumentException(
+        "Account type ${this.javaClass.simpleName} can not be converted to StellarWallet.Wallet"
+    )
 }

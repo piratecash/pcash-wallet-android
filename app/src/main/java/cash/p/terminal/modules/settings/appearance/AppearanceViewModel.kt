@@ -116,7 +116,8 @@ class AppearanceViewModel(
     }
 
     fun onSetMarketTabsHidden(hidden: Boolean) {
-        if (hidden && (launchScreenOptions.selected == LaunchPage.Market || launchScreenOptions.selected == LaunchPage.Watchlist)) {
+        if (hidden && (launchScreenOptions.selected == LaunchPage.Market || launchScreenOptions.selected ==
+                    LaunchPage.Watchlist)) {
             launchScreenService.setLaunchScreen(LaunchPage.Auto)
         }
         localStorage.marketsTabEnabled = !hidden

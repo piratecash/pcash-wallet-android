@@ -13,6 +13,8 @@ import io.horizontalsystems.core.entities.Currency
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
 
@@ -35,6 +37,9 @@ class SwapPayCoreNavigationTest {
     private val provider = mockk<IMultiSwapProvider> {
         every { id } returns "paycore"
     }
+    private val nonPayCoreProvider = mockk<IMultiSwapProvider> {
+        every { id } returns "provider"
+    }
 
     @Test
     fun buildPayCorePaymentPage_exactOut_preservesRequestedAmountInParams() {
@@ -53,7 +58,60 @@ class SwapPayCoreNavigationTest {
         assertEquals(PayCoreTicker.USDT_ERC20, params.networkType)
     }
 
-    private fun exactOutState(targetAmount: BigDecimal): SwapUiState {
+    @Test
+    fun buildNextPage_twoStepRoute_opensRouteInfo() {
+        assertEquals("SwapRouteInfoPage", buildNextPage(stateWithRoute()).javaClass.simpleName)
+    }
+
+    @Test
+    fun buildNextPage_oneStepRoute_opensConfirmation() {
+        assertEquals(
+            "SwapConfirmPage",
+            buildNextPage(exactOutState(BigDecimal.ONE, nonPayCoreProvider)).javaClass.simpleName,
+        )
+    }
+
+    @Test
+    fun buildNextPage_payCoreRoute_opensPaymentBeforeRouteInfo() {
+        assertEquals(
+            "PayCorePaymentPage",
+            buildNextPage(
+                exactOutState(BigDecimal.ONE).copy(multiSwapRoute = multiSwapRouteFixture()),
+            ).javaClass.simpleName,
+        )
+    }
+
+    @Test
+    fun isMultiSwapRouteReady_requotingRoute_cannotContinue() {
+        val routeState = stateWithRoute()
+
+        assertFalse(isMultiSwapRouteReady(quoting = true, timeout = false, route = routeState.multiSwapRoute))
+        assertTrue(isMultiSwapRouteReady(quoting = false, timeout = false, route = routeState.multiSwapRoute))
+    }
+
+    @Test
+    fun isMultiSwapRouteReady_expiredRoute_cannotContinue() {
+        assertFalse(isMultiSwapRouteReady(quoting = false, timeout = true, route = multiSwapRouteFixture()))
+    }
+
+    @Test
+    fun shouldRefreshMultiSwapRoute_expiredIdleRoute_returnsTrue() {
+        assertTrue(shouldRefreshMultiSwapRoute(quoting = false, timeout = true, route = multiSwapRouteFixture()))
+    }
+
+    @Test
+    fun shouldRefreshMultiSwapRoute_refreshInProgress_returnsFalse() {
+        assertFalse(shouldRefreshMultiSwapRoute(quoting = true, timeout = true, route = multiSwapRouteFixture()))
+    }
+
+    private fun stateWithRoute(): SwapUiState = exactOutState(BigDecimal.ONE, nonPayCoreProvider).copy(
+        multiSwapRoute = multiSwapRouteFixture(),
+    )
+
+    private fun exactOutState(
+        targetAmount: BigDecimal,
+        provider: IMultiSwapProvider = this.provider,
+    ): SwapUiState {
         val quote = SwapProviderQuote(
             provider = provider,
             swapQuote = PayCoreQuote(
@@ -106,4 +164,26 @@ class SwapPayCoreNavigationTest {
             quoteCautions = emptyList(),
         )
     }
+}
+
+internal fun multiSwapRouteFixture(): MultiSwapRoute {
+    val token = PayCoreAssets.rubToken
+    val provider = mockk<IMultiSwapProvider>(relaxed = true) {
+        every { title } returns "Provider"
+    }
+    val quote = mockk<SwapProviderQuote>(relaxed = true) {
+        every { this@mockk.provider } returns provider
+        every { tokenIn } returns token
+        every { tokenOut } returns token
+        every { amountIn } returns BigDecimal.ONE
+        every { amountOut } returns BigDecimal.ONE
+    }
+    return MultiSwapRoute(
+        intermediateCoin = token,
+        leg1Quotes = listOf(quote),
+        leg2Quotes = listOf(quote),
+        commissionReserve = BigDecimal.ZERO,
+        selectedLeg1Quote = quote,
+        selectedLeg2Quote = quote,
+    )
 }
