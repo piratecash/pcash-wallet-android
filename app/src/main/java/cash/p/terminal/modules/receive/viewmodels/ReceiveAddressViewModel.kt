@@ -6,6 +6,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.entities.UsedAddress
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.title
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.ui_compose.entities.ViewState
@@ -18,6 +19,7 @@ import cash.p.terminal.wallet.accountTypeDerivation
 import cash.p.terminal.wallet.bitcoinCashCoinType
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -44,13 +46,14 @@ class ReceiveAddressViewModel(
 
     init {
         viewModelScope.launch(dispatcherProvider.io) {
-            adapterManager.adaptersReadyObservable.asFlow()
-                .collect {
-                    setData()
-                }
-        }
-        viewModelScope.launch(dispatcherProvider.io) {
-            setData()
+            // One collector: both triggers fire on the same init, and concurrent
+            // setData() would race two isAddressActive requests against each other.
+            merge(
+                adapterManager.adaptersReadyObservable.asFlow(),
+                adapterManager.initializationInProgressFlow,
+            ).collect {
+                setData()
+            }
         }
         setNetworkName()
     }
@@ -112,12 +115,8 @@ class ReceiveAddressViewModel(
             mainNet = adapter.isMainNet
             viewState = ViewState.Success
 
-            accountActive = try {
-                adapter.isAddressActive(adapter.receiveAddress)
-            } catch (e: Exception) {
-                viewState = ViewState.Error(e)
-                false
-            }
+            // Unknown activation state must not hide a valid address behind the TRON warning
+            accountActive = tryOrNull { adapter.isAddressActive(adapter.receiveAddress) } ?: true
         } else {
             val fallbackAddress = adapterManager.getReceiveAddressForWallet(wallet)
             if (fallbackAddress != null) {
@@ -125,7 +124,11 @@ class ReceiveAddressViewModel(
                 uri = getUri()
                 viewState = ViewState.Success
             } else {
-                viewState = ViewState.Error(NullPointerException())
+                viewState = if (adapterManager.initializationInProgressFlow.value) {
+                    ViewState.Loading
+                } else {
+                    ViewState.Error(NullPointerException())
+                }
             }
         }
         emitState()

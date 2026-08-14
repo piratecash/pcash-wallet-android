@@ -23,6 +23,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -92,7 +94,16 @@ class AdapterManager(
                 .conflate()
                 .collectLatest { wallets ->
                     mutex.withLock {
-                        initAdaptersInternal(wallets)
+                        _initializationInProgressFlow.value = true
+                        try {
+                            initAdaptersInternal(wallets)
+                        } finally {
+                            // On collectLatest cancellation a replacement init starts at once —
+                            // publishing `false` would advertise the cleared map as final.
+                            if (currentCoroutineContext().isActive) {
+                                _initializationInProgressFlow.value = false
+                            }
+                        }
                     }
                 }
         }
@@ -176,7 +187,6 @@ class AdapterManager(
     private suspend fun initAdaptersInternal(wallets: List<Wallet>) {
         val currentAdapters = adaptersMap.toMutableMap()
         adaptersMap.clear()
-        _initializationInProgressFlow.value = true
         val previousLitecoinMwebAccounts = currentAdapters.keys.litecoinMwebAccountIds()
         val activeLitecoinMwebAccounts = wallets.litecoinMwebAccountIds()
 
@@ -268,7 +278,6 @@ class AdapterManager(
         if (previousAccountId != null && previousAccountId != activeAccountId) {
             pendingBalanceCalculator.stopObserving(previousAccountId)
         }
-        _initializationInProgressFlow.value = false
     }
 
     private fun Wallet.needsLitecoinMwebRecreate(
