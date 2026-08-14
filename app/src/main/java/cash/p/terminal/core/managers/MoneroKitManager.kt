@@ -981,9 +981,14 @@ class MoneroKitWrapper(
         if (mode == HardwareKeyImageRefreshResult.Mode.ResetToRestoreHeight) {
             restoreSettingsManager.savePendingMoneroRescan(account, restoreHeight)
         }
-        wallet.refreshWithHardwareKeyImages(
-            HardwareKeyImageRefreshResult.Request(mode, restoreHeight),
-        )
+        refreshHardwareKeyImagesWithProgress(
+            cachedTotalHeight = moneroWalletService.daemonHeight,
+            fallbackTotalHeight = { wallet.daemonBlockChainHeight },
+        ) {
+            wallet.refreshWithHardwareKeyImages(
+                HardwareKeyImageRefreshResult.Request(mode, restoreHeight),
+            )
+        }
         storeControlledHardwareRefresh(wallet, mode)
         if (mode == HardwareKeyImageRefreshResult.Mode.ResetToRestoreHeight) {
             restoreSettingsManager.clearPendingMoneroRescan(account)
@@ -993,6 +998,26 @@ class MoneroKitWrapper(
                 account,
                 MoneroSpentReconciliationState.LiveRefreshPending,
             )
+        }
+    }
+
+    internal fun refreshHardwareKeyImagesWithProgress(
+        cachedTotalHeight: Long,
+        fallbackTotalHeight: () -> Long,
+        refresh: () -> Unit,
+    ) {
+        val session = requireActiveReconciliationSession()
+        val totalHeight = cachedTotalHeight.takeIf { it > 0 }
+            ?: tryOrNull(fallbackTotalHeight)
+            ?.takeIf { it > 0 }
+            ?: 0
+        moneroWalletService.setControlledRefreshProgressObserver { height ->
+            setSyncStateForSession(session, syncingState(height, totalHeight))
+        }
+        try {
+            refresh()
+        } finally {
+            moneroWalletService.clearControlledRefreshProgressObserver()
         }
     }
 

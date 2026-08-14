@@ -45,6 +45,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.After
@@ -112,6 +113,79 @@ class MoneroKitWrapperRefreshTest {
 
         verify(exactly = 1) { service.resume(wrapper) }
         verify(exactly = 1) { service.stop(false) }
+    }
+
+    @Test
+    fun refreshHardwareKeyImagesWithProgress_reportsNativeProgressAndClearsObserver() {
+        val events = mutableListOf<String>()
+        val states = mutableListOf<AdapterState>()
+        val service = mockService()
+        val wrapper = createWrapper(service, trezorAccount)
+        var progressObserver: ((Long) -> Unit)? = null
+        var fallbackCalls = 0
+        every { service.setControlledRefreshProgressObserver(any()) } answers {
+            events += "register"
+            progressObserver = firstArg()
+        }
+        every { service.clearControlledRefreshProgressObserver() } answers { events += "clear" }
+
+        setStarted(wrapper)
+        invokeActivateReconciliationSession(wrapper)
+        wrapper.refreshHardwareKeyImagesWithProgress(
+            cachedTotalHeight = 0,
+            fallbackTotalHeight = {
+                events += "fallback"
+                fallbackCalls += 1
+                1_000
+            },
+        ) {
+            events += "refresh"
+            progressObserver?.let { observer ->
+                observer(400)
+                states += wrapper.syncState.value
+                observer(500)
+                states += wrapper.syncState.value
+            }
+        }
+
+        assertNotNull(progressObserver)
+        assertEquals(
+            listOf(
+                AdapterState.Syncing(progress = 40.0, blocksRemained = 600),
+                AdapterState.Syncing(progress = 50.0, blocksRemained = 500),
+            ),
+            states,
+        )
+        assertEquals(1, fallbackCalls)
+        assertEquals(listOf("fallback", "register", "refresh", "clear"), events)
+    }
+
+    @Test
+    fun refreshHardwareKeyImagesWithProgress_refreshFailureClearsObserver() {
+        val events = mutableListOf<String>()
+        val error = IllegalStateException("refresh failed")
+        val service = mockService()
+        val wrapper = createWrapper(service, trezorAccount)
+        every { service.setControlledRefreshProgressObserver(any()) } answers { events += "register" }
+        every { service.clearControlledRefreshProgressObserver() } answers { events += "clear" }
+
+        setStarted(wrapper)
+        invokeActivateReconciliationSession(wrapper)
+        val thrown = try {
+            wrapper.refreshHardwareKeyImagesWithProgress(
+                cachedTotalHeight = 1_000,
+                fallbackTotalHeight = { error("fallback should not be called") },
+            ) {
+                events += "refresh"
+                throw error
+            }
+            null
+        } catch (caught: Throwable) {
+            caught
+        }
+
+        assertSame(error, thrown)
+        assertEquals(listOf("register", "refresh", "clear"), events)
     }
 
     @Test
