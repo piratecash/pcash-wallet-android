@@ -31,6 +31,7 @@ import cash.p.terminal.core.isEligibleForMoneroFullWalletRecovery
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
+import cash.p.terminal.modules.address.AddressInputState
 import cash.p.terminal.modules.address.AmountUnique
 import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
@@ -151,8 +152,6 @@ private fun SendMoneroScreen(
     val paymentAddressViewModel: AddressParserViewModel = viewModel(
         factory = AddressParserModule.Factory(state.wallet.token, prefilledData)
     )
-    val addressTextPreprocessor: TextPreprocessor = paymentAddressViewModel
-
     ComposeAppTheme {
         SendMoneroContent(
             navController = navController,
@@ -160,8 +159,7 @@ private fun SendMoneroScreen(
             addressCheckerControl = addressCheckerControl,
             state = state,
             callbacks = callbacks,
-            addressTextPreprocessor = addressTextPreprocessor,
-            amountUnique = paymentAddressViewModel.amountUnique,
+            addressInputState = paymentAddressViewModel.addressInputState,
         )
     }
 }
@@ -173,19 +171,14 @@ private fun SendMoneroContent(
     addressCheckerControl: AddressCheckerControl,
     state: SendMoneroScreenState,
     callbacks: SendMoneroScreenCallbacks,
-    addressTextPreprocessor: TextPreprocessor,
-    amountUnique: AmountUnique?,
+    addressInputState: AddressInputState,
 ) {
     val focusRequester = remember { FocusRequester() }
     var percentageAmountUnique by remember { mutableStateOf<AmountUnique?>(null) }
     var coinAmount by remember { mutableStateOf<BigDecimal?>(null) }
-    val onProceed = {
-        callbacks.onNextClick(state.uiState.proceedActionData(state.wallet))
-    }
+    val onProceed = { callbacks.onNextClick(state.uiState.proceedActionData(state.wallet)) }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     SendScreen(
         title = state.title,
@@ -207,14 +200,14 @@ private fun SendMoneroContent(
         MoneroAddressSection(
             state = state,
             prefilledData = prefilledData,
-            textPreprocessor = addressTextPreprocessor,
+            textPreprocessor = addressInputState.textPreprocessor,
             navController = navController,
             onValueChange = callbacks.onEnterAddress,
         )
         MoneroAmountSection(
             state = state,
             focusRequester = focusRequester,
-            amountUnique = amountUnique,
+            amountUnique = addressInputState.amountUnique,
             percentageAmountUnique = percentageAmountUnique,
             onAmountChange = { amount ->
                 coinAmount = amount
@@ -223,7 +216,7 @@ private fun SendMoneroContent(
             onToggleInputType = callbacks.onToggleAmountInputType,
         )
         VSpacer(12.dp)
-        HSMemoInput(maxLength = 120, onValueChange = callbacks.onEnterMemo)
+        HSMemoInput(120, addressInputState.memoPrefill, callbacks.onEnterMemo)
         VSpacer(12.dp)
         MoneroFeeAndRiskSections(
             state = state,
@@ -232,11 +225,7 @@ private fun SendMoneroContent(
             onBalanceClick = callbacks.onToggleHideBalance,
             onRiskAcceptedChange = callbacks.onRiskAcceptedChange,
         )
-        MoneroProceedButtons(
-            state = state,
-            callbacks = callbacks,
-            onProceed = onProceed,
-        )
+        MoneroProceedButtons(state, callbacks, onProceed)
     }
 }
 

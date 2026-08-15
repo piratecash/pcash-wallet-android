@@ -123,7 +123,7 @@ fun HSAmountInput(
 
     LaunchedEffect(amountUnique) {
         amountUnique?.let {
-            viewModel.setCoinAmountExternal(amountUnique.amount)
+            viewModel.setExternalCoinAmount(amountUnique.amount, inputType, onClickHint)
 
             val text = viewModel.getEnterAmount()
             textState = textState.copy(text = text, selection = TextRange(text.length))
@@ -138,7 +138,7 @@ fun HSAmountInput(
                 textState = textState.copy(text = "")
                 viewModel.onEnterAmount("")
             } else {
-                viewModel.setCoinAmountExternal(it.amount)
+                viewModel.setExternalCoinAmount(it.amount, inputType, onClickHint)
                 val text = viewModel.getEnterAmount()
                 textState = textState.copy(text = text, selection = TextRange(text.length))
             }
@@ -332,4 +332,16 @@ fun HSAmountInput(
             )
         }
     }
+}
+
+internal fun AmountInputViewModel2.setExternalCoinAmount(
+    amount: BigDecimal,
+    inputType: AmountInputType,
+    switchToCoinInput: () -> Unit,
+) {
+    if (inputType == AmountInputType.CURRENCY) {
+        setInputType(AmountInputType.COIN)
+        switchToCoinInput()
+    }
+    setCoinAmountExternal(amount)
 }

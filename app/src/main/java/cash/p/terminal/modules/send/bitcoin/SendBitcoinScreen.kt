@@ -184,7 +184,7 @@ private fun SendBitcoinScreen(
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
         factory = AddressParserModule.Factory(
             wallet.token,
-            PrefilledData(uiState.address?.hex.orEmpty(), uiState.amount)
+            prefilledData
         )
     )
     val amountUnique = paymentAddressViewModel.amountUnique
@@ -282,10 +282,13 @@ private fun SendBitcoinScreen(
 
                     if (uiState.isMemoAvailable) {
                         VSpacer(12.dp)
-                        HSMemoInput(maxLength = 120) {
-                            viewModel.onEnterMemo(it)
-                        }
                     }
+                    HSMemoInput(
+                        maxLength = 120,
+                        memoPrefill = paymentAddressViewModel.addressInputState.memoPrefill,
+                        onValueChange = viewModel::onEnterMemo,
+                        visible = uiState.isMemoAvailable,
+                    )
 
                     uiState.utxoData?.let { utxoData ->
                         Spacer(modifier = Modifier.height(12.dp))

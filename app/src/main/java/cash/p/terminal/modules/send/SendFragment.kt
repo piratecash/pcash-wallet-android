@@ -77,7 +77,6 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.PoisonAddressManager
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
-import java.math.BigDecimal
 
 class SendFragment : BaseComposeFragment() {
 
@@ -103,10 +102,10 @@ class SendFragment : BaseComposeFragment() {
         val keyboardController = LocalSoftwareKeyboardController.current
         val wallet = args.input.wallet
         val title = args.input.title
-        val address = args.input.address
-        val prefilledData = PrefilledData(address?.hex, args.input.amount)
+        val prefilledData = args.input.prefilledData
+        val address = prefilledData?.address?.let(::Address)
         val hideAddress = args.input.hideAddress
-        val amount = args.input.amount
+        val amount = prefilledData?.amount
 
         val amountInputModeViewModel by navGraphViewModels<AmountInputModeViewModel>(R.id.sendXFragment) {
             AmountInputModeModule.Factory(wallet.coin.uid)
@@ -461,9 +460,8 @@ class SendFragment : BaseComposeFragment() {
         val wallet: Wallet,
         val title: String,
         val sendEntryPointDestId: Int = 0,
-        val address: Address?,
+        val prefilledData: PrefilledData? = null,
         val riskyAddress: Boolean = false,
-        val amount: BigDecimal? = null,
         val hideAddress: Boolean = false
     ) : Parcelable
 

@@ -47,6 +47,7 @@ import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.z.ecc.android.sdk.ext.ZcashSdk.MAX_MEMO_SIZE
 import java.math.BigDecimal
 
 @Composable
@@ -196,8 +197,15 @@ private fun SendZCashScreen(
 
             if (memoIsAllowed) {
                 VSpacer(12.dp)
-                HSMemoInput(maxLength = viewModel.memoMaxLength) { viewModel.onEnterMemo(it) }
             }
+            HSMemoInput(
+                maxLength = viewModel.memoMaxLength,
+                memoPrefill = paymentAddressViewModel.addressInputState.memoPrefill,
+                onValueChange = viewModel::onEnterMemo,
+                visible = memoIsAllowed,
+                prefillMaxLength = MAX_MEMO_SIZE,
+                prefillMaxBytes = MAX_MEMO_SIZE,
+            )
 
             VSpacer(12.dp)
             FeeInfoSection(

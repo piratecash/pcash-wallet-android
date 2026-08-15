@@ -24,11 +24,11 @@ import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
-import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.address.AddressHandlerFactory
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
+import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
@@ -71,7 +71,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
-import java.math.BigDecimal
+import kotlin.Pair as KotlinPair
 
 class BalanceViewModel(
     private val service: DefaultBalanceService,
@@ -525,30 +525,24 @@ class BalanceViewModel(
         emitState()
     }
 
-    private fun uri(text: String): AddressUri? {
-        var hasPrefix = AddressUriParser.hasUriPrefix(text)
-        val address = if (!hasPrefix && isZCashAddress(text)) {
+    private fun uri(text: String): KotlinPair<AddressUri, List<BlockchainType>?>? {
+        val address = if (!AddressUriParser.hasUriPrefix(text) && isZCashAddress(text)) {
             // parse as zcash
-            hasPrefix = true
             "zcash:$text"
         } else {
             text
         }
-        if (hasPrefix) {
-            val abstractUriParse = AddressUriParser(null, null)
-            return when (val result = abstractUriParse.parse(address)) {
-                is AddressUriResult.Uri -> {
-                    if (BlockchainType.supported.map { it.uriScheme }
-                            .contains(result.addressUri.scheme))
-                        result.addressUri
-                    else
-                        null
-                }
 
-                else -> null
-            }
-        }
-        return null
+        return AddressUriParser.addressUri(address)?.let { it to it.selectionBlockchainTypes } ?: prefixlessAddressUri(text)
+    }
+
+    private fun prefixlessAddressUri(text: String): KotlinPair<AddressUri, List<BlockchainType>>? {
+        val address = text.substringBefore('?').substringBefore('&')
+        if (address == text) return null
+
+        val blockchainTypes = addressHandlerFactory.parserChain(null).supportedAddressHandlers(address)
+            .map { it.blockchainType }.distinct()
+        return parsePrefixlessAddressUri(text, blockchainTypes)
     }
 
     private fun isZCashAddress(text: String): Boolean {
@@ -562,34 +556,12 @@ class BalanceViewModel(
     }
 
     private fun handleAddressData(text: String) {
-        if (text.contains("//")) {
-            //handle this type of uri ton://transfer/<address>
-            val toncoinAddress = ToncoinUriParser.getAddress(text) ?: return
-            openSendTokenSelect = OpenSendTokenSelect(
-                blockchainTypes = listOf(BlockchainType.Ton),
-                tokenTypes = null,
-                address = toncoinAddress,
-                amount = null
-            )
-            emitState()
-            return
-        }
-
-        val uri = uri(text)
-        if (uri != null) {
-            val allowedBlockchainTypes = uri.allowedBlockchainTypes
-            var allowedTokenTypes: List<TokenType>? = null
-            uri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
-                TokenType.fromId(uid)?.let { tokenType ->
-                    allowedTokenTypes = listOf(tokenType)
-                }
-            }
-
-            openSendTokenSelect = OpenSendTokenSelect(
-                blockchainTypes = allowedBlockchainTypes,
-                tokenTypes = allowedTokenTypes,
-                address = uri.address,
-                amount = uri.amount
+        val parsedUri = uri(text)
+        if (parsedUri != null) {
+            val (uri, allowedBlockchainTypes) = parsedUri
+            openSendTokenSelect = uri.openSendTokenSelect(
+                allowedBlockchainTypes,
+                AddressUriParser.hasUriPrefix(text),
             )
             emitState()
         } else {
@@ -605,8 +577,7 @@ class BalanceViewModel(
             openSendTokenSelect = OpenSendTokenSelect(
                 blockchainTypes = types.map { it.blockchainType },
                 tokenTypes = null,
-                address = text,
-                amount = null
+                prefilledData = PrefilledData(text)
             )
             emitState()
         }
@@ -658,6 +629,38 @@ private data class PendingSwapsSnapshot(
     val singlePayCoreRecordUid: String?,
 )
 
+internal fun parsePrefixlessAddressUri(text: String, blockchainTypes: List<BlockchainType>): KotlinPair<AddressUri, List<BlockchainType>>? {
+    val parsed = blockchainTypes.mapNotNull { blockchainType ->
+        val uri = (AddressUriParser(blockchainType, null).parse(text) as? AddressUriResult.Uri)?.addressUri
+        uri?.let { it to (it.allowedBlockchainTypes ?: listOf(blockchainType)) }
+    }
+    val allowedTypes = parsed.flatMap { it.second }.filter { it in blockchainTypes }.distinct()
+    return parsed.firstOrNull()?.first?.let { it to allowedTypes }
+}
+
+internal fun AddressUri.openSendTokenSelect(
+    blockchainTypes: List<BlockchainType>? = selectionBlockchainTypes,
+    hasExplicitScheme: Boolean = true,
+) = OpenSendTokenSelect(
+    blockchainTypes,
+    listOf(TokenType.Native).takeIf { hasExplicitScheme && scheme in NATIVE_TOKEN_URI_SCHEMES }
+        ?: value<String>(AddressUri.Field.TokenUid)
+            ?.let { TokenType.fromId(it).normalizedFor(blockchainTypes) }
+            ?.let(::listOf),
+    PrefilledData.from(this),
+)
+
+private fun TokenType.normalizedFor(blockchainTypes: List<BlockchainType>?) = if (this is TokenType.Eip20) {
+    blockchainTypes?.firstOrNull()?.let { TokenQuery.eip20(it, address).tokenType } ?: this
+} else this
+
+private val AddressUri.selectionBlockchainTypes: List<BlockchainType>?
+    get() = allowedBlockchainTypes ?: BlockchainType.supported.filter { it.uid == scheme }.takeIf { it.isNotEmpty() }
+
+private val NATIVE_TOKEN_URI_SCHEMES = setOf(
+    BlockchainType.Solana.uid, BlockchainType.Monero.uid, BlockchainType.Ton.uriScheme, BlockchainType.Ethereum.uriScheme
+)
+
 data class BalanceUiState(
     val balanceViewItems: List<BalanceViewItem2>,
     val viewState: ViewState?,
@@ -683,8 +686,7 @@ data class BalanceUiState(
 data class OpenSendTokenSelect(
     val blockchainTypes: List<BlockchainType>?,
     val tokenTypes: List<TokenType>?,
-    val address: String,
-    val amount: BigDecimal? = null,
+    val prefilledData: PrefilledData,
 )
 
 data class OpenRestoreFromQr(

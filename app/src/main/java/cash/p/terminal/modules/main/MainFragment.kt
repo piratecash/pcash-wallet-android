@@ -390,8 +390,7 @@ private fun MainScreen(
             SendTokenSelectFragment.Input(
                 openSend.blockchainTypes,
                 openSend.tokenTypes,
-                openSend.address,
-                openSend.amount
+                openSend.prefilledData
             )
         )
         viewModel.onSendOpened()

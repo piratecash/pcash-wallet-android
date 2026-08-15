@@ -25,6 +25,7 @@ import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
+import cash.p.terminal.modules.address.AddressInputState
 import cash.p.terminal.modules.address.AmountUnique
 import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
@@ -132,8 +133,6 @@ private fun SendTonScreen(
     val paymentAddressViewModel: AddressParserViewModel = viewModel(
         factory = AddressParserModule.Factory(state.wallet.token, prefilledData)
     )
-    val addressTextPreprocessor: TextPreprocessor = paymentAddressViewModel
-
     ComposeAppTheme {
         SendTonContent(
             navController = navController,
@@ -141,8 +140,7 @@ private fun SendTonScreen(
             addressCheckerControl = addressCheckerControl,
             state = state,
             callbacks = callbacks,
-            addressTextPreprocessor = addressTextPreprocessor,
-            amountUnique = paymentAddressViewModel.amountUnique,
+            addressInputState = paymentAddressViewModel.addressInputState,
         )
     }
 }
@@ -154,8 +152,7 @@ private fun SendTonContent(
     addressCheckerControl: AddressCheckerControl,
     state: SendTonScreenState,
     callbacks: SendTonScreenCallbacks,
-    addressTextPreprocessor: TextPreprocessor,
-    amountUnique: AmountUnique?,
+    addressInputState: AddressInputState,
 ) {
     val focusRequester = remember { FocusRequester() }
     var percentageAmountUnique by remember { mutableStateOf<AmountUnique?>(null) }
@@ -185,14 +182,14 @@ private fun SendTonContent(
         TonAddressSection(
             state = state,
             prefilledData = prefilledData,
-            textPreprocessor = addressTextPreprocessor,
+            textPreprocessor = addressInputState.textPreprocessor,
             navController = navController,
             onValueChange = callbacks.onEnterAddress,
         )
         TonAmountSection(
             state = state,
             focusRequester = focusRequester,
-            amountUnique = amountUnique,
+            amountUnique = addressInputState.amountUnique,
             percentageAmountUnique = percentageAmountUnique,
             onAmountChange = { amount ->
                 coinAmount = amount
@@ -201,7 +198,7 @@ private fun SendTonContent(
             onToggleInputType = callbacks.onToggleAmountInputType,
         )
         VSpacer(12.dp)
-        HSMemoInput(maxLength = 120, onValueChange = callbacks.onEnterMemo)
+        HSMemoInput(120, addressInputState.memoPrefill, callbacks.onEnterMemo)
         VSpacer(12.dp)
         TonFeeAndRiskSections(
             state = state,

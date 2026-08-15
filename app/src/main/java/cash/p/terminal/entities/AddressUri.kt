@@ -27,14 +27,21 @@ class AddressUri(
     }
 
     val amount: BigDecimal?
-        get() = value<BigDecimal>(Field.Amount) ?: value(Field.Value)
+        get() = value<BigDecimal>(Field.Amount) ?: value(Field.Value) ?: moneroAmount
+
+    private val moneroAmount: BigDecimal?
+        get() = if (scheme.equals("monero", ignoreCase = true)) value(Field.TxAmount) else null
 
 
     enum class Field(val value: String) {
         Amount("amount"),
         Value("value"),
+        TxAmount("tx_amount"),
         Label("label"),
         Message("message"),
+        IS("IS"),
+        Memo("memo"),
+        Tag("tag"),
         BlockchainUid("blockchain_uid"),
         TokenUid("token_uid");
 
@@ -68,4 +75,3 @@ class AddressUri(
             return null
         }
 }
-
