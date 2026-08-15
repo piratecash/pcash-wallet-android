@@ -9,6 +9,7 @@ import cash.p.terminal.core.IMarketStorage
 import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.ITorManager
+import cash.p.terminal.core.adapters.zcash.ZcashAddressDeriver
 import cash.p.terminal.core.address.AddressCheckManager
 import cash.p.terminal.core.converters.PendingTransactionConverter
 import cash.p.terminal.core.deeplink.DeeplinkParser
@@ -110,6 +111,7 @@ import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.core.providers.TonFallbackAddressProvider
+import cash.p.terminal.core.providers.ZcashFallbackAddressProvider
 import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
@@ -191,10 +193,15 @@ val managerModule = module {
     singleOf(::AppHeadersProviderImpl) bind AppHeadersProvider::class
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
+    singleOf(::ZcashAddressDeriver)
     singleOf(::TonFallbackAddressProvider)
+    singleOf(::ZcashFallbackAddressProvider)
     single<FallbackAddressProvider> {
         CompositeFallbackAddressProvider(
-            providers = listOf(get<TonFallbackAddressProvider>())
+            providers = listOf(
+                get<TonFallbackAddressProvider>(),
+                get<ZcashFallbackAddressProvider>()
+            )
         )
     }
     singleOf(::AdapterManager) bind IAdapterManager::class

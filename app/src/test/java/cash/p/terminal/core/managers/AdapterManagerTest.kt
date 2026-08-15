@@ -15,15 +15,19 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.reactivex.Observable
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -263,6 +267,31 @@ class AdapterManagerTest {
         coVerify(exactly = 1) { adapterFactory.getAdapterOrNull(publicWallet, any()) }
         verify(exactly = 0) { litecoinAdapter.stop() }
         assertSame(litecoinAdapter, adapterManager.getAdapterForWallet<IAdapter>(publicWallet))
+    }
+
+    @Test
+    fun initAdapters_replacementRequestCancelsRunningInit_doesNotPublishFinished() = testScope.runTest {
+        val firstWallet = wallet("account")
+        val secondWallet = wallet("account")
+        val neverCreated = CompletableDeferred<IAdapter>()
+
+        coEvery { adapterFactory.getAdapterOrNull(firstWallet, any()) } coAnswers { neverCreated.await() }
+        coEvery { adapterFactory.getAdapterOrNull(secondWallet, any()) } returns mockk(relaxed = true)
+
+        val flagUpdates = mutableListOf<Boolean>()
+        val observer = launch { adapterManager.initializationInProgressFlow.toList(flagUpdates) }
+
+        activeWalletsFlow.value = listOf(firstWallet)
+        adapterManager.startAdapterManager()
+        advanceUntilIdle()
+
+        // Pre-empts the hanging init: a spurious `false` here would advertise the cleared map as final
+        activeWalletsFlow.value = listOf(secondWallet)
+        advanceUntilIdle()
+        observer.cancel()
+
+        coVerify(exactly = 1) { adapterFactory.getAdapterOrNull(firstWallet, any()) }
+        assertEquals(listOf(true, false), flagUpdates)
     }
 
     @Test

@@ -436,6 +436,7 @@ dependencies {
     // Zcash SDK
     coreLibraryDesugaring libs.desugar.jdk.libs
     implementation libs.zcash.android.sdk
+    implementation libs.zcash.android.backend
     implementation(libs.grpc.api)
 
     // Exclude old version from wherever it's coming
