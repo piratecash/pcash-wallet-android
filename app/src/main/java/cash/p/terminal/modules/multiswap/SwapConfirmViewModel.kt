@@ -14,6 +14,8 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.core.requiresTrezorPreparation
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.getKoinInstance
@@ -32,11 +34,15 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceMonero
 import cash.p.terminal.modules.multiswap.sendtransaction.SwapTransactionServiceFactory
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.BaseSendViewModel
+import cash.p.terminal.modules.send.hardwareWalletUserMessageRes
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
+import cash.p.terminal.modules.send.userMessageRes
 import cash.p.terminal.network.changenow.data.entity.BackendChangeNowResponseError
 import cash.p.terminal.network.exolix.data.entity.BackendExolixResponseError
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -46,6 +52,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import com.tangem.common.core.TangemSdkError
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.DispatcherProvider
@@ -125,6 +132,10 @@ class SwapConfirmViewModel(
     private var swapProviderTransaction: SwapProviderTransaction? = null
     private var isAdvancedSettingsAvailable: Boolean = sendTransactionService.hasSettings()
     private var fetchJob: Job? = null
+    private var moneroPreparationJob: Job? = null
+    private var moneroPreparationAutoStarted = false
+    private var moneroPreparationActivity = MoneroPreparationActivity.Idle
+    private var moneroPreparationError: Int? = null
     private val mevProtectionAvailable =
         swapProvider.mevProtectionAvailable && sendTransactionService.mevProtectionAvailable
 
@@ -180,6 +191,7 @@ class SwapConfirmViewModel(
                 loading = transactionState.loading
 
                 emitState()
+                prepareMoneroSpendIfNeeded(transactionState.moneroSpendReadiness, automatic = true)
 
                 if (isSendable() && needUseTimer()) {
                     timerService.start(10)
@@ -254,6 +266,12 @@ class SwapConfirmViewModel(
             isAdvancedSettingsAvailable = isAdvancedSettingsAvailable,
             mevProtectionAvailable = mevProtectionAvailable,
             mevProtectionEnabled = localStorage.swapMevProtectionEnabled && mevProtectionAvailable,
+            moneroSpendReadiness = sendTransactionState.moneroSpendReadiness,
+            moneroPreparationInProgress = moneroPreparationActivity == MoneroPreparationActivity.InProgress,
+            moneroPreparationError = moneroPreparationError,
+            moneroPreparationRetryAvailable =
+                sendTransactionState.moneroSpendReadiness?.requiresTrezorPreparation() == true &&
+                    moneroPreparationActivity != MoneroPreparationActivity.InProgress,
         )
     }
 
@@ -276,7 +294,9 @@ class SwapConfirmViewModel(
     }
 
     private fun isSendable(cautions: List<CautionViewItem> = buildCautions()): Boolean {
-        val transactionSendable = swapProvider.isOffChain || sendTransactionState.sendable
+        val transactionSendable =
+            swapProvider.isOffChain && !sendTransactionService.requiresSendableState ||
+                sendTransactionState.sendable
         return transactionSendable && cautions.none { it.type == CautionViewItem.Type.Error }
     }
 
@@ -287,6 +307,46 @@ class SwapConfirmViewModel(
 
     private fun needUseTimer() =
         !swapProvider.isOffChain
+
+    fun retryMoneroPreparation() {
+        prepareMoneroSpendIfNeeded(sendTransactionState.moneroSpendReadiness, automatic = false)
+    }
+
+    private fun prepareMoneroSpendIfNeeded(
+        readiness: MoneroSpendReadiness?,
+        automatic: Boolean,
+    ) {
+        if (readiness?.requiresTrezorPreparation() != true) {
+            moneroPreparationAutoStarted = false
+            return
+        }
+        if (moneroPreparationJob?.isActive == true) return
+        if (automatic && moneroPreparationAutoStarted) return
+        val service = sendTransactionService as? SendTransactionServiceMonero ?: return
+        moneroPreparationAutoStarted = true
+        moneroPreparationError = null
+        moneroPreparationActivity = MoneroPreparationActivity.InProgress
+        moneroPreparationJob = viewModelScope.launch {
+            try {
+                service.updateWithTrezor()
+            } catch (error: CancellationException) {
+                moneroPreparationActivity = MoneroPreparationActivity.Cancelled
+                throw error
+            } catch (error: Exception) {
+                moneroPreparationActivity = MoneroPreparationActivity.Failed
+                if (!error.isHardwareWalletCancelled()) {
+                    Timber.e(error, "Monero Live Refresh failed")
+                    moneroPreparationError = error.hardwareWalletUserMessageRes()
+                }
+            } finally {
+                if (moneroPreparationActivity == MoneroPreparationActivity.InProgress) {
+                    moneroPreparationActivity = MoneroPreparationActivity.Completed
+                }
+                emitState()
+            }
+        }
+        emitState()
+    }
 
     override fun onCleared() {
         timerService.stop()
@@ -418,6 +478,14 @@ class SwapConfirmViewModel(
                 sendResult = null
             } catch (e: TrezorCancelledException) {
                 sendResult = null
+            } catch (e: HardwareWalletOperationException) {
+                sendResult = if (e.isHardwareWalletCancelled()) {
+                    null
+                } else {
+                    SendResult.Failed(
+                        HSCaution(TranslatableString.ResString(e.userMessageRes()))
+                    )
+                }
             } catch (e: TangemSdkError) {
                 // Other Tangem errors - reset state
                 sendResult = null
@@ -662,4 +730,16 @@ data class SwapConfirmUiState(
     var isAdvancedSettingsAvailable: Boolean,
     val mevProtectionAvailable: Boolean,
     val mevProtectionEnabled: Boolean,
+    val moneroSpendReadiness: MoneroSpendReadiness? = null,
+    val moneroPreparationInProgress: Boolean = false,
+    val moneroPreparationError: Int? = null,
+    val moneroPreparationRetryAvailable: Boolean = false,
 )
+
+private enum class MoneroPreparationActivity {
+    Idle,
+    InProgress,
+    Completed,
+    Failed,
+    Cancelled,
+}

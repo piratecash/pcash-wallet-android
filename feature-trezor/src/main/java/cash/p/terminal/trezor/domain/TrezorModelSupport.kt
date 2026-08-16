@@ -42,6 +42,9 @@ object TrezorModelSupport {
                     add(BlockchainType.Tron)
                 }
             }
+            if (model == TrezorModel.Safe5) {
+                add(BlockchainType.Monero)
+            }
         }
     }
 
@@ -50,7 +53,9 @@ object TrezorModelSupport {
 
     fun getDefaultTokenQueries(model: TrezorModel?): List<TokenQuery> {
         val supported = getSupportedBlockchains(model)
-        return TokenQuery.defaultTokenQueries.filter { it.blockchainType in supported }
+        return TokenQuery.defaultTokenQueries.filter {
+            it.blockchainType in supported && it.blockchainType != BlockchainType.Monero
+        }
     }
 
     /**

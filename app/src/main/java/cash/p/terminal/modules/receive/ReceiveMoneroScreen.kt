@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.receive
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -148,6 +149,13 @@ private fun MoneroBottomContent(
     viewModel: ReceiveMoneroViewModel,
     onShowConfirmDialog: () -> Unit,
 ) {
+    if (uiState.hardwareWallet) {
+        MoneroHardwareWalletActions(
+            uiState = uiState,
+            onSyncKeyImages = viewModel::refreshWithTrezor,
+            onDisplayAddress = viewModel::displayAddressOnDevice,
+        )
+    }
     if (!uiState.watchAccount) {
         ButtonPrimaryTransparent(
             modifier = Modifier
@@ -162,6 +170,39 @@ private fun MoneroBottomContent(
                     viewModel.createNewAddress()
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun MoneroHardwareWalletActions(
+    uiState: ReceiveMoneroUiState,
+    onSyncKeyImages: () -> Unit,
+    onDisplayAddress: () -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        uiState.hardwareOperationError?.let { error ->
+            TextImportantWarning(
+                modifier = Modifier.padding(vertical = 12.dp),
+                text = stringResource(error),
+            )
+        }
+        if (uiState.showTrezorUpdateAction) {
+            ButtonPrimaryYellow(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.monero_update_with_trezor),
+                enabled = !uiState.isHardwareOperationInProgress,
+                loadingIndicator = uiState.isHardwareOperationInProgress,
+                onClick = onSyncKeyImages,
+            )
+        }
+        ButtonPrimaryTransparent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            title = stringResource(R.string.monero_show_address_on_trezor),
+            enabled = !uiState.isHardwareOperationInProgress,
+            onClick = onDisplayAddress,
         )
     }
 }

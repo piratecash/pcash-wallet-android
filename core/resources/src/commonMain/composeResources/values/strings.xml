@@ -419,6 +419,16 @@
     <string name="receive_address_badge_used">Used</string>
     <string name="receive_address_badge_unused">Unused</string>
     <string name="receive_create_new_address">Create new address</string>
+    <string name="monero_key_images_required">Update Monero with Trezor before sending.</string>
+    <string name="monero_sync_key_images">Sync key images</string>
+    <string name="monero_prepare_trezor_title">Prepare Trezor to send Monero</string>
+    <string name="monero_prepare_trezor_description">To send Monero, connect and unlock your Trezor. Keep it connected and confirm the update on your device. No funds will be sent during this step.</string>
+    <string name="monero_sync_and_continue">Sync and continue</string>
+    <string name="monero_update_with_trezor">Update with Trezor</string>
+    <string name="monero_updating_with_trezor">Updating Monero with Trezor</string>
+    <string name="monero_full_wallet_recovery">Full wallet recovery</string>
+    <string name="monero_full_wallet_recovery_warning">This recovery can take a long time.</string>
+    <string name="monero_show_address_on_trezor">Show address on Trezor</string>
     <string name="receive_create_another_address_title">Create another address?</string>
     <string name="receive_create_another_address_warning">You already have a new address that hasn\'t received any funds yet. Creating a new address is not required. Do you want to continue?</string>
     <string name="receive_dont_ask_again">Don\'t ask again (save setting)</string>

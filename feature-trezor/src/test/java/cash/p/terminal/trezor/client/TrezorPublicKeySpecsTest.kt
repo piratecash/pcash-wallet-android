@@ -63,6 +63,25 @@ class TrezorPublicKeySpecsTest {
     }
 
     @Test
+    fun walletIdentityRequest_matchesDefaultBitcoinBip84Key() {
+        assertEquals(
+            TrezorPublicKeyRequest.Bitcoin(
+                "Bitcoin",
+                TrezorDerivationPath.parse("m/84'/0'/0'"),
+                TrezorInputScriptType.SPENDWITNESS,
+            ),
+            TrezorPublicKeySpecs.walletIdentityRequest,
+        )
+        assertEquals(
+            TokenQuery(
+                BlockchainType.Bitcoin,
+                TokenType.Derived(TokenType.Derivation.Bip84),
+            ),
+            TrezorPublicKeySpecs.walletIdentityTokenQuery,
+        )
+    }
+
+    @Test
     fun buildQuerySpecs_litecoin_supports44_49_84_butNotBip86OrMweb() {
         assertEquals(
             "m/44'/2'/0'",

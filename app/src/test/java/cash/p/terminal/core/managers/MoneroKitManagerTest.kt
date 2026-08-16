@@ -1,11 +1,15 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import com.m2049r.xmrwallet.service.MoneroWalletService
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -14,10 +18,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
@@ -25,9 +32,14 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertFailsWith
 
 /**
  * Regression coverage for the background lifecycle: entering background must stop and
@@ -40,6 +52,9 @@ class MoneroKitManagerTest {
     private val moneroWalletService = mockk<MoneroWalletService>(relaxed = true)
     private val restoreSettingsManager = mockk<RestoreSettingsManager>(relaxed = true)
     private val backgroundKeepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
+    private val moneroFileDao = mockk<MoneroFileDao>(relaxed = true)
+    private val removeMoneroWalletFilesUseCase =
+        mockk<RemoveMoneroWalletFilesUseCase>(relaxed = true)
     private val networkAvailability = MutableSharedFlow<Boolean>()
     private val connectedState = MutableStateFlow(true)
     private val connectivityManager = mockk<ConnectivityManager>(relaxed = true) {
@@ -84,6 +99,7 @@ class MoneroKitManagerTest {
     private fun createManager(
         backgroundStateFlow: MutableStateFlow<BackgroundManagerState>,
         inForeground: Boolean = true,
+        wrapper: MoneroKitWrapper? = mockWrapper,
     ): MoneroKitManager {
         val backgroundManager = mockk<BackgroundManager> {
             every { stateFlow } returns backgroundStateFlow
@@ -96,11 +112,11 @@ class MoneroKitManagerTest {
             backgroundKeepAliveManager = backgroundKeepAliveManager,
             connectivityManager = connectivityManager,
             dispatcherProvider = dispatcherProvider,
-            moneroFileDao = mockk(relaxed = true),
-            removeMoneroWalletFilesUseCase = mockk(relaxed = true),
+            moneroFileDao = moneroFileDao,
+            removeMoneroWalletFilesUseCase = removeMoneroWalletFilesUseCase,
             networkErrorTracker = mockk(relaxed = true),
         ).apply {
-            moneroKitWrapper = mockWrapper
+            moneroKitWrapper = wrapper
             createdManager = this
         }
     }
@@ -175,6 +191,121 @@ class MoneroKitManagerTest {
     }
 
     @Test
+    fun unlink_nativeCloseFails_retainsWrapperOwnershipAndUseCount() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        val closeFailure = IllegalStateException("close failed")
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        coEvery { mockWrapper.stop(any()) } throws closeFailure
+
+        val actual = assertFailsWith<IllegalStateException> {
+            manager.unlink(account)
+        }
+
+        assertEquals(closeFailure.message, actual.message)
+        assertSame(mockWrapper, manager.moneroKitWrapper)
+        assertSame(account, manager.currentAccount)
+        assertEquals(1, (fieldValue(manager, "useCount") as AtomicInteger).get())
+    }
+
+    @Test
+    fun exclusiveNativeWallet_blocksNormalLifecycleUntilReleased() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        coEvery {
+            mockWrapper.withNativeWalletReleased<String>(any())
+        } coAnswers {
+            firstArg<suspend () -> String>().invoke()
+        }
+
+        val exclusive = async {
+            manager.withExclusiveNativeWallet {
+                entered.complete(Unit)
+                release.await()
+                "created"
+            }
+        }
+        entered.await()
+        val unlink = async { manager.unlink(account) }
+
+        advanceUntilIdle()
+        assertFalse(unlink.isCompleted)
+
+        release.complete(Unit)
+        assertEquals("created", exclusive.await())
+        unlink.await()
+        coVerify(exactly = 1) { mockWrapper.withNativeWalletReleased<String>(any()) }
+    }
+
+    @Test
+    fun rescan_inactiveTrezorAccount_preservesWalletFilesAndUpdatesHeight() =
+        testScope.runTest {
+            val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+            val trezorAccount = account.copy(
+                type = AccountType.TrezorDevice(
+                    deviceId = "device-id",
+                    model = "T3T1",
+                    firmwareVersion = "2.8.10",
+                    walletPublicKey = "wallet-key",
+                ),
+            )
+
+            manager.rescan(trezorAccount, 3_529_956)
+
+            coVerify(exactly = 0) { removeMoneroWalletFilesUseCase(any<Account>()) }
+            coVerify(exactly = 0) { moneroFileDao.deleteAssociatedRecord(any()) }
+            verify(exactly = 1) {
+                restoreSettingsManager.savePendingMoneroRescan(trezorAccount, 3_529_956)
+            }
+        }
+
+    @Test
+    fun rescan_activeAccount_unlinkWaitsUntilRescanCompletes() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        coEvery { mockWrapper.rescan(3_529_956) } coAnswers {
+            entered.complete(Unit)
+            release.await()
+        }
+
+        val rescan = async { manager.rescan(account, 3_529_956) }
+        entered.await()
+        val unlink = async { manager.unlink(account) }
+
+        advanceUntilIdle()
+        assertFalse(unlink.isCompleted)
+
+        release.complete(Unit)
+        rescan.await()
+        unlink.await()
+        coVerify(exactly = 1) { mockWrapper.rescan(3_529_956) }
+    }
+
+    @Test
+    fun hardwareRestoreHeight_sameHeight_replaysOnlyPendingRescan() {
+        assertFalse(
+            shouldApplyHardwareRestoreHeight(
+                currentHeight = 3_529_956,
+                targetHeight = 3_529_956,
+                hasPendingRescan = false,
+            ),
+        )
+        assertTrue(
+            shouldApplyHardwareRestoreHeight(
+                currentHeight = 3_529_956,
+                targetHeight = 3_529_956,
+                hasPendingRescan = true,
+            ),
+        )
+    }
+
+    @Test
     fun networkAvailability_false_notifiesWrapper() = testScope.runTest {
         val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
         subscribeAndSettle(manager)
@@ -239,12 +370,164 @@ class MoneroKitManagerTest {
         coVerify(exactly = 1) { mockWrapper.refresh() }
     }
 
+    @Test
+    fun getMoneroKitWrapper_deviceNotFound_thenForeground_startsWallet() = testScope.runTest {
+        retryInitialStartupFailure_startsWallet(
+            errorCode = HardwareWalletErrorCode.DeviceNotFound,
+            lifecycleFailures = 0,
+        )
+    }
+
+    @Test
+    fun getMoneroKitWrapper_acquireTimeout_thenForeground_startsWallet() = testScope.runTest {
+        retryInitialStartupFailure_startsWallet(
+            errorCode = HardwareWalletErrorCode.AcquireTimeout,
+            lifecycleFailures = 1,
+        )
+    }
+
+    @Test
+    fun getMoneroKitWrapper_trezorRetryableStartupFailure_retainsAndReturnsWrapper() = testScope.runTest {
+        val wrapper = createWrapper()
+        val manager = createKitInstanceSpy(
+            backgroundStateFlow = MutableStateFlow(BackgroundManagerState.EnterBackground),
+            wrapper = wrapper,
+        )
+        val trezorAccount = trezorAccount()
+        val startupFailure = HardwareWalletOperationException(
+            HardwareWalletErrorCode.DeviceNotFound,
+            "USB unavailable",
+        )
+
+        every { wrapper.isRestartableAfterFailedStart } returns true
+        coEvery { wrapper.start() } throws startupFailure
+
+        val initial = manager.getMoneroKitWrapper(trezorAccount)
+        val retained = manager.getMoneroKitWrapper(trezorAccount)
+
+        assertSame(initial, manager.moneroKitWrapper)
+        assertSame(initial, retained)
+        coVerify(exactly = 1) { wrapper.start() }
+    }
+
+    @Test
+    fun getMoneroKitWrapper_trezorCleanupRetainedOwnership_throwsTransientFailure() = testScope.runTest {
+        val wrapper = createWrapper()
+        val manager = createKitInstanceSpy(MutableStateFlow(BackgroundManagerState.EnterBackground), wrapper)
+        val startupFailure = HardwareWalletOperationException(HardwareWalletErrorCode.DeviceNotFound, "USB unavailable")
+
+        every { wrapper.isRestartableAfterFailedStart } returns false
+        coEvery { wrapper.start() } throws startupFailure
+
+        assertSame(startupFailure, assertFailsWith<HardwareWalletOperationException> {
+            manager.getMoneroKitWrapper(trezorAccount())
+        })
+    }
+
+    @Test
+    fun enterForeground_cleanupRetainedOwnership_doesNotSuppressTransientFailure() = testScope.runTest {
+        val backgroundStateFlow = MutableStateFlow(BackgroundManagerState.EnterBackground)
+        val wrapper = createWrapper()
+        val manager = createManager(backgroundStateFlow, wrapper = wrapper)
+        every { wrapper.isRestartableAfterFailedStart } returns false
+        coEvery { wrapper.resume() } returns false
+        coEvery { wrapper.start() } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.AcquireTimeout,
+            "USB unavailable",
+        )
+
+        invokeSubscribeToEvents(manager)
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
+        backgroundStateFlow.value = BackgroundManagerState.EnterBackground
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { wrapper.start() }
+    }
+
+    @Test
+    fun getMoneroKitWrapper_trezorProtocolStartupFailure_throwsAndClearsWrapper() = testScope.runTest {
+        val wrapper = createWrapper()
+        val manager = createKitInstanceSpy(
+            backgroundStateFlow = MutableStateFlow(BackgroundManagerState.EnterBackground),
+            wrapper = wrapper,
+        )
+        val startupFailure = HardwareWalletOperationException(
+            HardwareWalletErrorCode.Protocol,
+            "Protocol failure",
+        )
+
+        coEvery { wrapper.start() } throws startupFailure
+
+        val actual = assertFailsWith<HardwareWalletOperationException> {
+            manager.getMoneroKitWrapper(trezorAccount())
+        }
+
+        assertSame(startupFailure, actual)
+        assertNull(manager.moneroKitWrapper)
+    }
+
     // The foreground state collector also calls into the wrapper on subscription, so the recorded
     // calls are dropped before the network emission under test.
     private fun TestScope.subscribeAndSettle(manager: MoneroKitManager) {
         invokeSubscribeToEvents(manager)
         advanceUntilIdle()
         clearMocks(mockWrapper, answers = false)
+    }
+
+    private suspend fun TestScope.retryInitialStartupFailure_startsWallet(
+        errorCode: HardwareWalletErrorCode,
+        lifecycleFailures: Int,
+    ) {
+        val backgroundStateFlow = MutableStateFlow(BackgroundManagerState.EnterBackground)
+        val wrapper = createWrapper()
+        val manager = createKitInstanceSpy(backgroundStateFlow, wrapper)
+        every { wrapper.isRestartableAfterFailedStart } returns true
+        coEvery { wrapper.resume() } returns false
+        val startupFailure = HardwareWalletOperationException(errorCode, "USB unavailable")
+        val startStub = coEvery { wrapper.start() } throws startupFailure
+        repeat(lifecycleFailures) {
+            startStub andThenThrows startupFailure
+        }
+        startStub andThen Unit
+
+        manager.getMoneroKitWrapper(trezorAccount())
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
+        repeat(lifecycleFailures) {
+            backgroundStateFlow.value = BackgroundManagerState.EnterBackground
+            backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+            advanceUntilIdle()
+        }
+
+        coVerify(exactly = lifecycleFailures + 2) { wrapper.start() }
+    }
+
+    private fun trezorAccount(): Account = account.copy(
+        type = AccountType.TrezorDevice(
+            deviceId = "device-id",
+            model = "T3T1",
+            firmwareVersion = "2.8.10",
+            walletPublicKey = "wallet-key",
+        ),
+    )
+
+    private fun createWrapper(): MoneroKitWrapper = mockk(relaxed = true) {
+        every { syncState } returns wrapperSyncState
+    }
+
+    private fun createKitInstanceSpy(
+        backgroundStateFlow: MutableStateFlow<BackgroundManagerState>,
+        wrapper: MoneroKitWrapper,
+    ): MoneroKitManager {
+        val manager = spyk(
+            createManager(backgroundStateFlow, wrapper = null),
+            recordPrivateCalls = true,
+        )
+        every { manager["createKitInstance"](any<Account>()) } returns wrapper
+        createdManager = manager
+        return manager
     }
 
     private fun setField(manager: MoneroKitManager, name: String, value: Any?) {

@@ -17,7 +17,7 @@ interface IAccountsStorage {
     fun getNonBackedUpCount(): Flowable<Int>
     fun clear()
     fun getDeletedAccountIds(): List<String>
-    fun clearDeleted()
+    fun clearDeleted(accountIds: List<String>)
     fun updateLevels(accountIds: List<String>, level: Int)
     fun updateMaxLevel(level: Int)
     fun getWalletsCountByLevel(level: Int): Int

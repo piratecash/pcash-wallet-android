@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.balance.token
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,6 +9,10 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.INativeBalanceProvider
+import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.isEligibleForMoneroFullWalletRecovery
+import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.core.requiresTrezorPreparation
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.isCustom
@@ -39,6 +44,8 @@ import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.getWarningThreshold
+import cash.p.terminal.modules.send.hardwareWalletUserMessageRes
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.addressMetadataChangesFlow
@@ -78,16 +85,20 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.hoursUntil
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.toHexReversed
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
+import timber.log.Timber
 
 @Suppress("LongParameterList")
 class TokenBalanceViewModel(
@@ -150,6 +161,20 @@ class TokenBalanceViewModel(
     private var swapStatusMap = emptyMap<String, SwapProviderTransaction>()
 
     private var statusCheckerJob: Job? = null
+    private var moneroReadinessJob: Job? = null
+    private var moneroKeyImageSyncJob: Job? = null
+    private var observedMoneroAdapter: ISendMoneroAdapter? = null
+    private var moneroHardwareWallet = false
+    private var moneroSpendReadiness: MoneroSpendReadiness? = null
+    private var moneroKeyImageSyncInProgress = false
+    private var pendingMoneroSendIntent = false
+    @StringRes
+    private var moneroKeyImageSyncError: Int? = null
+    private var moneroFullWalletRecoveryAvailable = false
+
+    private val _events = Channel<TokenBalanceModule.Event>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
+
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
@@ -177,6 +202,8 @@ class TokenBalanceViewModel(
         localStorage.isNetworkFeeWarningDismissed(wallet.token.blockchainType.uid)
 
     init {
+        observeMoneroAdapter()
+
         viewModelScope.launch {
             balanceService.start()
             transactionsService.start()
@@ -186,6 +213,7 @@ class TokenBalanceViewModel(
             }
 
             balanceService.balanceItemFlow.collect { balanceItem ->
+                observeMoneroAdapter()
                 balanceItem?.let {
                     updateNetworkFeeWarning()
                     updateBalanceViewItem(
@@ -467,7 +495,155 @@ class TokenBalanceViewModel(
         searchScanning = searchScanning,
         searchEmptyResult = appliedSearchQuery.isNotEmpty() && !searchScanning && transactions?.values?.flatten()
             .isNullOrEmpty(),
+        moneroHardwareWallet = moneroHardwareWallet,
+        moneroSpendReadiness = moneroSpendReadiness,
+        moneroKeyImageSyncInProgress = moneroKeyImageSyncInProgress,
+        moneroKeyImageSyncError = moneroKeyImageSyncError,
+        moneroFullWalletRecoveryAvailable = moneroFullWalletRecoveryAvailable,
     )
+
+    private fun observeMoneroAdapter() {
+        val adapter = if (wallet.token.blockchainType == BlockchainType.Monero) {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(wallet)
+        } else {
+            null
+        }
+        if (observedMoneroAdapter === adapter) return
+
+        observedMoneroAdapter = adapter
+        moneroReadinessJob?.cancel()
+        moneroHardwareWallet = adapter?.hardwareWallet == true
+        moneroSpendReadiness = adapter?.spendReadiness?.value
+        moneroReadinessJob = adapter?.let {
+            viewModelScope.launch {
+                it.spendReadiness.collect { readiness ->
+                    moneroSpendReadiness = readiness
+                    handleMoneroReadiness(readiness)
+                    emitState()
+                }
+            }
+        }
+        emitState()
+    }
+
+    fun syncMoneroKeyImages() {
+        if (moneroKeyImageSyncJob?.isActive == true) return
+        val adapter = observedMoneroAdapter ?: return
+        if (moneroSpendReadiness == MoneroSpendReadiness.Ready) {
+            _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
+            return
+        }
+        if (
+            !moneroHardwareWallet ||
+            moneroSpendReadiness?.requiresTrezorPreparation() != true
+        ) {
+            return
+        }
+
+        moneroKeyImageSyncInProgress = true
+        moneroKeyImageSyncError = null
+        moneroFullWalletRecoveryAvailable = false
+        pendingMoneroSendIntent = true
+        emitState()
+        moneroKeyImageSyncJob = viewModelScope.launch {
+            executeMoneroPreparation(adapter, MoneroPreparationOperation.LiveRefresh)
+        }
+    }
+
+    fun prepareMoneroSend() {
+        if (!moneroHardwareWallet || moneroSpendReadiness == MoneroSpendReadiness.Ready) {
+            _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
+            return
+        }
+        pendingMoneroSendIntent = true
+        syncMoneroKeyImages()
+        emitState()
+    }
+
+    private suspend fun executeMoneroPreparation(
+        adapter: ISendMoneroAdapter,
+        operation: MoneroPreparationOperation,
+    ) {
+        try {
+            when (operation) {
+                MoneroPreparationOperation.LiveRefresh -> adapter.refreshHardwareKeyImages()
+                MoneroPreparationOperation.FullWalletRecovery -> adapter.fullWalletRecovery()
+            }
+            handleMoneroReadiness(adapter.spendReadiness.value)
+        } catch (error: CancellationException) {
+            pendingMoneroSendIntent = false
+            moneroKeyImageSyncInProgress = false
+            throw error
+        } catch (error: Exception) {
+            moneroKeyImageSyncInProgress = false
+            if (error.isHardwareWalletCancelled()) {
+                pendingMoneroSendIntent = false
+            } else {
+                Timber.e(error, "Monero preparation failed")
+                moneroKeyImageSyncError = error.hardwareWalletUserMessageRes()
+                moneroFullWalletRecoveryAvailable =
+                    operation == MoneroPreparationOperation.LiveRefresh &&
+                        error.isEligibleForMoneroFullWalletRecovery()
+            }
+        } finally {
+            emitState()
+        }
+    }
+
+    fun cancelMoneroKeyImageSync() {
+        pendingMoneroSendIntent = false
+        moneroKeyImageSyncJob?.cancel()
+        moneroKeyImageSyncInProgress = false
+        emitState()
+    }
+
+    fun fullMoneroWalletRecovery() {
+        if (!moneroFullWalletRecoveryAvailable || moneroKeyImageSyncJob?.isActive == true) return
+        val adapter = observedMoneroAdapter ?: return
+        moneroKeyImageSyncInProgress = true
+        moneroKeyImageSyncError = null
+        moneroFullWalletRecoveryAvailable = false
+        emitState()
+        moneroKeyImageSyncJob = viewModelScope.launch {
+            executeMoneroPreparation(adapter, MoneroPreparationOperation.FullWalletRecovery)
+        }
+    }
+
+    private enum class MoneroPreparationOperation {
+        LiveRefresh,
+        FullWalletRecovery,
+    }
+
+    private fun handleMoneroReadiness(readiness: MoneroSpendReadiness) {
+        if (!pendingMoneroSendIntent) return
+
+        when (readiness) {
+            MoneroSpendReadiness.Ready -> {
+                pendingMoneroSendIntent = false
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = null
+                moneroFullWalletRecoveryAvailable = false
+                _events.trySend(TokenBalanceModule.Event.OpenSend(wallet))
+            }
+
+            MoneroSpendReadiness.NeedsKeyImageSync -> {
+                pendingMoneroSendIntent = false
+                moneroKeyImageSyncInProgress = false
+            }
+
+            MoneroSpendReadiness.ReconcilingSpentStatus -> {
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = null
+            }
+
+            MoneroSpendReadiness.ReconciliationFailed -> {
+                moneroKeyImageSyncInProgress = false
+                moneroKeyImageSyncError = R.string.trezor_connect_failed
+            }
+
+            else -> Unit
+        }
+    }
 
     private fun calculateHoursUntilNextAccrual(): Int? {
         if (stackingType == null || stakingStatus != StakingStatus.ACTIVE) return null

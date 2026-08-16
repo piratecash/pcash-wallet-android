@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.trezor.client.TrezorUsbAttachActivity
 import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.widgets.MarketWidgetReceiver
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,7 @@ class AppIconService(private val localStorage: ILocalStorage) {
         if (localStorage.calculatorModeLauncherAliasUpdatePending) {
             // Applying the pending alias while the app is launched from Calculator can close
             // the current task on some launchers; MainActivity applies it after leaving foreground.
+            setTrezorUsbHandlerEnabled(enabled = false)
             return
         }
 
@@ -88,6 +90,15 @@ class AppIconService(private val localStorage: ILocalStorage) {
         }
     }
 
+    private fun setTrezorUsbHandlerEnabled(enabled: Boolean) {
+        App.instance.packageManager.setComponentEnabledSetting(
+            ComponentName(App.instance, TrezorUsbAttachActivity::class.java),
+            if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            else PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+            PackageManager.DONT_KILL_APP
+        )
+    }
+
     fun setAppIcon(
         appIcon: AppIcon,
         updateLauncherAliases: Boolean = true,
@@ -98,6 +109,13 @@ class AppIconService(private val localStorage: ILocalStorage) {
         // Foreground premium-loss handling may defer launcher alias updates because
         // disabling the alias that launched the current task can close it on some ROMs.
         val enableCalculatorMode = appIcon == AppIcon.Calculator
+        if (!updateLauncherAliases) {
+            setTrezorUsbHandlerEnabled(enabled = false)
+            localStorage.calculatorModeLauncherAliasUpdatePending = true
+        } else if (enableCalculatorMode) {
+            setTrezorUsbHandlerEnabled(enabled = false)
+        }
+
         if (enableCalculatorMode) {
             localStorage.isCalculatorModeEnabled = true
         }
@@ -138,6 +156,7 @@ class AppIconService(private val localStorage: ILocalStorage) {
         if (!enableCalculatorMode) {
             localStorage.isCalculatorModeEnabled = false
             localStorage.previousAppIconName = null
+            setTrezorUsbHandlerEnabled(enabled = true)
         }
     }
 }

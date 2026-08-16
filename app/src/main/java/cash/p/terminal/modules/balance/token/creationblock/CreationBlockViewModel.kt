@@ -89,7 +89,11 @@ class CreationBlockViewModel(
             return
         }
         viewModelScope.launch {
-            uiState = uiState.copy(loading = true, error = null)
+            uiState = uiState.copy(
+                loading = true,
+                error = null,
+                rescanStarted = blockchainType == BlockchainType.Monero,
+            )
             try {
                 when (blockchainType) {
                     BlockchainType.Monero -> rescanMoneroUseCase(wallet.account, newHeight)

@@ -205,11 +205,10 @@ private class InMemoryAccountsDao : AccountsDao {
         accounts.values.forEach { it.deleted = true }
     }
 
-    override fun clearDeleted() {
-        val iterator = accounts.iterator()
-        while (iterator.hasNext()) {
-            if (iterator.next().value.deleted) {
-                iterator.remove()
+    override fun clearDeleted(accountIds: List<String>) {
+        accountIds.forEach { id ->
+            if (accounts[id]?.deleted == true) {
+                accounts.remove(id)
             }
         }
     }

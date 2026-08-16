@@ -356,6 +356,16 @@
     <string name="receive_address_badge_used">Использовался</string>
     <string name="receive_address_badge_unused">Не использовался</string>
     <string name="receive_create_new_address">Создать новый адрес</string>
+    <string name="monero_key_images_required">Перед отправкой обновите Monero с помощью Trezor.</string>
+    <string name="monero_sync_key_images">Синхронизировать образы ключей</string>
+    <string name="monero_prepare_trezor_title">Подготовьте Trezor к отправке Monero</string>
+    <string name="monero_prepare_trezor_description">Чтобы отправить Monero, подключите и разблокируйте Trezor. Не отключайте его и подтвердите обновление на устройстве. На этом этапе средства не отправляются.</string>
+    <string name="monero_sync_and_continue">Синхронизировать и продолжить</string>
+    <string name="monero_update_with_trezor">Обновить с Trezor</string>
+    <string name="monero_updating_with_trezor">Обновление Monero с Trezor</string>
+    <string name="monero_full_wallet_recovery">Полное восстановление кошелька</string>
+    <string name="monero_full_wallet_recovery_warning">Это восстановление может занять много времени.</string>
+    <string name="monero_show_address_on_trezor">Показать адрес на Trezor</string>
     <string name="receive_create_another_address_title">Создать ещё один адрес?</string>
     <string name="receive_create_another_address_warning">У вас уже есть новый адрес, на который ещё не поступали средства. Создание нового адреса не обязательно. Хотите продолжить?</string>
     <string name="receive_dont_ask_again">Больше не спрашивать (сохранить настройку)</string>

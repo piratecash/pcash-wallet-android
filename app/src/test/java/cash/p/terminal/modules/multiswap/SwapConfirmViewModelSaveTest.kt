@@ -3,6 +3,7 @@ package cash.p.terminal.modules.multiswap
 import androidx.lifecycle.ViewModelStore
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.ServiceStateFlow
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.ethereum.CautionViewItem
@@ -18,6 +19,7 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceMonero
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -58,6 +60,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.math.BigDecimal
+import kotlin.coroutines.cancellation.CancellationException
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.send.mockConnectivityManager
 
@@ -168,8 +171,9 @@ class SwapConfirmViewModelSaveTest {
         executionMode: SwapExecutionMode = SwapExecutionMode.ExactIn,
         direction: SwapAmountDirection = SwapAmountDirection.In,
         requestedAmountOut: BigDecimal? = null,
+        serviceOverride: ISendTransactionService<*>? = null,
     ): SwapConfirmViewModel {
-        val sendTransactionService = mockk<ISendTransactionService<Nothing>>(relaxed = true) {
+        val sendTransactionService = serviceOverride ?: mockk<ISendTransactionService<Nothing>>(relaxed = true) {
             every { hasSettings() } returns false
             every { mevProtectionAvailable } returns false
             every { stateFlow } returns ServiceStateFlow(
@@ -209,6 +213,101 @@ class SwapConfirmViewModelSaveTest {
         )
         viewModelStore.put("test-vm", vm)
         return vm
+    }
+
+    @Test
+    fun moneroPreparation_failure_isTerminalAndRetryable() = runTest(dispatcher) {
+        val state = MutableSharedFlow<SendTransactionServiceState>(replay = 1)
+        state.tryEmit(
+            sendTransactionServiceState.copy(
+                moneroSpendReadiness = MoneroSpendReadiness.NeedsKeyImageSync,
+            ),
+        )
+        val service = mockk<SendTransactionServiceMonero>(relaxed = true) {
+            every { hasSettings() } returns false
+            every { mevProtectionAvailable } returns false
+            every { stateFlow } returns ServiceStateFlow(state.asSharedFlow())
+            every { sendTransactionSettingsFlow } returns MutableStateFlow(SendTransactionSettings.Common)
+            coEvery { updateWithTrezor() } throws IllegalStateException("Trezor unavailable")
+        }
+        val provider = mockk<IMultiSwapProvider>(relaxed = true).stubFetchFinalQuote(testTransaction)
+
+        val viewModel = createViewModel(provider, serviceOverride = service)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.moneroPreparationInProgress)
+        assertTrue(viewModel.uiState.moneroPreparationRetryAvailable)
+        assertTrue(viewModel.uiState.moneroPreparationError != null)
+        viewModel.retryMoneroPreparation()
+        advanceUntilIdle()
+        coVerify(exactly = 2) { service.updateWithTrezor() }
+    }
+
+    @Test
+    fun moneroPreparation_reconciliationFailure_isAutomaticallyRetriedAndRemainsActionable() =
+        runTest(dispatcher) {
+            val state = MutableSharedFlow<SendTransactionServiceState>(replay = 1)
+            state.tryEmit(
+                sendTransactionServiceState.copy(
+                    moneroSpendReadiness = MoneroSpendReadiness.ReconciliationFailed,
+                ),
+            )
+            val service = mockk<SendTransactionServiceMonero>(relaxed = true) {
+                every { hasSettings() } returns false
+                every { mevProtectionAvailable } returns false
+                every { stateFlow } returns ServiceStateFlow(state.asSharedFlow())
+                every { sendTransactionSettingsFlow } returns
+                    MutableStateFlow(SendTransactionSettings.Common)
+                coEvery { updateWithTrezor() } throws
+                    IllegalStateException("Trezor unavailable")
+            }
+            val provider = mockk<IMultiSwapProvider>(relaxed = true)
+                .stubFetchFinalQuote(testTransaction)
+
+            val viewModel = createViewModel(provider, serviceOverride = service)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.uiState.moneroPreparationInProgress)
+            assertTrue(viewModel.uiState.moneroPreparationRetryAvailable)
+            assertTrue(viewModel.uiState.moneroPreparationError != null)
+            coVerify(exactly = 1) { service.updateWithTrezor() }
+
+            state.emit(
+                sendTransactionServiceState.copy(
+                    moneroSpendReadiness = MoneroSpendReadiness.ReconciliationFailed,
+                ),
+            )
+            advanceUntilIdle()
+            coVerify(exactly = 1) { service.updateWithTrezor() }
+
+            viewModel.retryMoneroPreparation()
+            advanceUntilIdle()
+            coVerify(exactly = 2) { service.updateWithTrezor() }
+        }
+
+    @Test
+    fun moneroPreparation_cancellation_isTerminalWithoutErrorAndCanRetry() = runTest(dispatcher) {
+        val state = MutableSharedFlow<SendTransactionServiceState>(replay = 1)
+        state.tryEmit(
+            sendTransactionServiceState.copy(
+                moneroSpendReadiness = MoneroSpendReadiness.NeedsKeyImageSync,
+            ),
+        )
+        val service = mockk<SendTransactionServiceMonero>(relaxed = true) {
+            every { hasSettings() } returns false
+            every { mevProtectionAvailable } returns false
+            every { stateFlow } returns ServiceStateFlow(state.asSharedFlow())
+            every { sendTransactionSettingsFlow } returns MutableStateFlow(SendTransactionSettings.Common)
+            coEvery { updateWithTrezor() } throws CancellationException("cancelled by user")
+        }
+        val provider = mockk<IMultiSwapProvider>(relaxed = true).stubFetchFinalQuote(testTransaction)
+
+        val viewModel = createViewModel(provider, serviceOverride = service)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.moneroPreparationInProgress)
+        assertTrue(viewModel.uiState.moneroPreparationRetryAvailable)
+        assertEquals(null, viewModel.uiState.moneroPreparationError)
     }
 
     @Test

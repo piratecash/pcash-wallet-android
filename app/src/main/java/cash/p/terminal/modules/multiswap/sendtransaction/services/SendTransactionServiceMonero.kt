@@ -24,6 +24,7 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.modules.send.monero.SendMoneroAddressService
 import cash.p.terminal.modules.send.monero.SendMoneroFeeService
 import cash.p.terminal.modules.send.ton.FeeStatus
@@ -47,8 +48,11 @@ class SendTransactionServiceMonero(
     private val amountValidator = AmountValidator()
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getAdjustedBalanceData(wallet)?.available
-            ?: adapter.balanceData.available
+        get() = minOf(
+            adapterManager.getAdjustedBalanceData(wallet)?.available
+                ?: adapter.balanceData.available,
+            adapter.maxSpendableBalance,
+        )
 
     private val amountService = SendAmountService(
         amountValidator = amountValidator,
@@ -87,7 +91,8 @@ class SendTransactionServiceMonero(
         feeCaution = feeCaution,
         sendable = sendable,
         loading = loading,
-        fields = fields
+        fields = fields,
+        moneroSpendReadiness = adapter.spendReadiness.value,
     )
 
     private fun handleUpdatedAmountState(amountState: SendAmountService.State) {
@@ -127,7 +132,11 @@ class SendTransactionServiceMonero(
     private var feeAmountData: SendModule.AmountData? = null
     private var cautions: List<CautionViewItem> = listOf()
     private val sendable: Boolean
-        get() = hasEnoughFeeAmount && amountState.canBeSend && addressState.canBeSend
+        get() =
+            adapter.sendAllowed() &&
+                hasEnoughFeeAmount &&
+                amountState.canBeSend &&
+                addressState.canBeSend
     private var loading = true
     private var fields = listOf<DataField>()
 
@@ -140,6 +149,15 @@ class SendTransactionServiceMonero(
         }
         coroutineScope.launch(Dispatchers.Default) {
             feeService.stateFlow.collect { handleUpdatedFeeState(it) }
+        }
+        coroutineScope.launch(Dispatchers.Default) {
+            adapter.balanceStateUpdatedFlow.collect {
+                amountService.updateAvailableBalance(adjustedAvailableBalance)
+                emitState()
+            }
+        }
+        coroutineScope.launch(Dispatchers.Default) {
+            adapter.spendReadiness.collect { emitState() }
         }
         coroutineScope.launch(Dispatchers.Default) {
             xRateService.getRateFlow(token.coin.uid).collect { coinRate = it }
@@ -160,6 +178,13 @@ class SendTransactionServiceMonero(
         check(data is SendTransactionData.Monero)
         amountService.setAmount(data.amount)
         addressService.setAddress(addressHandlerMonero.parseAddress(data.address))
+    }
+
+    override val requiresSendableState: Boolean
+        get() = adapter.hardwareWallet
+
+    suspend fun updateWithTrezor() {
+        adapter.refreshHardwareKeyImages()
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
@@ -189,10 +214,18 @@ class SendTransactionServiceMonero(
             return SendTransactionResult.Monero(SendResult.Sent(recordUid = txid))
         } catch (e: Throwable) {
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
-            cautions = listOf(createCaution(e))
-            emitState()
+            updateCautions(e)
             throw e
         }
+    }
+
+    private fun updateCautions(error: Throwable) {
+        cautions = if (error.isHardwareWalletCancelled()) {
+            emptyList()
+        } else {
+            listOf(createCaution(error))
+        }
+        emitState()
     }
 
     private fun checkFeeBalance(feeState: SendMoneroFeeService.State) {
@@ -202,9 +235,10 @@ class SendTransactionServiceMonero(
             return
         }
         val fee = feeState.feeStatus.fee
-        val feeWalletLocal = feeWallet
+        val feeWalletLocal = feeWallet ?: wallet.takeIf { adapter.hardwareWallet }
         if (feeWalletLocal != null) {
             val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
+                ?: adapter.balanceData.available.takeIf { adapter.hardwareWallet }
             if (availableBalance != null) {
                 feeCaution = if (availableBalance < fee) {
                     createCaution(

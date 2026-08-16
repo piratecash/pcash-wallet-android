@@ -6,33 +6,21 @@ import android.view.View
 import androidx.activity.addCallback
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,10 +28,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,8 +37,8 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.BirthdayHeightConfigUiState
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
-import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.navigation.popBackStackSafely
+import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui.compose.components.RestoreHeightInput
@@ -60,22 +46,19 @@ import cash.p.terminal.ui.compose.components.SelectDateBottomSheet
 import cash.p.terminal.ui.compose.components.restoreGenesisDateMillis
 import cash.p.terminal.ui.compose.components.restoreMaxDateMillis
 import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.CellMultilineLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui_compose.components.body_leah
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.RestoreHeightScreen
 import cash.p.terminal.ui_compose.components.caption_lucian
-import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.findNavController
+import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.imageUrl
-import cash.p.terminal.navigation.setNavigationResultX
 import java.time.LocalDate
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
@@ -96,7 +79,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
         LaunchedEffect(initialConfig) {
             viewModel.setInitialConfig(initialConfig)
         }
-        MoneroConfigureScreen(
+        MoneroConfigureRoute(
             onCloseWithResult = {
                 viewModel.onClosed()
                 closeWithConfig(it, navController)
@@ -129,7 +112,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoneroConfigureScreen(
+fun MoneroConfigureRoute(
     onCloseClick: () -> Unit,
     onCloseWithResult: (TokenConfig) -> Unit,
     onRestoreNew: (Boolean) -> Unit,
@@ -153,17 +136,16 @@ fun MoneroConfigureScreen(
         }
     }
 
-    var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
-    }
-
-    MoneroConfigureBody(
-        windowInsets = windowInsets,
-        uiState = uiState,
+    RestoreHeightScreen(
+        mode = if (uiState.restoreAsNew) {
+            RestoreHeightMode.NewWallet
+        } else {
+            RestoreHeightMode.ExistingWallet
+        },
+        doneEnabled = true,
         onDoneClick = onDoneClick,
-        onOptionClick = { isNew ->
-            onRestoreNew(isNew)
-            textState = textState.copy(text = "", selection = TextRange(0))
+        onModeSelect = { mode ->
+            onRestoreNew(mode == RestoreHeightMode.NewWallet)
             focusManager.clearFocus()
         },
         topBar = {
@@ -173,85 +155,15 @@ fun MoneroConfigureScreen(
                 onCloseClick = onCloseClick
             )
         },
-        heightSection = {
-            if (!uiState.restoreAsNew) {
-                BirthdayHeightSection(
-                    uiState = uiState,
-                    heightHintRes = heightHintRes,
-                    onSetBirthdayHeight = onSetBirthdayHeight,
-                    onDatePick = onDatePick,
-                )
-            }
+        contentWindowInsets = windowInsets,
+        existingWalletContent = {
+            BirthdayHeightSection(
+                uiState = uiState,
+                heightHintRes = heightHintRes,
+                onSetBirthdayHeight = onSetBirthdayHeight,
+                onDatePick = onDatePick,
+            )
         },
-    )
-}
-
-@Composable
-private fun MoneroConfigureBody(
-    windowInsets: WindowInsets,
-    uiState: BirthdayHeightConfigUiState,
-    onDoneClick: () -> Unit,
-    onOptionClick: (Boolean) -> Unit,
-    topBar: @Composable () -> Unit,
-    heightSection: @Composable () -> Unit,
-) {
-    Scaffold(
-        containerColor = ComposeAppTheme.colors.tyler,
-        topBar = topBar,
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .windowInsetsPadding(windowInsets)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                Spacer(Modifier.height(12.dp))
-                MoneroRestoreOptions(
-                    uiState = uiState,
-                    onOptionClick = onOptionClick,
-                )
-                heightSection()
-            }
-
-            ButtonsGroupWithShade {
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp),
-                    title = stringResource(R.string.Button_Done),
-                    onClick = onDoneClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MoneroRestoreOptions(
-    uiState: BirthdayHeightConfigUiState,
-    onOptionClick: (Boolean) -> Unit,
-) {
-    CellMultilineLawrenceSection(
-        listOf(
-            {
-                OptionCell(
-                    title = stringResource(R.string.Restore_ZCash_NewWallet),
-                    subtitle = stringResource(R.string.Restore_ZCash_NewWallet_Description),
-                    checked = uiState.restoreAsNew,
-                    onClick = { onOptionClick(true) }
-                )
-            },
-            {
-                OptionCell(
-                    title = stringResource(R.string.Restore_ZCash_OldWallet),
-                    subtitle = stringResource(R.string.Restore_ZCash_OldWallet_Description),
-                    checked = !uiState.restoreAsNew,
-                    onClick = { onOptionClick(false) }
-                )
-            },
-        )
     )
 }
 
@@ -312,53 +224,6 @@ private fun BirthdayHeightSection(
 }
 
 @Composable
-private fun OptionCell(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .weight(1f)
-        ) {
-            body_leah(
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(1.dp))
-            subhead2_grey(
-                text = subtitle,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .width(52.dp)
-                .fillMaxHeight(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (checked) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_checkmark_20),
-                    tint = ComposeAppTheme.colors.jacob,
-                    contentDescription = null,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun BirthdayHeightAppBar(
     title: String,
     blockchainType: BlockchainType,
@@ -398,7 +263,7 @@ fun BirthdayHeightAppBar(
 @Composable
 private fun Preview_MoneroConfigure() {
     ComposeAppTheme(darkTheme = false) {
-        MoneroConfigureScreen(
+        MoneroConfigureRoute(
             onCloseClick = {},
             onCloseWithResult = {},
             onRestoreNew = {},

@@ -186,6 +186,9 @@ class AccountManager(
 
         accountsCache.remove(id)
         storage.delete(id)
+        _newAccountBackupRequiredFlow.update { account ->
+            account?.takeUnless { it.id == id }
+        }
 
         _accountsSharedFlow.tryEmit(accounts)
         accountsDeletedSubject.onNext(Unit)
@@ -223,7 +226,7 @@ class AccountManager(
     }
 
     override fun getDeletedAccountIds() = storage.getDeletedAccountIds()
-    override fun clearDeleted() = storage.clearDeleted()
+    override fun clearDeleted(accountIds: List<String>) = storage.clearDeleted(accountIds)
 
     override fun accountsAtLevel(level: Int): List<Account> {
         return storage.allAccounts(level)

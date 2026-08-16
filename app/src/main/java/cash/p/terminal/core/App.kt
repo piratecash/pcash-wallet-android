@@ -29,6 +29,7 @@ import cash.p.terminal.core.managers.NftMetadataManager
 import cash.p.terminal.core.managers.NftMetadataSyncer
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
+import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.StellarAccountManager
 import cash.p.terminal.core.managers.TokenAutoEnableManager
@@ -64,6 +65,7 @@ import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.WCWalletRequestHandler
 import cash.p.terminal.wallet.IAccountCleaner
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IAccountsStorage
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IEnabledWalletStorage
 import cash.p.terminal.wallet.IWalletManager
@@ -232,6 +234,10 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val accountCleaner: IAccountCleaner by inject(IAccountCleaner::class.java)
+    private val accountsStorage: IAccountsStorage by inject(IAccountsStorage::class.java)
+    private val restoreSettingsManager: RestoreSettingsManager by inject(
+        RestoreSettingsManager::class.java,
+    )
     private val addressLabelManager: AddressLabelManager by inject(AddressLabelManager::class.java)
     private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository by inject(
         LocallyCreatedTransactionRepository::class.java
@@ -536,8 +542,14 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
     private fun clearDeletedAccounts() {
         coroutineScope.launch {
             delay(3000)
-            accountCleaner.clearAccounts(accountManager.getDeletedAccountIds())
-            accountManager.clearDeleted()
+            val deletedAccountIds = accountManager.getDeletedAccountIds()
+            val deletedAccounts = deletedAccountIds
+                .mapNotNull(accountsStorage::loadAccount)
+            restoreSettingsManager.backfillTrezorMoneroRestoreHeights(
+                accountManager.accounts + deletedAccounts,
+            )
+            accountCleaner.clearAccounts(deletedAccountIds)
+            accountManager.clearDeleted(deletedAccountIds)
         }
     }
 

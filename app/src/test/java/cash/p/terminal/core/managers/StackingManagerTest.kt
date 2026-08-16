@@ -13,6 +13,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -20,6 +21,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -66,6 +68,11 @@ class StackingManagerTest {
         every { localStorage.getStackingTimestamp(any(), any()) } returns 0L
 
         manager = StackingManager(repository, localStorage, dispatcherProvider)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic("cash.p.terminal.wallet.ExtensionsKt")
     }
 
     @Test
