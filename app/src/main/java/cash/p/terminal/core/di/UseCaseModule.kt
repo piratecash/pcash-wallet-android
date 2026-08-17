@@ -2,6 +2,7 @@ package cash.p.terminal.core.di
 
 import cash.p.terminal.core.policy.CompositeHardwareWalletTokenPolicy
 import cash.p.terminal.core.policy.CompositeScanToAddUseCase
+import cash.p.terminal.core.usecase.AddMoneroToTrezorAccountUseCase
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
@@ -29,6 +30,7 @@ import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
 import cash.p.terminal.trezor.domain.usecase.ICreateTrezorWalletUseCase
+import cash.p.terminal.trezor.domain.usecase.TrezorMoneroRestoreHeightResolver
 import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
@@ -46,7 +48,8 @@ val useCaseModule = module {
     factoryOf(::ResolveTransactionItemUseCase)
     factoryOf(::ResolvePayCoreNavigationUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
-    factoryOf(::ValidateMoneroHeightUseCase)
+    factoryOf(::ValidateMoneroHeightUseCase) bind TrezorMoneroRestoreHeightResolver::class
+    singleOf(::AddMoneroToTrezorAccountUseCase)
     factoryOf(::GetLocalizedAssetUseCase)
     factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
@@ -65,6 +68,11 @@ val useCaseModule = module {
     singleOf(::SendZecOnDuressUseCase)
     singleOf(::CompositeHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
     single<ScanToAddUseCase> {
-        CompositeScanToAddUseCase(get(), get(named("tangem")), get(named("trezor")))
+        CompositeScanToAddUseCase(
+            get(),
+            get(named("tangem")),
+            get(named("trezor")),
+            get(),
+        )
     }
 }

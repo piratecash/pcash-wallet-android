@@ -309,18 +309,10 @@ class ZcashAdapter(
         }
     }
 
-    private fun getWatchOnlyUfvk(): String? {
-        return when (wallet.account.type) {
-            is AccountType.ZCashUfvKey -> (wallet.account.type as AccountType.ZCashUfvKey).key
-            is AccountType.TrezorDevice -> wallet.hardwarePublicKey?.key?.value
-            else -> null
-        }
-    }
-
     private suspend fun importWatchAccountIfNeeded() {
         if (!requiresUfvkImport()) return
         if (isOffline()) return
-        val key = getWatchOnlyUfvk() ?: return
+        val key = wallet.zcashWatchOnlyUfvk() ?: return
         try {
             (synchronizer as Synchronizer).importAccountByUfvk(
                 AccountImportSetup(
@@ -339,12 +331,11 @@ class ZcashAdapter(
     private suspend fun getReceiveAddressOrEmpty(): String {
         return try {
             val account = getFirstAccount()
-            when (addressSpecTyped) {
-                AddressSpecType.Shielded -> synchronizer.getSaplingAddress(account)
-                AddressSpecType.Transparent -> synchronizer.getTransparentAddress(account)
-                AddressSpecType.Unified -> synchronizer.getUnifiedAddress(account)
-                null -> synchronizer.getSaplingAddress(account)
-            }
+            addressSpecTyped.selectZcashReceiver(
+                sapling = { synchronizer.getSaplingAddress(account) },
+                transparent = { synchronizer.getTransparentAddress(account) },
+                unified = { synchronizer.getUnifiedAddress(account) },
+            )
         } catch (e: Exception) {
             Timber.e(e, "Failed to get receive address")
             ""

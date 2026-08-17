@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.MoneroSpendReadiness
+import cash.p.terminal.core.requiresTrezorPreparation
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
@@ -105,6 +107,7 @@ fun SwapConfirmScreen(
         reapprove = onReapprove,
         retryAdapter = viewModel::retryAdapterSync,
         send = viewModel::onClickSendWithWarningCheck,
+        retryMoneroPreparation = viewModel::retryMoneroPreparation,
         toggleMevProtection = viewModel::toggleMevProtection,
     )
     val runtime = SwapConfirmRuntime(
@@ -206,9 +209,18 @@ private fun SwapConfirmButtons(
     hasFeeProblem: Boolean,
 ) {
     val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
+    val moneroSpendReadiness = uiState.moneroSpendReadiness
     when {
         uiState.loading -> SwapLoadingButton()
         uiState.criticalError != null -> RefreshSwapButton(uiState.criticalError, actions.refresh)
+        moneroSpendReadiness != null && moneroSpendReadiness != MoneroSpendReadiness.Ready ->
+            MoneroSpendReadinessStatus(
+                spendReadiness = moneroSpendReadiness,
+                preparationInProgress = uiState.moneroPreparationInProgress,
+                preparationError = uiState.moneroPreparationError,
+                preparationRetryAvailable = uiState.moneroPreparationRetryAvailable,
+                onRetry = actions.retryMoneroPreparation,
+            )
         !uiState.validQuote -> InvalidQuoteButton(uiState, hasErrorCaution, actions)
         uiState.expired -> ExpiredQuoteButton(actions.refresh)
         else -> ReadySwapButton(uiState, runtime, actions, hasFeeProblem, hasErrorCaution)
@@ -257,6 +269,54 @@ private fun InvalidQuoteButton(
 private fun ExpiredQuoteButton(onRefresh: () -> Unit) {
     RefreshSwapButton(stringResource(R.string.Button_Refresh), onRefresh)
     subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteExpired))
+}
+
+@Composable
+private fun MoneroSpendReadinessStatus(
+    spendReadiness: MoneroSpendReadiness,
+    preparationInProgress: Boolean,
+    preparationError: Int?,
+    preparationRetryAvailable: Boolean,
+    onRetry: () -> Unit,
+) {
+    TextImportantWarning(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(
+            if (spendReadiness.requiresTrezorPreparation()) {
+                R.string.monero_prepare_trezor_description
+            } else {
+                R.string.send_confirmation_syncing_warning
+            },
+        ),
+    )
+    when {
+        preparationInProgress -> {
+            VSpacer(height = 8.dp)
+            ButtonPrimaryYellow(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.monero_updating_with_trezor),
+                enabled = false,
+                loadingIndicator = true,
+                onClick = {},
+            )
+        }
+
+        preparationRetryAvailable -> {
+            preparationError?.let { error ->
+                TextImportantWarning(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(error),
+                )
+            }
+            VSpacer(height = 8.dp)
+            ButtonPrimaryDefault(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.Button_Retry),
+                onClick = onRetry,
+            )
+        }
+    }
+    VSpacer(height = 12.dp)
 }
 
 @Composable
@@ -459,6 +519,7 @@ private data class SwapConfirmActions(
     val reapprove: () -> Unit,
     val retryAdapter: () -> Unit,
     val send: () -> Unit,
+    val retryMoneroPreparation: () -> Unit,
     val toggleMevProtection: (Boolean) -> Unit,
 )
 

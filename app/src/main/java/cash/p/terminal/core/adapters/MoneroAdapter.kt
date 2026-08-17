@@ -3,6 +3,8 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.IMoneroReceiveAdapter
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineMoneroSignRequest
 import cash.p.terminal.core.OfflineSignRequest
@@ -18,7 +20,6 @@ import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
-import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.entities.BalanceData
 import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import io.horizontalsystems.core.entities.BlockchainType
@@ -30,12 +31,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 class MoneroAdapter(
     private val moneroKitWrapper: MoneroKitWrapper,
-) : IAdapter, IBalanceAdapter, IReceiveAdapter, ISendMoneroAdapter {
+) : IAdapter, IBalanceAdapter, IMoneroReceiveAdapter, ISendMoneroAdapter {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private var collectJob: Job? = null
@@ -44,6 +46,12 @@ class MoneroAdapter(
 
     override val maxSpendableBalance: BigDecimal
         get() = maxOf(unlockedBalance - fee.value, BigDecimal.ZERO)
+
+    private val walletStateUpdatedFlow = merge(
+        moneroKitWrapper.syncState.map { },
+        moneroKitWrapper.spendReadiness.map { },
+        moneroKitWrapper.transactionsStateUpdatedFlow,
+    )
 
     private val unlockedBalance: BigDecimal
         get() = balanceInBigDecimal(moneroKitWrapper.getUnlockedBalance(), decimal)
@@ -58,11 +66,29 @@ class MoneroAdapter(
 
     override val isAddressHistorySupported: Boolean = true
 
-    suspend fun getSubaddresses(): List<MoneroSubaddressInfo> =
+    override val hardwareWallet: Boolean
+        get() = moneroKitWrapper.hardwareWallet
+
+    override val spendReadiness: StateFlow<MoneroSpendReadiness>
+        get() = moneroKitWrapper.spendReadiness
+
+    override suspend fun getSubaddresses(): List<MoneroSubaddressInfo> =
         moneroKitWrapper.getSubaddresses()
 
-    suspend fun createNewSubaddress(): String =
+    override suspend fun createNewSubaddress(): String =
         moneroKitWrapper.createNewSubaddress()
+
+    override suspend fun refreshHardwareKeyImages() {
+        moneroKitWrapper.refreshHardwareKeyImages()
+    }
+
+    override suspend fun fullWalletRecovery() {
+        moneroKitWrapper.syncKeyImages()
+    }
+
+    override suspend fun displayAddressOnDevice(addressIndex: Int) {
+        moneroKitWrapper.displayAddressOnDevice(addressIndex)
+    }
 
     override val statusInfo: Map<String, Any>
         get() = moneroKitWrapper.statusInfo()
@@ -110,18 +136,22 @@ class MoneroAdapter(
         get() = moneroKitWrapper.syncState.value
 
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = moneroKitWrapper.syncState.map { }
+        get() = walletStateUpdatedFlow
 
     override val balanceData: BalanceData
         get() = BalanceData(balanceInBigDecimal(moneroKitWrapper.getBalance(), decimal))
 
     override val balanceUpdatedFlow: Flow<Unit>
-        get() = moneroKitWrapper.syncState.map { }
+        get() = walletStateUpdatedFlow
+
+    override fun sendAllowed(): Boolean =
+        balanceState !is AdapterState.NotSynced &&
+            moneroKitWrapper.spendReadiness.value == MoneroSpendReadiness.Ready
 
     override suspend fun send(
         amount: BigDecimal,
         address: String,
-        memo: String?
+        memo: String?,
     ): String = moneroKitWrapper.send(amount, address, memo)
 
     override suspend fun estimateFee(

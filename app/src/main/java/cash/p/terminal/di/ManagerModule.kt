@@ -9,6 +9,7 @@ import cash.p.terminal.core.IMarketStorage
 import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.ITorManager
+import cash.p.terminal.core.adapters.zcash.ZcashAddressDeriver
 import cash.p.terminal.core.address.AddressCheckManager
 import cash.p.terminal.core.converters.PendingTransactionConverter
 import cash.p.terminal.core.deeplink.DeeplinkParser
@@ -45,6 +46,8 @@ import cash.p.terminal.core.managers.DefaultCurrencyManager
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
+import cash.p.terminal.core.managers.DefaultMoneroDeviceWalletNative
+import cash.p.terminal.core.managers.DefaultMoneroNativeWalletRuntime
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.AddressMetadataManager
@@ -63,6 +66,12 @@ import cash.p.terminal.core.managers.MoneroKitManager
 import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.core.managers.OfflineNetworkController
+import cash.p.terminal.core.managers.MoneroNativeWalletRuntime
+import cash.p.terminal.core.managers.MoneroDeviceWalletNative
+import cash.p.terminal.core.managers.MoneroDeviceWalletFileStore
+import cash.p.terminal.core.managers.MoneroDeviceWalletProvisioner
+import cash.p.terminal.core.managers.MoneroTrezorReadiness
+import cash.p.terminal.core.managers.MoneroTrezorOperationGateway
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
@@ -114,6 +123,7 @@ import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.core.providers.TonFallbackAddressProvider
+import cash.p.terminal.core.providers.ZcashFallbackAddressProvider
 import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
@@ -195,10 +205,15 @@ val managerModule = module {
     singleOf(::AppHeadersProviderImpl) bind AppHeadersProvider::class
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
+    singleOf(::ZcashAddressDeriver)
     singleOf(::TonFallbackAddressProvider)
+    singleOf(::ZcashFallbackAddressProvider)
     single<FallbackAddressProvider> {
         CompositeFallbackAddressProvider(
-            providers = listOf(get<TonFallbackAddressProvider>())
+            providers = listOf(
+                get<TonFallbackAddressProvider>(),
+                get<ZcashFallbackAddressProvider>()
+            )
         )
     }
     singleOf(::OfflineModeManager)
@@ -309,6 +324,12 @@ val managerModule = module {
     factoryOf(::WordsManager)
 
     singleOf(::MoneroKitManager)
+    singleOf(::DefaultMoneroNativeWalletRuntime) bind MoneroNativeWalletRuntime::class
+    singleOf(::MoneroTrezorOperationGateway)
+    singleOf(::MoneroTrezorReadiness)
+    singleOf(::DefaultMoneroDeviceWalletNative) bind MoneroDeviceWalletNative::class
+    single { MoneroDeviceWalletFileStore.create(get()) }
+    singleOf(::MoneroDeviceWalletProvisioner)
     singleOf(::MoneroWalletService)
     singleOf(::SilentCameraManager) bind ISilentPhotoCapture::class
     singleOf(::CurrentDateProvider) bind ICurrentDateProvider::class

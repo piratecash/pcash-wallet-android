@@ -45,15 +45,15 @@ internal fun CreationBlockScreen(
     onDatePick: (LocalDate) -> Unit,
     onRescanConfirm: () -> Unit,
     onClose: () -> Unit,
-    onRescanComplete: () -> Unit,
+    onRescanStart: () -> Unit,
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showRescanConfirm by remember { mutableStateOf(false) }
-    val currentOnRescanComplete by rememberUpdatedState(onRescanComplete)
+    val currentOnRescanStart by rememberUpdatedState(onRescanStart)
 
     LaunchedEffect(uiState.rescanStarted) {
         if (uiState.rescanStarted) {
-            currentOnRescanComplete()
+            currentOnRescanStart()
         }
     }
 
@@ -175,7 +175,7 @@ internal fun CreationBlockScreenPreview() {
             onDatePick = {},
             onRescanConfirm = {},
             onClose = {},
-            onRescanComplete = {},
+            onRescanStart = {},
         )
     }
 }

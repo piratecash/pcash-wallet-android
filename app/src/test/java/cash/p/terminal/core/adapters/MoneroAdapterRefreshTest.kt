@@ -1,19 +1,28 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineMoneroSignRequest
 import cash.p.terminal.core.OfflineSignRequest
 import cash.p.terminal.core.managers.MoneroKitWrapper
+import cash.p.terminal.wallet.AdapterState
 import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import com.m2049r.xmrwallet.offline.SignedRawMoneroTransaction
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.math.BigDecimal
@@ -31,6 +40,28 @@ class MoneroAdapterRefreshTest {
     }
 
     @Test
+    fun refreshHardwareKeyImages_requested_delegatesToLiveRefresh() = runTest {
+        val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true)
+        val adapter = MoneroAdapter(moneroKitWrapper)
+
+        adapter.refreshHardwareKeyImages()
+
+        coVerify(exactly = 1) { moneroKitWrapper.refreshHardwareKeyImages() }
+        coVerify(exactly = 0) { moneroKitWrapper.syncKeyImages() }
+    }
+
+    @Test
+    fun fullWalletRecovery_requested_delegatesOnlyToLegacySync() = runTest {
+        val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true)
+        val adapter = MoneroAdapter(moneroKitWrapper)
+
+        adapter.fullWalletRecovery()
+
+        coVerify(exactly = 1) { moneroKitWrapper.syncKeyImages() }
+        coVerify(exactly = 0) { moneroKitWrapper.refreshHardwareKeyImages() }
+    }
+
+    @Test
     fun maxSpendableBalance_lockedFunds_usesUnlockedBalance() {
         val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true)
         every { moneroKitWrapper.getBalance() } returns 10_000_000_000_000L
@@ -39,6 +70,49 @@ class MoneroAdapterRefreshTest {
 
         assertEquals(0, BigDecimal("10").compareTo(adapter.balanceData.available))
         assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+    }
+
+    @Test
+    fun maxSpendableBalance_keyImageSyncRequired_preservesFinancialBalance() {
+        val readiness = MutableStateFlow(MoneroSpendReadiness.Ready)
+        val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true) {
+            every { getUnlockedBalance() } returns 4_000_000_000_000L
+            every { spendReadiness } returns readiness
+            every { syncState } returns MutableStateFlow(AdapterState.Synced)
+        }
+        val adapter = MoneroAdapter(moneroKitWrapper)
+        assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+
+        readiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+
+        assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+        assertEquals(false, adapter.sendAllowed())
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun balanceUpdatedFlow_transactionRefresh_emitsAvailableBalanceUpdate() = runTest {
+        val syncState = MutableStateFlow<AdapterState>(AdapterState.Synced)
+        val spendReadiness = MutableStateFlow(MoneroSpendReadiness.Ready)
+        val transactionUpdates = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+        val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true) {
+            every { this@mockk.syncState } returns syncState
+            every { this@mockk.spendReadiness } returns spendReadiness
+            every { transactionsStateUpdatedFlow } returns transactionUpdates
+        }
+        val adapter = MoneroAdapter(moneroKitWrapper)
+        val emissions = mutableListOf<Unit>()
+        val collection = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            adapter.balanceUpdatedFlow.collect { emissions += Unit }
+        }
+        runCurrent()
+        val emissionsBeforeTransactionRefresh = emissions.size
+
+        assertTrue(transactionUpdates.tryEmit(Unit))
+        runCurrent()
+
+        assertEquals(emissionsBeforeTransactionRefresh + 1, emissions.size)
+        collection.cancel()
     }
 
     @Test

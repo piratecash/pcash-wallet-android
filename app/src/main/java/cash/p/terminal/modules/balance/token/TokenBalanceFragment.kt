@@ -227,7 +227,7 @@ private fun TokenBalanceNavHost(
                 onDatePick = creationBlockViewModel::onDatePicked,
                 onRescanConfirm = creationBlockViewModel::onRescanConfirmed,
                 onClose = navController::navigateUpSafely,
-                onRescanComplete = navController::navigateUp,
+                onRescanStart = navController::navigateUp,
             )
         }
         composablePage<TokenBalanceRoute.AddressPoisoningView> {

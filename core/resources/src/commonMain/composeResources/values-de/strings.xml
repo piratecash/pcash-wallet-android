@@ -361,6 +361,16 @@
     <string name="receive_address_badge_used">Verwendet</string>
     <string name="receive_address_badge_unused">Nicht verwendet</string>
     <string name="receive_create_new_address">Neue Adresse erstellen</string>
+    <string name="monero_key_images_required">Aktualisieren Sie Monero vor dem Senden mit Trezor.</string>
+    <string name="monero_sync_key_images">Schlüsselbilder synchronisieren</string>
+    <string name="monero_prepare_trezor_title">Trezor für das Senden von Monero vorbereiten</string>
+    <string name="monero_prepare_trezor_description">Um Monero zu senden, verbinden und entsperren Sie Ihren Trezor. Lassen Sie ihn verbunden und bestätigen Sie die Aktualisierung auf dem Gerät. Bei diesem Schritt werden keine Guthaben gesendet.</string>
+    <string name="monero_sync_and_continue">Synchronisieren und fortfahren</string>
+    <string name="monero_update_with_trezor">Mit Trezor aktualisieren</string>
+    <string name="monero_updating_with_trezor">Monero wird mit Trezor aktualisiert</string>
+    <string name="monero_full_wallet_recovery">Vollständige Wallet-Wiederherstellung</string>
+    <string name="monero_full_wallet_recovery_warning">Diese Wiederherstellung kann lange dauern.</string>
+    <string name="monero_show_address_on_trezor">Adresse auf Trezor anzeigen</string>
     <string name="receive_create_another_address_title">Noch eine Adresse erstellen?</string>
     <string name="receive_create_another_address_warning">Sie haben bereits eine neue Adresse, die noch keine Mittel erhalten hat. Das Erstellen einer neuen Adresse ist nicht erforderlich. Möchten Sie fortfahren?</string>
     <string name="receive_dont_ask_again">Nicht mehr fragen (Einstellung speichern)</string>

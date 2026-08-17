@@ -20,6 +20,8 @@ import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IBalanceAdapter
+import cash.p.terminal.wallet.IReceiveAdapter
+import cash.p.terminal.core.managers.MoneroSubaddressInfo
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.ethereumkit.models.Address
@@ -41,6 +43,8 @@ import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.reactivex.Flowable
 import io.reactivex.Single
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -411,9 +415,30 @@ interface ISendSolanaAdapter: IBalanceAdapter {
     fun estimateFee(rawTransaction: ByteArray): BigDecimal
 }
 
-interface ISendMoneroAdapter : IBalanceAdapter, OfflineTransactionAdapter<SignedOfflineMoneroTransaction> {
+interface IMoneroHardwareWalletAdapter {
+    val hardwareWallet: Boolean
+    val spendReadiness: StateFlow<MoneroSpendReadiness>
+
+    suspend fun refreshHardwareKeyImages()
+    suspend fun fullWalletRecovery()
+}
+
+fun Throwable.isEligibleForMoneroFullWalletRecovery(): Boolean =
+    this is HardwareWalletOperationException && error == HardwareWalletErrorCode.Protocol
+
+interface ISendMoneroAdapter :
+    IBalanceAdapter,
+    OfflineTransactionAdapter<SignedOfflineMoneroTransaction>,
+    IMoneroHardwareWalletAdapter {
+
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?): BigDecimal
+}
+
+interface IMoneroReceiveAdapter : IReceiveAdapter, IMoneroHardwareWalletAdapter {
+    suspend fun getSubaddresses(): List<MoneroSubaddressInfo>
+    suspend fun createNewSubaddress(): String
+    suspend fun displayAddressOnDevice(addressIndex: Int)
 }
 
 interface ISendTonAdapter : IBalanceAdapter {

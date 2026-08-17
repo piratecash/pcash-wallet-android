@@ -6,6 +6,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.ServiceState
 import cash.p.terminal.core.toResString
 import cash.p.terminal.core.ethereum.CautionViewItem
@@ -14,6 +15,7 @@ import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.send.SendModule
+import cash.p.terminal.modules.send.userMessageRes
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAdapterManager
@@ -24,6 +26,7 @@ import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -39,6 +42,7 @@ import java.util.UUID
 abstract class ISendTransactionService<T>(protected val token: Token) :
     ServiceState<SendTransactionServiceState>() {
     open val mevProtectionAvailable: Boolean = false
+    open val requiresSendableState: Boolean = false
     protected var extraFees = mapOf<FeeType, SendModule.AmountData>()
     protected val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     protected val wallet: Wallet by lazy { runBlocking { walletUseCase.createWalletIfNotExists(token)!! } }
@@ -137,6 +141,12 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
             type
         )
 
+        is HardwareWalletOperationException -> CautionViewItem(
+            TranslatableString.ResString(error.userMessageRes()).toString(),
+            "",
+            type
+        )
+
         is EvmError.InsufficientBalanceWithFee -> CautionViewItem(
             Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalanceWithFee, feeToken.coin.code),
             "",
@@ -159,5 +169,6 @@ data class SendTransactionServiceState(
     val sendable: Boolean,
     val loading: Boolean,
     val fields: List<DataField>,
-    val extraFees: Map<FeeType, SendModule.AmountData> = emptyMap()
+    val extraFees: Map<FeeType, SendModule.AmountData> = emptyMap(),
+    val moneroSpendReadiness: MoneroSpendReadiness? = null,
 )

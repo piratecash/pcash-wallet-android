@@ -26,7 +26,7 @@ interface IAccountManager {
     suspend fun delete(id: String)
     fun clear()
     fun getDeletedAccountIds(): List<String>
-    fun clearDeleted()
+    fun clearDeleted(accountIds: List<String>)
     fun onHandledBackupRequiredNewAccount()
     fun setLevel(level: Int)
     fun updateAccountLevels(accountIds: List<String>, level: Int)

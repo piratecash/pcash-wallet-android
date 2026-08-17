@@ -1,6 +1,7 @@
 package cash.p.terminal.core.usecase
 
 import com.m2049r.xmrwallet.util.RestoreHeight
+import cash.p.terminal.trezor.domain.usecase.TrezorMoneroRestoreHeightResolver
 import timber.log.Timber
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -9,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-class ValidateMoneroHeightUseCase {
+class ValidateMoneroHeightUseCase : TrezorMoneroRestoreHeightResolver {
 
     private val parser = SimpleDateFormat("yyyy-MM-dd").apply {
         isLenient = false
@@ -42,7 +43,7 @@ class ValidateMoneroHeightUseCase {
         return height
     }
 
-    fun getTodayHeight(): Long {
+    override fun getTodayHeight(): Long {
         return try {
             RestoreHeight.getInstance().getHeight(Date())
         } catch (e: Exception) {
@@ -50,6 +51,8 @@ class ValidateMoneroHeightUseCase {
             -1
         }
     }
+
+    override fun resolve(value: String): Long = invoke(value)
 
     /**
      * Reverse lookup: approximates the calendar date for a given block height by binary

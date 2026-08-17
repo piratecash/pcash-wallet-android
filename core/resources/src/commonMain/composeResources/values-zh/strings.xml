@@ -363,6 +363,16 @@
     <string name="receive_address_badge_used">已使用</string>
     <string name="receive_address_badge_unused">未使用</string>
     <string name="receive_create_new_address">创建新地址</string>
+    <string name="monero_key_images_required">发送前请使用 Trezor 更新 Monero。</string>
+    <string name="monero_sync_key_images">同步密钥映像</string>
+    <string name="monero_prepare_trezor_title">准备使用 Trezor 发送 Monero</string>
+    <string name="monero_prepare_trezor_description">要发送 Monero，请连接并解锁 Trezor。请保持连接并在设备上确认更新。此步骤不会发送任何资金。</string>
+    <string name="monero_sync_and_continue">同步并继续</string>
+    <string name="monero_update_with_trezor">使用 Trezor 更新</string>
+    <string name="monero_updating_with_trezor">正在通过 Trezor 更新 Monero</string>
+    <string name="monero_full_wallet_recovery">完整钱包恢复</string>
+    <string name="monero_full_wallet_recovery_warning">此恢复可能需要很长时间。</string>
+    <string name="monero_show_address_on_trezor">在 Trezor 上显示地址</string>
     <string name="receive_create_another_address_title">创建另一个地址？</string>
     <string name="receive_create_another_address_warning">您已有一个尚未收到任何资金的新地址。无需创建新地址。是否继续？</string>
     <string name="receive_dont_ask_again">不再询问（保存设置）</string>

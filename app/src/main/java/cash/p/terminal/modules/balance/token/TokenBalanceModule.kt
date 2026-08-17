@@ -1,8 +1,10 @@
 package cash.p.terminal.modules.balance.token
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
@@ -120,6 +122,10 @@ class TokenBalanceModule {
 
     enum class StakingStatus { ACTIVE, INACTIVE }
 
+    sealed interface Event {
+        data class OpenSend(val wallet: Wallet) : Event
+    }
+
     data class TokenBalanceUiState(
         val title: String,
         val coinCode: String = "",
@@ -149,5 +155,19 @@ class TokenBalanceModule {
         val searchScanning: Boolean = false,
         val searchEmptyResult: Boolean = false,
         val offlineSince: Long? = null,
-    )
+        val moneroHardwareWallet: Boolean = false,
+        val moneroSpendReadiness: MoneroSpendReadiness? = null,
+        val moneroKeyImageSyncInProgress: Boolean = false,
+        @StringRes val moneroKeyImageSyncError: Int? = null,
+        val moneroFullWalletRecoveryAvailable: Boolean = false,
+    ) {
+        val moneroKeyImageSyncRequired: Boolean
+            get() =
+                moneroHardwareWallet &&
+                    (moneroSpendReadiness == MoneroSpendReadiness.NeedsKeyImageSync ||
+                        moneroSpendReadiness == MoneroSpendReadiness.ReconciliationFailed)
+
+        val sendEntryEnabled: Boolean
+            get() = balanceViewItem?.sendAvailability?.clickable == true || moneroKeyImageSyncRequired
+    }
 }

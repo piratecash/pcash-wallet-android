@@ -1,17 +1,22 @@
 package cash.p.terminal.modules.receive.viewmodels
 
+import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.IMoneroReceiveAdapter
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.TestDispatcherProvider
-import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.managers.MoneroSubaddressInfo
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.reactivex.Flowable
@@ -24,6 +29,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -35,7 +41,11 @@ class ReceiveMoneroViewModelTest {
     private val testScope = TestScope(dispatcher)
     private val testDispatcherProvider = TestDispatcherProvider(dispatcher, testScope)
 
-    private val adapter = mockk<MoneroAdapter>(relaxed = true)
+    private val readiness = MutableStateFlow(MoneroSpendReadiness.Ready)
+    private val adapter = mockk<IMoneroReceiveAdapter>(relaxed = true) {
+        every { hardwareWallet } returns false
+        every { spendReadiness } returns readiness
+    }
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
 
@@ -65,7 +75,9 @@ class ReceiveMoneroViewModelTest {
     fun setup() {
         Dispatchers.setMain(dispatcher)
         every { adapterManager.adaptersReadyObservable } returns Flowable.empty()
-        every { adapterManager.getAdapterForWallet<MoneroAdapter>(wallet) } returns adapter
+        every {
+            adapterManager.getAdapterForWallet<IMoneroReceiveAdapter>(wallet)
+        } returns adapter
         coEvery { adapter.getSubaddresses() } returns listOf(subaddress0, subaddress1)
         every { localStorage.moneroSkipNewAddressConfirm } returns false
     }
@@ -158,5 +170,91 @@ class ReceiveMoneroViewModelTest {
         advanceUntilIdle()
 
         assertEquals(true, viewModel.uiState.hasAddressHistory)
+    }
+
+    @Test
+    fun spendReadiness_hardwareStateChanges_updatesUiState() = runTest(dispatcher) {
+        every { adapter.hardwareWallet } returns true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        readiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.hardwareWallet)
+        assertEquals(
+            MoneroSpendReadiness.NeedsKeyImageSync,
+            viewModel.uiState.spendReadiness,
+        )
+    }
+
+    @Test
+    fun showTrezorUpdateAction_onlyForStatesRequiringManualPreparation() = runTest(dispatcher) {
+        every { adapter.hardwareWallet } returns true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        MoneroSpendReadiness.entries.forEach { state ->
+            readiness.value = state
+            advanceUntilIdle()
+
+            assertEquals(
+                state == MoneroSpendReadiness.NeedsKeyImageSync ||
+                    state == MoneroSpendReadiness.ReconciliationFailed,
+                viewModel.uiState.showTrezorUpdateAction,
+            )
+        }
+    }
+
+    @Test
+    fun displayAddressOnDevice_usesCurrentSubaddressIndex() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.displayAddressOnDevice()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { adapter.displayAddressOnDevice(subaddress1.index) }
+    }
+
+    @Test
+    fun refreshWithTrezor_requested_invokesLiveRefreshAdapter() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.refreshWithTrezor()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { adapter.refreshHardwareKeyImages() }
+    }
+
+    @Test
+    fun displayAddressOnDevice_disconnected_showsHardwareError() = runTest(dispatcher) {
+        coEvery { adapter.displayAddressOnDevice(any()) } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.Disconnected,
+            null,
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.displayAddressOnDevice()
+        advanceUntilIdle()
+
+        assertEquals(R.string.trezor_connect_failed, viewModel.uiState.hardwareOperationError)
+    }
+
+    @Test
+    fun displayAddressOnDevice_cancelled_doesNotShowHardwareError() = runTest(dispatcher) {
+        coEvery { adapter.displayAddressOnDevice(any()) } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.Cancelled,
+            null,
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.displayAddressOnDevice()
+        advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.hardwareOperationError)
     }
 }

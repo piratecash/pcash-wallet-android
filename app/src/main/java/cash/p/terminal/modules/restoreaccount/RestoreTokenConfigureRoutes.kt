@@ -7,7 +7,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.composablePopup
 import cash.p.terminal.core.title
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
-import cash.p.terminal.modules.moneroconfigure.MoneroConfigureScreen
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureRoute
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.mwebconfigure.MwebConfigureViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureScreen
@@ -63,7 +63,7 @@ internal fun NavGraphBuilder.addRestoreTokenConfigureRoutes(
         LaunchedEffect(mainViewModel.tokenInitialConfig) {
             viewModel.setInitialConfig(mainViewModel.tokenInitialConfig)
         }
-        MoneroConfigureScreen(
+        MoneroConfigureRoute(
             onCloseWithResult = {
                 mainViewModel.setTokenConfig(it)
                 navController.popBackStackSafely()
@@ -84,7 +84,7 @@ internal fun NavGraphBuilder.addRestoreTokenConfigureRoutes(
         LaunchedEffect(mainViewModel.tokenInitialConfig) {
             viewModel.setInitialConfig(mainViewModel.tokenInitialConfig)
         }
-        MoneroConfigureScreen(
+        MoneroConfigureRoute(
             title = TokenType.Mweb.title,
             blockchainType = BlockchainType.Litecoin,
             heightHintRes = R.string.restoreheight_hint_block_only,

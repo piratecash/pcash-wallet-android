@@ -337,7 +337,8 @@ class TransactionViewItemFactory(
                         transaction = it,
                         recordUid = transactionItem.record.uid,
                         timestamp = record.timestamp,
-                        direct = false
+                        direct = false,
+                        onChainProgress = progress,
                     )
                 }
             } else {
@@ -369,7 +370,8 @@ class TransactionViewItemFactory(
                 transactionItem = transactionItem,
                 token = record.token,
                 isIncoming = true,
-                matchedSwap = matchedSwap
+                matchedSwap = matchedSwap,
+                onChainProgress = progress,
             ) ?: createViewItemFromEvmIncomingTransactionRecord(
                 uid = record.uid,
                 value = record.value!!,
@@ -387,7 +389,8 @@ class TransactionViewItemFactory(
                 transactionItem = transactionItem,
                 token = (record.mainValue as? TransactionValue.CoinValue)?.token,
                 isIncoming = false,
-                matchedSwap = matchedSwap
+                matchedSwap = matchedSwap,
+                onChainProgress = progress,
             ) ?: createViewItemFromEvmOutgoingTransactionRecord(
                 uid = record.uid,
                 value = record.value!!,
@@ -496,7 +499,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = record.actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Receive,
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromTonTransactionRecord(
                     icon = icon,
                     record = record,
@@ -509,7 +513,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = record.type is StellarTransactionRecord.Type.Receive,
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromStellarTransactionRecord(
                     icon = icon,
                     record = record,
@@ -522,7 +527,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = record.transactionRecordType == TransactionRecordType.MONERO_INCOMING,
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromMoneroTransactionRecord(
                     record = record,
                     transactionItem = transactionItem,
@@ -536,7 +542,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = false, // Pending transactions are always outgoing
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromPendingTransactionRecord(
                     record = record,
                     icon = icon,
@@ -921,7 +928,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = true,
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromSolanaIncomingTransactionRecord(
                     record = record,
                     currencyValue = transactionItem.currencyValue,
@@ -936,7 +944,8 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = false,
-                    matchedSwap = matchedSwap
+                    matchedSwap = matchedSwap,
+                    onChainProgress = progress,
                 ) ?: createViewItemFromSolanaOutgoingTransactionRecord(
                     record = record,
                     currencyValue = transactionItem.currencyValue,
@@ -1311,7 +1320,8 @@ class TransactionViewItemFactory(
             transactionItem = transactionItem,
             token = record.token,
             isIncoming = record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING,
-            matchedSwap = matchedSwap
+            matchedSwap = matchedSwap,
+            onChainProgress = progress,
         ) ?: if (record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING) {
             createViewItemFromBitcoinIncomingTransactionRecord(
                 record = record,
@@ -1443,7 +1453,8 @@ class TransactionViewItemFactory(
         transactionItem: TransactionItem,
         token: Token?,
         isIncoming: Boolean,
-        matchedSwap: SwapProviderTransaction? = null
+        onChainProgress: Float?,
+        matchedSwap: SwapProviderTransaction? = null,
     ): TransactionViewItem? {
         if (token == null) return null
 
@@ -1480,7 +1491,8 @@ class TransactionViewItemFactory(
                 transaction = it,
                 recordUid = transactionItem.record.uid,
                 timestamp = transactionItem.record.timestamp,
-                direct = !isIncoming
+                direct = !isIncoming,
+                onChainProgress = onChainProgress.takeIf { isIncoming },
             )
         }
     }
@@ -1515,7 +1527,8 @@ class TransactionViewItemFactory(
         transaction: SwapProviderTransaction,
         recordUid: String,
         timestamp: Long,
-        direct: Boolean
+        direct: Boolean,
+        onChainProgress: Float?,
     ): TransactionViewItem {
         val iconIn = getIconForToken(
             coinUid = transaction.coinUidIn
@@ -1551,8 +1564,16 @@ class TransactionViewItemFactory(
         } else {
             ColoredValue(valueInFormatted, ColorName.Lucian)  // Sent = red
         }
-        val status = transaction.status.toStatus()
-        val titleStringRes = when (status) {
+        val providerStatus = transaction.status.toStatus()
+        val payoutConfirmationProgress = onChainProgress.takeIf {
+            !direct && providerStatus == TransactionStatusEnum.FINISHED
+        }
+        val displayStatus = if (payoutConfirmationProgress != null) {
+            TransactionStatusEnum.CONFIRMING
+        } else {
+            providerStatus
+        }
+        val titleStringRes = when (displayStatus) {
             TransactionStatusEnum.NEW -> R.string.transaction_swap_status_new
             TransactionStatusEnum.WAITING -> R.string.transaction_swap_status_waiting
             TransactionStatusEnum.CONFIRMING -> R.string.transaction_swap_status_confirming
@@ -1569,10 +1590,10 @@ class TransactionViewItemFactory(
 
         return TransactionViewItem(
             uid = recordUid,
-            progress = if (transaction.isFinished()) {
+            progress = payoutConfirmationProgress ?: if (transaction.isFinished()) {
                 0f
             } else {
-                (status.ordinal + 1) * (1f / (TransactionStatusEnum.FINISHED.ordinal + 1))
+                (providerStatus.ordinal + 1) * (1f / (TransactionStatusEnum.FINISHED.ordinal + 1))
             },
             title = Translator.getString(titleStringRes),
             subtitle = UnstoppableProvider.displayTitle(transaction.unstoppableSubProviderId)
@@ -1685,7 +1706,8 @@ class TransactionViewItemFactory(
                             transaction = it,
                             recordUid = transactionItem.record.uid,
                             timestamp = timestamp,
-                            direct = false
+                            direct = false,
+                            onChainProgress = progress,
                         )
                     }
                 } else {
@@ -1711,7 +1733,8 @@ class TransactionViewItemFactory(
                 transactionItem = transactionItem,
                 token = baseToken,
                 isIncoming = true,
-                matchedSwap = matchedSwap
+                matchedSwap = matchedSwap,
+                onChainProgress = progress,
             ) ?: createViewItemFromEvmIncomingTransactionRecord(
                 uid = uid,
                 value = value!!,
@@ -1730,7 +1753,8 @@ class TransactionViewItemFactory(
                 transactionItem = transactionItem,
                 token = baseToken,
                 isIncoming = false,
-                matchedSwap = matchedSwap
+                matchedSwap = matchedSwap,
+                onChainProgress = progress,
             ) ?: createViewItemFromEvmOutgoingTransactionRecord(
                 uid = uid,
                 value = value!!,

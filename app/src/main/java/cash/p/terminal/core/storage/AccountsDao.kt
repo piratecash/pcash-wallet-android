@@ -50,8 +50,8 @@ interface AccountsDao {
     @Query("UPDATE AccountRecord SET deleted = 1")
     fun deleteAll()
 
-    @Query("DELETE FROM AccountRecord WHERE deleted = 1")
-    fun clearDeleted()
+    @Query("DELETE FROM AccountRecord WHERE deleted = 1 AND id IN (:accountIds)")
+    fun clearDeleted(accountIds: List<String>)
 
     @Query("SELECT * FROM ActiveAccount WHERE level = :level LIMIT 1")
     fun getActiveAccount(level: Int): ActiveAccount?

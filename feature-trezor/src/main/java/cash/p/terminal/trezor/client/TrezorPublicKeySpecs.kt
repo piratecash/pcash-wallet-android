@@ -41,6 +41,13 @@ object TrezorPublicKeySpecs {
     fun buildQuerySpecs(tokenQueries: List<TokenQuery>): List<QuerySpec> =
         tokenQueries.mapNotNull { specFor(it) }
 
+    val walletIdentityTokenQuery =
+        TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84))
+
+    val walletIdentityRequest: TrezorPublicKeyRequest by lazy {
+        requireNotNull(specFor(walletIdentityTokenQuery)).request
+    }
+
     /** Single source of truth for UI eligibility: can Trezor derive this token variant at all. */
     fun supports(model: TrezorModel?, blockchainType: BlockchainType, tokenType: TokenType): Boolean =
         TrezorModelSupport.isSupported(model, blockchainType) &&

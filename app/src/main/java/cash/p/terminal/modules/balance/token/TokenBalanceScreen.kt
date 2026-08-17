@@ -2,6 +2,7 @@
 
 package cash.p.terminal.modules.balance.token
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -31,10 +32,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -48,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -70,6 +74,7 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.balance.BackupRequiredError
@@ -111,10 +116,13 @@ import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.CoinFragmentInput
+import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.ScreenSecurityState
+import cash.p.terminal.ui_compose.TransparentModalBottomSheet
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
+import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ButtonSecondary
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
@@ -132,6 +140,7 @@ import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportant
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead1_leah
@@ -167,6 +176,29 @@ fun TokenBalanceScreen(
     onGoOnline: () -> Unit,
 ) {
     val view = LocalView.current
+    var showMoneroSendPreparation by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is TokenBalanceModule.Event.OpenSend -> {
+                    showMoneroSendPreparation = false
+                    navController.openSend(event.wallet)
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(viewModel.uiState.moneroSpendReadiness) {
+        if (
+            showMoneroSendPreparation &&
+            viewModel.uiState.moneroSpendReadiness ==
+            MoneroSpendReadiness.ReconcilingSpentStatus
+        ) {
+            showMoneroSendPreparation = false
+        }
+    }
+
     TokenBalanceScreenContent(
         uiState = viewModel.uiState,
         secondaryValue = viewModel.secondaryValue,
@@ -204,6 +236,18 @@ fun TokenBalanceScreen(
             )
         },
         onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
+        onSendClick = sendClick@{
+            val wallet = viewModel.uiState.balanceViewItem?.wallet ?: return@sendClick
+            if (
+                viewModel.uiState.moneroHardwareWallet &&
+                viewModel.uiState.moneroSpendReadiness != MoneroSpendReadiness.Ready
+            ) {
+                showMoneroSendPreparation = true
+                viewModel.prepareMoneroSend()
+            } else {
+                navController.openSend(wallet)
+            }
+        },
         onReceiveClick = { onReceiveClicked(viewModel, navController) },
         onShieldClick = viewModel::proposeShielding,
         onSyncErrorClick = { onSyncErrorClicked(it, viewModel, navController) },
@@ -214,6 +258,20 @@ fun TokenBalanceScreen(
         onSettingsClick = onSettingsClick,
         onGoOnline = onGoOnline,
     )
+
+    if (showMoneroSendPreparation) {
+        MoneroSendPreparationBottomSheet(
+            syncInProgress = viewModel.uiState.moneroKeyImageSyncInProgress,
+            error = viewModel.uiState.moneroKeyImageSyncError,
+            fullWalletRecoveryAvailable = viewModel.uiState.moneroFullWalletRecoveryAvailable,
+            onSync = viewModel::syncMoneroKeyImages,
+            onFullWalletRecovery = viewModel::fullMoneroWalletRecovery,
+            onDismiss = {
+                viewModel.cancelMoneroKeyImageSync()
+                showMoneroSendPreparation = false
+            },
+        )
+    }
 }
 
 @Composable
@@ -236,6 +294,7 @@ private fun TokenBalanceScreenContent(
     onSetAmlCheckEnabled: (Boolean) -> Unit,
     onDismissAmlPromo: () -> Unit,
     onDismissNetworkFeeWarning: () -> Unit,
+    onSendClick: () -> Unit,
     onReceiveClick: () -> Unit,
     onShieldClick: () -> Unit,
     onSyncErrorClick: (BalanceViewItem) -> Unit,
@@ -439,6 +498,7 @@ private fun TokenBalanceScreenContent(
                                 onStackingClicked = onStackingClicked,
                                 onClickSubtitle = onClickSubtitle,
                                 onToggleBalanceVisibility = onToggleBalanceVisibility,
+                                onSendClick = onSendClick,
                                 onReceiveClick = onReceiveClick,
                                 onShieldClick = onShieldClick,
                                 onSyncErrorClick = onSyncErrorClick,
@@ -722,6 +782,23 @@ private fun onTransactionClick(
     navController.slideFromBottom(R.id.transactionInfoFragment)
 }
 
+private fun NavController.openSend(wallet: Wallet) {
+    val sendTitle = Translator.getString(
+        R.string.Send_Title,
+        wallet.token.fullCoin.coin.code,
+    )
+    navigate(
+        MainGraphDirections.actionGlobalToSendFragment(
+            SendFragment.Input(
+                wallet = wallet,
+                title = sendTitle,
+                sendEntryPointDestId = R.id.tokenBalanceFragment,
+                prefilledData = PrefilledData(null),
+            )
+        )
+    )
+}
+
 @Composable
 private fun TokenBalanceHeader(
     balanceViewItem: BalanceViewItem,
@@ -731,6 +808,7 @@ private fun TokenBalanceHeader(
     onStackingClicked: () -> Unit,
     onClickSubtitle: () -> Unit,
     onToggleBalanceVisibility: () -> Unit,
+    onSendClick: () -> Unit,
     onReceiveClick: () -> Unit,
     onShieldClick: () -> Unit,
     onSyncErrorClick: (BalanceViewItem) -> Unit,
@@ -935,6 +1013,8 @@ private fun TokenBalanceHeader(
         ButtonsRow(
             viewItem = balanceViewItem,
             navController = navController,
+            sendEnabled = uiState.sendEntryEnabled,
+            onSendClick = onSendClick,
             onReceiveClick = onReceiveClick,
             onShieldClick = onShieldClick,
             onStackingClicked = onStackingClicked,
@@ -1234,11 +1314,149 @@ private fun onReceiveClicked(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun MoneroSendPreparationBottomSheet(
+    syncInProgress: Boolean,
+    @StringRes error: Int?,
+    fullWalletRecoveryAvailable: Boolean,
+    onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    TransparentModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        BottomSheetHeader(
+            iconPainter = painterResource(R.drawable.ic_attention_24),
+            iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
+            title = stringResource(R.string.monero_prepare_trezor_title),
+            onCloseClick = onDismiss,
+        ) {
+            MoneroSendPreparationContent(
+                syncInProgress = syncInProgress,
+                error = error,
+                fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
+                onSync = onSync,
+                onFullWalletRecovery = onFullWalletRecovery,
+                onDismiss = onDismiss,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MoneroSendPreparationContent(
+    syncInProgress: Boolean,
+    @StringRes error: Int?,
+    fullWalletRecoveryAvailable: Boolean,
+    onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Column {
+        body_leah(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            text = stringResource(R.string.monero_prepare_trezor_description),
+        )
+        error?.let {
+            TextImportantWarning(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                text = stringResource(it),
+            )
+        }
+        MoneroSendPreparationActions(
+            syncInProgress = syncInProgress,
+            fullWalletRecoveryAvailable = fullWalletRecoveryAvailable,
+            onSync = onSync,
+            onFullWalletRecovery = onFullWalletRecovery,
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+@Composable
+private fun MoneroSendPreparationActions(
+    syncInProgress: Boolean,
+    fullWalletRecoveryAvailable: Boolean,
+    onSync: () -> Unit,
+    onFullWalletRecovery: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val actionUiState = moneroPreparationActionUiState(syncInProgress)
+    Column {
+        ButtonPrimaryYellow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            title = stringResource(actionUiState.title),
+            onClick = onSync,
+            enabled = actionUiState.enabled,
+            loadingIndicator = actionUiState.loading,
+        )
+        ButtonPrimaryTransparent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            title = stringResource(R.string.Button_Cancel),
+            onClick = onDismiss,
+        )
+        if (fullWalletRecoveryAvailable) {
+            body_leah(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                text = stringResource(R.string.monero_full_wallet_recovery_warning),
+            )
+            ButtonPrimaryTransparent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                title = stringResource(R.string.monero_full_wallet_recovery),
+                onClick = onFullWalletRecovery,
+            )
+        }
+        VSpacer(32.dp)
+    }
+}
+
+internal data class MoneroPreparationActionUiState(
+    @StringRes val title: Int,
+    val enabled: Boolean,
+    val loading: Boolean,
+)
+
+internal fun moneroPreparationActionUiState(
+    syncInProgress: Boolean,
+): MoneroPreparationActionUiState = MoneroPreparationActionUiState(
+    title = if (syncInProgress) R.string.monero_updating_with_trezor else R.string.Button_Retry,
+    enabled = !syncInProgress,
+    loading = syncInProgress,
+)
+
+@Preview
+@Composable
+private fun MoneroSendPreparationBottomSheetPreview() {
+    ComposeAppTheme {
+        MoneroSendPreparationBottomSheet(
+            syncInProgress = false,
+            error = null,
+            fullWalletRecoveryAvailable = false,
+            onSync = {},
+            onFullWalletRecovery = {},
+            onDismiss = {},
+        )
+    }
+}
+
 
 @Composable
 private fun ButtonsRow(
     viewItem: BalanceViewItem,
     navController: NavController,
+    sendEnabled: Boolean,
+    onSendClick: () -> Unit,
     onReceiveClick: () -> Unit,
     onShieldClick: () -> Unit,
     onStackingClicked: () -> Unit,
@@ -1276,24 +1494,11 @@ private fun ButtonsRow(
                     modifier = Modifier.weight(1f),
                     title = stringResource(R.string.Balance_Send),
                     onClick = {
-                        onOperationClick(viewItem.sendAvailability) {
-                            val sendTitle = Translator.getString(
-                                R.string.Send_Title,
-                                viewItem.wallet.token.fullCoin.coin.code
-                            )
-                            navController.navigate(
-                                MainGraphDirections.actionGlobalToSendFragment(
-                                    SendFragment.Input(
-                                        wallet = viewItem.wallet,
-                                        title = sendTitle,
-                                        sendEntryPointDestId = R.id.tokenBalanceFragment,
-                                        prefilledData = PrefilledData(null)
-                                    )
-                                )
-                            )
+                        onOperationClick(sendClickAvailability(viewItem, sendEnabled)) {
+                            onSendClick()
                         }
                     },
-                    enabled = viewItem.sendAvailability.clickable
+                    enabled = sendEnabled,
                 )
                 HSpacer(8.dp)
             }
@@ -1372,6 +1577,9 @@ private fun ButtonsRow(
     }
 }
 
+internal fun sendClickAvailability(viewItem: BalanceViewItem, enabled: Boolean) =
+    if (enabled && viewItem.offline) OperationAvailability.BlockedOffline else viewItem.sendAvailability
+
 @Composable
 private fun StakingStatusBadge(status: TokenBalanceModule.StakingStatus) {
     val (textRes, color) = when (status) {
@@ -1445,6 +1653,7 @@ private fun PreviewTokenBalanceScreenContent(
             onSetAmlCheckEnabled = {},
             onDismissAmlPromo = {},
             onDismissNetworkFeeWarning = {},
+            onSendClick = {},
             onReceiveClick = {},
             onShieldClick = {},
             onSyncErrorClick = {},

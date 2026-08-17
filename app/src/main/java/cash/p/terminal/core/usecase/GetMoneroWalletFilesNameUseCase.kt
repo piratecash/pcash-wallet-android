@@ -16,7 +16,8 @@ class GetMoneroWalletFilesNameUseCase(
                 (account.type as AccountType.MnemonicMonero).walletInnerName
             }
 
-            is AccountType.Mnemonic -> {
+            is AccountType.Mnemonic,
+            is AccountType.TrezorDevice -> {
                 moneroFileDao.getAssociatedRecord(account.id)?.fileName?.value
             }
 

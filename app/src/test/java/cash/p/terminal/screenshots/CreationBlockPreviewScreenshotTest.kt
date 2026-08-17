@@ -44,7 +44,7 @@ class CreationBlockPreviewScreenshotTest {
                     onDatePick = {},
                     onRescanConfirm = {},
                     onClose = {},
-                    onRescanComplete = {},
+                    onRescanStart = {},
                 )
             }
         }

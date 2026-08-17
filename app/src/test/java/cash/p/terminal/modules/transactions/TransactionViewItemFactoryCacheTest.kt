@@ -1,19 +1,23 @@
 package cash.p.terminal.modules.transactions
 
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.adapters.BaseEvmAdapter
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.utils.SwapTransactionMatcher
+import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
+import cash.p.terminal.entities.transactionrecords.monero.MoneroTransactionRecord
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
@@ -27,6 +31,7 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.transaction.TransactionSource
+import com.m2049r.xmrwallet.model.TransactionInfo
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -188,6 +193,66 @@ class TransactionViewItemFactoryCacheTest {
         val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
 
         assertTrue(viewItem.isSwap)
+    }
+
+    @Test
+    fun convertToViewItemCached_finishedProviderWithUnconfirmedMoneroIncoming_preservesOnChainProgress() = runTest {
+        val record = createMoneroIncomingRecord(
+            confirmations = 7,
+            confirmationsThreshold = TransactionInfo.CONFIRMATION,
+        )
+        val swap = createSwapProviderTransaction(outgoingRecordUid = null).copy(
+            status = "finished",
+            provider = SwapProvider.EXOLIX,
+            coinUidOut = "monero",
+            blockchainTypeOut = BlockchainType.Monero.uid,
+            amountOut = BigDecimal("0.01226"),
+        )
+
+        val viewItem = factory.convertToViewItemCached(
+            transactionItem = createTransactionItem(record),
+            matchedSwap = swap,
+        )
+
+        assertEquals(
+            Translator.getString(R.string.transaction_swap_status_confirming),
+            viewItem.title,
+        )
+        assertEquals(
+            7f / TransactionInfo.CONFIRMATION,
+            viewItem.progress ?: 0f,
+            0.0001f,
+        )
+    }
+
+    @Test
+    fun convertToViewItemCached_finishedProviderWithUnconfirmedEvmIncoming_usesEvmConfirmationThreshold() = runTest {
+        val record = createEvmTransferRecord(
+            address = BRIDGE_ADDRESS,
+            transactionRecordType = TransactionRecordType.EVM_INCOMING,
+            blockNumber = 100L,
+        )
+        val swap = createSwapProviderTransaction(outgoingRecordUid = null).copy(
+            status = "finished",
+            provider = SwapProvider.EXOLIX,
+            coinUidOut = "cosanta",
+            blockchainTypeOut = BlockchainType.BinanceSmartChain.uid,
+            amountOut = BigDecimal.ONE,
+        )
+
+        val viewItem = factory.convertToViewItemCached(
+            transactionItem = createTransactionItem(
+                record = record,
+                lastBlockInfo = LastBlockInfo(height = 106),
+            ),
+            matchedSwap = swap,
+        )
+
+        assertEquals(
+            7f / BaseEvmAdapter.confirmationsThreshold,
+            viewItem.progress ?: 0f,
+            0.0001f,
+        )
     }
 
     @Test
@@ -372,13 +437,17 @@ class TransactionViewItemFactoryCacheTest {
     private fun createEvmTransferRecord(
         address: String,
         transactionRecordType: TransactionRecordType,
+        blockNumber: Long? = null,
     ): EvmTransactionRecord {
         val incoming = transactionRecordType == TransactionRecordType.EVM_INCOMING
 
         return EvmTransactionRecord(
             from = address.takeIf { incoming },
             to = address.takeUnless { incoming },
-            transaction = createEvmTransaction("evm-transfer-$transactionRecordType"),
+            transaction = createEvmTransaction(
+                uid = "evm-transfer-$transactionRecordType",
+                blockNumber = blockNumber,
+            ),
             token = mockk(relaxed = true),
             source = createBscSource(),
             protected = false,
@@ -392,12 +461,47 @@ class TransactionViewItemFactoryCacheTest {
         )
     }
 
-    private fun createEvmTransaction(uid: String) = mockk<Transaction>(relaxed = true) {
+    private fun createEvmTransaction(
+        uid: String,
+        blockNumber: Long? = null,
+    ) = mockk<Transaction>(relaxed = true) {
         every { hashString } returns uid
         every { transactionIndex } returns 0
-        every { blockNumber } returns null
+        every { this@mockk.blockNumber } returns blockNumber
         every { timestamp } returns 1_000L
         every { isFailed } returns false
+    }
+
+    private fun createMoneroIncomingRecord(
+        confirmations: Long,
+        confirmationsThreshold: Int,
+    ): MoneroTransactionRecord {
+        val token = Token(
+            coin = Coin(uid = "monero", name = "Monero", code = "XMR"),
+            blockchain = Blockchain(BlockchainType.Monero, "Monero", null),
+            type = TokenType.Native,
+            decimals = 12,
+        )
+        return MoneroTransactionRecord(
+            uid = TX_HASH,
+            transactionHash = TX_HASH,
+            blockHeight = 1,
+            confirmationsThreshold = confirmationsThreshold,
+            timestamp = PENDING_TIMESTAMP,
+            source = TransactionSource(
+                blockchain = token.blockchain,
+                account = mockk<Account>(relaxed = true),
+                meta = null,
+            ),
+            transactionRecordType = TransactionRecordType.MONERO_INCOMING,
+            token = token,
+            to = "monero-address",
+            amount = BigDecimal("0.01226"),
+            fee = TransactionValue.CoinValue(token, BigDecimal.ZERO),
+            subaddressLabel = null,
+            isPending = false,
+            confirmations = confirmations,
+        )
     }
 
     private fun createBscSource() = mockk<TransactionSource>(relaxed = true) {
@@ -478,10 +582,13 @@ class TransactionViewItemFactoryCacheTest {
         every { Translator.getString(any(), value) } returns value
     }
 
-    private fun createTransactionItem(record: TransactionRecord) = TransactionItem(
+    private fun createTransactionItem(
+        record: TransactionRecord,
+        lastBlockInfo: LastBlockInfo? = null,
+    ) = TransactionItem(
         record = record,
         currencyValue = null,
-        lastBlockInfo = null,
+        lastBlockInfo = lastBlockInfo,
         nftMetadata = emptyMap(),
     )
 }
