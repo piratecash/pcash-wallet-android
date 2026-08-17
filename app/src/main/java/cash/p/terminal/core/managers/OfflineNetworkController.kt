@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
@@ -22,7 +23,10 @@ class OfflineNetworkController(
     private val moneroKitManager: MoneroKitManager,
 ) {
     suspend fun pause(member: Wallet) {
-        adapterManager.getAdapterForWalletOld(member)?.pauseNetwork()
+        val adapter = adapterManager.getAdapterForWalletOld(member)
+        if (adapter is ZcashAdapter) adapter.pauseNetworkAndAwait() else adapter?.pauseNetwork()
+        if (isOffline(member, adapter)) return
+
         val account = member.account
         when (val blockchainType = member.token.blockchainType) {
             BlockchainType.Solana -> solanaKitManager.pauseNetwork(account)
@@ -36,7 +40,10 @@ class OfflineNetworkController(
     }
 
     suspend fun resume(member: Wallet) {
-        adapterManager.getAdapterForWalletOld(member)?.resumeNetwork()
+        val adapter = adapterManager.getAdapterForWalletOld(member)
+        adapter?.resumeNetwork()
+        if (!isOffline(member, adapter)) return
+
         val account = member.account
         when (val blockchainType = member.token.blockchainType) {
             BlockchainType.Solana -> solanaKitManager.resumeNetwork(account)
@@ -50,7 +57,8 @@ class OfflineNetworkController(
     }
 
     /** Authoritative "is this member's network paused" read, per family. */
-    fun isOffline(member: Wallet): Boolean {
+    fun isOffline(member: Wallet): Boolean = isOffline(member, adapterManager.getAdapterForWalletOld(member))
+    private fun isOffline(member: Wallet, adapter: IAdapter?): Boolean {
         val account = member.account
         return when (val blockchainType = member.token.blockchainType) {
             BlockchainType.Solana ->
@@ -80,9 +88,9 @@ class OfflineNetworkController(
             }
 
             BlockchainType.Zcash ->
-                (adapterManager.getAdapterForWalletOld(member) as? ZcashAdapter)?.isNetworkPaused ?: true
+                (adapter as? ZcashAdapter)?.isNetworkPaused ?: true
 
-            else -> (adapterManager.getAdapterForWalletOld(member) as? BitcoinBaseAdapter)?.kit?.isNetworkPaused ?: true
+            else -> (adapter as? BitcoinBaseAdapter)?.kit?.isNetworkPaused ?: true
         }
     }
 

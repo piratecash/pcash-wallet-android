@@ -17,6 +17,7 @@ import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -34,6 +35,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.test.assertFailsWith
 
 /**
  * [OfflineNetworkController] is mocked wholesale here: its per-family dispatch is covered by
@@ -72,6 +74,19 @@ class OfflineModeUseCaseTest {
                 coin = Coin(uid = "zcash-shielded", name = "Zcash", code = "ZEC"),
                 blockchain = Blockchain(type = BlockchainType.Zcash, name = "Zcash", eip3091url = null),
                 type = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded),
+                decimals = 8,
+            ),
+            account = account,
+            hardwarePublicKey = null,
+        )
+    )
+
+    private fun ethereumWallet(tokenType: TokenType, uid: String, code: String): Wallet = checkNotNull(
+        WalletFactory(mockk(relaxed = true)).create(
+            token = Token(
+                coin = Coin(uid = uid, name = code, code = code),
+                blockchain = Blockchain(type = BlockchainType.Ethereum, name = "Ethereum", eip3091url = null),
+                type = tokenType,
                 decimals = 8,
             ),
             account = account,
@@ -205,6 +220,86 @@ class OfflineModeUseCaseTest {
         // No duplicate kit op - converged via authoritative state instead of retrying the stale op.
         coVerify(exactly = 1) { networkController.pause(wallet) }
         coVerify(exactly = 1) { offlineModeManager.persistAndPublish(ACCOUNT_ID, BlockchainType.Zcash, true) }
+    }
+
+    @Test
+    fun setChainOffline_pendingPauseThenOppositeRequest_degradesWithoutPersisting() = runTest(dispatcher) {
+        every { networkController.isOffline(wallet) } returns false
+        coEvery { networkController.pause(wallet) } coAnswers { delay(LIFECYCLE_TIMEOUT_MS * 3) }
+        val useCase = createUseCase()
+
+        assertTrue(useCase.setChainOffline(account, BlockchainType.Zcash, offline = true) is TransitionResult.Degraded)
+        val result = useCase.setChainOffline(account, BlockchainType.Zcash, offline = false)
+
+        assertTrue(result is TransitionResult.Degraded)
+        coVerify(exactly = 0) { networkController.resume(wallet) }
+        coVerify(exactly = 0) { offlineModeManager.persistAndPublish(any(), any(), any()) }
+    }
+
+    @Test
+    fun withTemporaryOnline_pendingMember_doesNotEnterOrRunBlock() = runTest(dispatcher) {
+        val sibling = zcashShieldedWallet()
+        every { networkController.isOffline(wallet) } returns false
+        every { networkController.isOffline(sibling) } returns true
+        coEvery { networkController.pause(wallet) } coAnswers { delay(LIFECYCLE_TIMEOUT_MS * 3) }
+        val useCase = createUseCase(listOf(wallet, sibling))
+
+        assertTrue(useCase.setChainOffline(account, BlockchainType.Zcash, offline = true) is TransitionResult.Degraded)
+        var blockRan = false
+        assertFailsWith<IllegalStateException> {
+            useCase.withTemporaryOnline(account, BlockchainType.Zcash) { blockRan = true }
+        }
+
+        assertFalse(blockRan)
+        coVerify(exactly = 0) { offlineModeManager.enterTemporaryOnline(any(), any()) }
+        coVerify(exactly = 0) { networkController.resume(wallet) }
+        coVerify(exactly = 0) { networkController.resume(sibling) }
+    }
+
+    @Test
+    fun withTemporaryOnline_partialEntryTimeout_restoresBothOriginallyOfflineMembers() = runTest(dispatcher) {
+        val sibling = zcashShieldedWallet()
+        var siblingOffline = true
+        every { networkController.isOffline(wallet) } returnsMany listOf(true, false, true)
+        every { networkController.isOffline(sibling) } answers { siblingOffline }
+        every { offlineModeManager.isNetworkPaused(key) } returns true
+        coEvery { networkController.resume(sibling) } coAnswers {
+            delay(LIFECYCLE_TIMEOUT_MS + 5_000)
+            siblingOffline = false
+        }
+        coEvery { networkController.pause(sibling) } coAnswers { siblingOffline = true }
+        val useCase = createUseCase(listOf(wallet, sibling))
+        var blockRan = false
+
+        assertFailsWith<IllegalStateException> {
+            useCase.withTemporaryOnline(account, BlockchainType.Zcash) { blockRan = true }
+        }
+
+        assertFalse(blockRan)
+        advanceUntilIdle()
+        testScheduler.runCurrent()
+        coVerify(exactly = 2) { offlineModeManager.exitTemporaryOnline(key, any()) }
+        coVerifyOrder { offlineModeManager.exitTemporaryOnline(key, any()); networkController.pause(wallet) }
+        assertTrue(siblingOffline)
+    }
+
+    @Test
+    fun setChainOffline_sharedEvmMembers_pausesBothAdaptersBeforePersisting() = runTest(dispatcher) {
+        val native = ethereumWallet(TokenType.Native, "eth", "ETH")
+        val token = ethereumWallet(TokenType.Eip20("0xUSDC"), "usdc", "USDC")
+        var sharedOffline = false
+        every { networkController.isOffline(any()) } answers { sharedOffline }
+        coEvery { networkController.pause(native) } coAnswers { sharedOffline = true }
+        val useCase = createUseCase(listOf(native, token))
+
+        val first = useCase.setChainOffline(account, BlockchainType.Ethereum, offline = true)
+        val second = useCase.setChainOffline(account, BlockchainType.Ethereum, offline = true)
+
+        assertEquals(TransitionResult.Success, first)
+        assertEquals(TransitionResult.Success, second)
+        coVerify(exactly = 1) { networkController.pause(native) }
+        coVerify(exactly = 1) { networkController.pause(token) }
+        coVerify(exactly = 2) { offlineModeManager.persistAndPublish(ACCOUNT_ID, BlockchainType.Ethereum, true) }
     }
 
     @Test

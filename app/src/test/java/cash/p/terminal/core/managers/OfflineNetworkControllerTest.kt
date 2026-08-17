@@ -15,6 +15,7 @@ import io.horizontalsystems.bitcoincore.AbstractKit
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.EthereumKit
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -50,12 +51,12 @@ class OfflineNetworkControllerTest {
 
     private val account = zcashMnemonicAccount(ACCOUNT_ID)
 
-    private fun wallet(blockchainType: BlockchainType): Wallet = checkNotNull(
+    private fun wallet(blockchainType: BlockchainType, tokenType: TokenType = TokenType.Native): Wallet = checkNotNull(
         WalletFactory(mockk(relaxed = true)).create(
             Token(
                 coin = Coin(uid = blockchainType.uid, name = blockchainType.uid, code = blockchainType.uid),
                 blockchain = Blockchain(type = blockchainType, name = blockchainType.uid, eip3091url = null),
-                type = TokenType.Native,
+                type = tokenType,
                 decimals = 8,
             ),
             account,
@@ -67,12 +68,27 @@ class OfflineNetworkControllerTest {
         every { adapterManager.getAdapterForWalletOld(member) } returns it
     }
 
+    private fun setOnline(currentAccount: () -> Any?, networkStarted: () -> Boolean?) {
+        every { currentAccount() } returns account
+        every { networkStarted() } returns true
+    }
+
+    private fun setOnline(kitManager: EvmKitManager) {
+        val wrapper = mockk<EvmKitWrapper>(relaxed = true)
+        val kit = mockk<EthereumKit>(relaxed = true)
+        every { kitManager.currentAccount } returns account
+        every { kitManager.evmKitWrapper } returns wrapper
+        every { wrapper.evmKit } returns kit
+        every { kit.isStarted } returns true
+    }
+
     @Test
     fun pause_evmMember_pausesAdapterAndDelegatesToEvmKitManager() = runTest {
         val member = wallet(BlockchainType.Base) // exercises the EVM_BLOCKCHAIN_TYPES set, not just Ethereum
         val adapter = adapterFor(member)
         val evmKitManager = mockk<EvmKitManager>(relaxed = true)
         every { evmBlockchainManager.getEvmKitManager(BlockchainType.Base) } returns evmKitManager
+        setOnline(evmKitManager)
 
         controller.pause(member)
 
@@ -94,9 +110,41 @@ class OfflineNetworkControllerTest {
     }
 
     @Test
+    fun pause_sharedEvmMembers_pausesEachAdapterAndKitOnce() = runTest {
+        val native = wallet(BlockchainType.Ethereum)
+        val token = wallet(BlockchainType.Ethereum, TokenType.Eip20("0xUSDC"))
+        val nativeAdapter = adapterFor(native)
+        val tokenAdapter = adapterFor(token)
+        var started = true
+        val evmKitManager = mockk<EvmKitManager>(relaxed = true)
+        val evmKitWrapper = mockk<EvmKitWrapper>(relaxed = true)
+        val evmKit = mockk<EthereumKit>(relaxed = true)
+        every { evmBlockchainManager.getEvmKitManager(BlockchainType.Ethereum) } returns evmKitManager
+        every { evmKitManager.currentAccount } returns account
+        every { evmKitManager.evmKitWrapper } returns evmKitWrapper
+        every { evmKitWrapper.evmKit } returns evmKit
+        every { evmKit.isStarted } answers { started }
+        coEvery { evmKitManager.pauseNetwork(account) } coAnswers { started = false }
+        coEvery { evmKitManager.resumeNetwork(account) } coAnswers { started = true }
+
+        controller.pause(native)
+        controller.pause(token)
+        controller.resume(native)
+        controller.resume(token)
+
+        coVerify(exactly = 1) { nativeAdapter.pauseNetwork() }
+        coVerify(exactly = 1) { tokenAdapter.pauseNetwork() }
+        coVerify(exactly = 1) { nativeAdapter.resumeNetwork() }
+        coVerify(exactly = 1) { tokenAdapter.resumeNetwork() }
+        coVerify(exactly = 1) { evmKitManager.pauseNetwork(account) }
+        coVerify(exactly = 1) { evmKitManager.resumeNetwork(account) }
+    }
+
+    @Test
     fun pause_solanaMember_delegatesToSolanaKitManager() = runTest {
         val member = wallet(BlockchainType.Solana)
         adapterFor(member)
+        setOnline({ solanaKitManager.currentAccount }, { solanaKitManager.solanaKitWrapper?.networkStarted })
 
         controller.pause(member)
 
@@ -107,6 +155,7 @@ class OfflineNetworkControllerTest {
     fun pause_tronMember_delegatesToTronKitManager() = runTest {
         val member = wallet(BlockchainType.Tron)
         adapterFor(member)
+        setOnline({ tronKitManager.currentAccount }, { tronKitManager.tronKitWrapper?.networkStarted })
 
         controller.pause(member)
 
@@ -117,6 +166,7 @@ class OfflineNetworkControllerTest {
     fun pause_tonMember_delegatesToTonKitManager() = runTest {
         val member = wallet(BlockchainType.Ton)
         adapterFor(member)
+        setOnline({ tonKitManager.currentAccount }, { tonKitManager.tonKitWrapper?.networkStarted })
 
         controller.pause(member)
 
@@ -127,6 +177,7 @@ class OfflineNetworkControllerTest {
     fun pause_stellarMember_delegatesToStellarKitManager() = runTest {
         val member = wallet(BlockchainType.Stellar)
         adapterFor(member)
+        setOnline({ stellarKitManager.currentAccount }, { stellarKitManager.stellarKitWrapper?.networkStarted })
 
         controller.pause(member)
 
@@ -137,6 +188,7 @@ class OfflineNetworkControllerTest {
     fun pause_moneroMember_delegatesToMoneroKitManager() = runTest {
         val member = wallet(BlockchainType.Monero)
         adapterFor(member)
+        setOnline({ moneroKitManager.currentAccount }, { moneroKitManager.moneroKitWrapper?.isNetworkOnline })
 
         controller.pause(member)
 

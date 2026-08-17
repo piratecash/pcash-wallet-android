@@ -11,7 +11,6 @@ import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -200,8 +199,8 @@ class OfflineModeUseCase(
         val token = tokenCounter.incrementAndGet()
         offlineModeManager.beginTransition(key, token)
         try {
-            val members = liveMembers(account.id, blockchainType)
-            val outcomes = members.map { member -> applyToMember(member, offline, workerScope) }
+            val outcomes = applyBatch(account.id, blockchainType, offline)
+                ?: return TransitionResult.Degraded(unknown(account.id, blockchainType, offline))
 
             if (outcomes.any { it.outcome == LifecycleOutcome.Unknown }) {
                 return TransitionResult.Degraded(outcomes)
@@ -230,7 +229,8 @@ class OfflineModeUseCase(
         writeFailure: Throwable? = null,
     ): TransitionResult {
         val appliedMembers = outcomes.filter { it.outcome == LifecycleOutcome.Applied }.map { it.wallet }
-        val compensationOutcomes = appliedMembers.map { member -> applyToMember(member, !offline, workerScope) }
+        val compensationOutcomes = applyBatch(appliedMembers, !offline)
+            ?: unknown(appliedMembers, !offline)
 
         return if (compensationOutcomes.all { it.outcome == LifecycleOutcome.Applied }) {
             val default = IllegalStateException("Failed to apply offline=$offline to one or more members")
@@ -245,8 +245,8 @@ class OfflineModeUseCase(
      * over a paused network. If a member cannot be resumed, the row stays — paused and saying so.
      */
     private suspend fun doResetChain(accountId: String, blockchainType: BlockchainType) {
-        val outcomes = liveMembers(accountId, blockchainType)
-            .map { member -> applyToMember(member, target = false, workerScope) }
+        val outcomes = applyBatch(accountId, blockchainType, target = false)
+            ?: unknown(accountId, blockchainType, target = false)
         if (outcomes.any { it.outcome != LifecycleOutcome.Applied }) {
             Timber.w("Kept offline row for ($accountId, $blockchainType), resume failed: $outcomes")
             return
@@ -256,8 +256,35 @@ class OfflineModeUseCase(
 
     private suspend fun doEnterTemporaryOnline(account: Account, blockchainType: BlockchainType, token: Long) {
         val key = OfflineKey(account.id, blockchainType)
-        offlineModeManager.enterTemporaryOnline(key, token)
-        liveMembers(account.id, blockchainType).forEach { member -> applyToMember(member, target = false, workerScope) }
+        var installed = false
+        val outcomes = try {
+            applyBatch(
+                members = liveMembers(account.id, blockchainType),
+                target = false,
+                before = {
+                    offlineModeManager.enterTemporaryOnline(key, token)
+                    installed = true
+                },
+                include = { it },
+            ) ?: error("Pending offline lifecycle operation for $key")
+        } catch (e: Throwable) {
+            if (installed) offlineModeManager.exitTemporaryOnline(key, token)
+            throw e
+        }
+        if (outcomes.all { it.outcome == LifecycleOutcome.Applied }) return
+        offlineModeManager.exitTemporaryOnline(key, token)
+        val appliedMembers = outcomes.filter { it.outcome == LifecycleOutcome.Applied }.map { it.wallet }
+        val compensationOutcomes = applyBatch(appliedMembers, target = true) ?: unknown(appliedMembers, target = true)
+        val pendingOperations = (outcomes + compensationOutcomes)
+            .filter { it.outcome == LifecycleOutcome.Unknown }
+            .mapNotNull { pending[it.wallet] }
+        if (pendingOperations.isNotEmpty() || compensationOutcomes.any { it.outcome != LifecycleOutcome.Applied }) {
+            workerScope.launch {
+                pendingOperations.forEach { it.join() }
+                restoreAfterTemporaryOnline(account, blockchainType, token)
+            }
+        }
+        error("Failed to enter temporary online mode for $key: $outcomes")
     }
 
     private suspend fun doExitTemporaryOnline(account: Account, blockchainType: BlockchainType, token: Long) {
@@ -266,8 +293,8 @@ class OfflineModeUseCase(
         // Re-read the current desired state rather than trusting a snapshot taken before the block ran:
         // another command may have changed it while temporary-online was active.
         val target = offlineModeManager.isNetworkPaused(key)
-        val outcomes = liveMembers(account.id, blockchainType)
-            .map { member -> applyToMember(member, target, workerScope) }
+        val outcomes = applyBatch(account.id, blockchainType, target)
+            ?: unknown(account.id, blockchainType, target)
         if (outcomes.any { it.outcome != LifecycleOutcome.Applied }) {
             Timber.w("Failed to fully restore offline state for $key after temporary online: $outcomes")
         }
@@ -278,12 +305,34 @@ class OfflineModeUseCase(
             it.account.id == accountId && it.token.blockchainType == blockchainType
         }
 
-    private suspend fun applyToMember(member: Wallet, target: Boolean, scope: CoroutineScope): MemberOutcome {
-        drainPending(member)
-        if (networkController.isOffline(member) == target) {
+    private suspend fun applyBatch(
+        accountId: String, blockchainType: BlockchainType, target: Boolean, before: suspend () -> Unit = {},
+    ) =
+        applyBatch(liveMembers(accountId, blockchainType), target, before)
+
+    private suspend fun applyBatch(
+        members: List<Wallet>,
+        target: Boolean,
+        before: suspend () -> Unit = {},
+        include: (Boolean) -> Boolean = { true },
+    ): List<MemberOutcome>? {
+        if (!drainPending(members)) return null
+        val states = members.associateWith(networkController::isOffline)
+        before()
+        return members.filter { include(states.getValue(it)) }
+            .map { member -> applyToMember(member, target, states.getValue(member)) }
+    }
+
+    private fun unknown(id: String, chain: BlockchainType, target: Boolean) = unknown(liveMembers(id, chain), target)
+
+    private fun unknown(members: List<Wallet>, target: Boolean) =
+        members.map { MemberOutcome(it, target, LifecycleOutcome.Unknown) }
+
+    private suspend fun applyToMember(member: Wallet, target: Boolean, isOffline: Boolean): MemberOutcome {
+        if (isOffline == target) {
             return MemberOutcome(member, target, LifecycleOutcome.Applied)
         }
-        val op = scope.async(dispatcherProvider.io) {
+        val op = workerScope.async(dispatcherProvider.io) {
             if (target) networkController.pause(member) else networkController.resume(member)
         }
         return try {
@@ -298,8 +347,10 @@ class OfflineModeUseCase(
         }
     }
 
-    private suspend fun drainPending(member: Wallet) {
-        val stale = pending.remove(member) ?: return
+    private suspend fun drainPending(members: List<Wallet>) = members.map { drainPending(it) }.all { it }
+
+    private suspend fun drainPending(member: Wallet): Boolean {
+        val stale = pending.remove(member) ?: return true
         val stillPending = try {
             withTimeoutOrNull(LIFECYCLE_TIMEOUT_MS) { stale.await(); false } ?: true
         } catch (e: CancellationException) {
@@ -308,6 +359,7 @@ class OfflineModeUseCase(
             false
         }
         if (stillPending) pending[member] = stale
+        return !stillPending
     }
 
     private sealed interface Command {

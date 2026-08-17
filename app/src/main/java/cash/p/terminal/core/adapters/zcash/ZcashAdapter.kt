@@ -500,9 +500,10 @@ class ZcashAdapter(
     }
 
     override fun pauseNetwork() {
-        scope.launch { synchronizer.pauseSync() }
+        scope.launch { pauseNetworkAndAwait() }
     }
 
+    suspend fun pauseNetworkAndAwait() = synchronizer.pauseSync()
     // Authoritative for offline mode: the sync status cannot tell a resumable pause from a
     // terminal stop, so the lifecycle is the only source that distinguishes them.
     val isNetworkPaused: Boolean
