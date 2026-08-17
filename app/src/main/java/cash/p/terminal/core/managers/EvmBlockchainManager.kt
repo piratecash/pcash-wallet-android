@@ -17,6 +17,7 @@ class EvmBlockchainManager(
     private val accountManagerFactory: EvmAccountManagerFactory,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val offlineModeManager: OfflineModeManager,
 ) {
     private val evmKitManagersMap = mutableMapOf<BlockchainType, Pair<EvmKitManager, EvmAccountManager>>()
 
@@ -38,7 +39,8 @@ class EvmBlockchainManager(
             backgroundManager,
             syncSourceManager,
             backgroundKeepAliveManager,
-            networkErrorTracker
+            networkErrorTracker,
+            offlineModeManager
         )
         val evmAccountManager = accountManagerFactory.evmAccountManager(blockchainType, evmKitManager)
 

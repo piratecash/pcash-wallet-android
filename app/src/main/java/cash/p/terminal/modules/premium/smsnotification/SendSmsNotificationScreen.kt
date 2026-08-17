@@ -37,6 +37,8 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.entities.Address
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInputAddress
 import cash.p.terminal.ui.extensions.WalletSwitchBottomSheet
@@ -84,6 +86,7 @@ fun SendSmsNotificationScreen(
     var showWalletSheet by remember { mutableStateOf(false) }
     val view = LocalView.current
     val scannerTitle = stringResource(R.string.qr_scanner_title_address, BlockchainType.Zcash.title)
+    val offlineGatedAction = rememberOfflineGatedAction(uiState.selectedWallet?.wallet)
 
     // Handle back press - cancel test if syncing
     BackHandler {
@@ -282,13 +285,15 @@ fun SendSmsNotificationScreen(
                 } else {
                     stringResource(R.string.test_sms)
                 },
-                onClick = onTestSmsClick,
-                enabled = uiState.isTestEnabled && !isSyncing
+                onClick = { offlineGatedAction.onClick(uiState.testAvailability, onTestSmsClick) },
+                enabled = uiState.testAvailability.clickable && !isSyncing
             )
 
             VSpacer(height = 32.dp)
         }
     }
+
+    offlineGatedAction.Sheet()
 
     // Wallet Selection Bottom Sheet
     if (showWalletSheet) {
@@ -390,7 +395,7 @@ private fun SendSmsNotificationScreenWithAddressPreview() {
                 memoBytesUsed = 22,
                 requiredCoins = BigDecimal("0.0001"),
                 isSaveEnabled = true,
-                isTestEnabled = true
+                testAvailability = OperationAvailability.Available
             ),
             onAccountSelected = {},
             onAddressChanged = {},

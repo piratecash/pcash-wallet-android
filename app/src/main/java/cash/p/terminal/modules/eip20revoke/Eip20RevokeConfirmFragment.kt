@@ -21,6 +21,7 @@ import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.fee.DataFieldFee
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
@@ -71,6 +72,7 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
 
     val uiState = viewModel.uiState
     val view = LocalView.current
+    val offlineGatedAction = rememberOfflineGatedAction(viewModel.wallet)
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -96,36 +98,38 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.Swap_Revoke),
                 onClick = {
-                    coroutineScope.launch {
-                        buttonEnabled = false
-                        HudHelper.showInProcessMessage(
-                            view,
-                            R.string.Swap_Revoking,
-                            SnackbarDuration.INDEFINITE
-                        )
+                    offlineGatedAction.onClick(uiState.revokeAvailability) {
+                        coroutineScope.launch {
+                            buttonEnabled = false
+                            HudHelper.showInProcessMessage(
+                                view,
+                                R.string.Swap_Revoking,
+                                SnackbarDuration.INDEFINITE
+                            )
 
-                        val result = try {
-                            viewModel.revoke()
+                            val result = try {
+                                viewModel.revoke()
 
-                            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                            delay(1200)
-                            Eip20RevokeConfirmFragment.Result(true)
-                        } catch (e: TrezorCancelledException) {
+                                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                                delay(1200)
+                                Eip20RevokeConfirmFragment.Result(true)
+                            } catch (e: TrezorCancelledException) {
+                                buttonEnabled = true
+                                return@launch
+                            } catch (t: Throwable) {
+                                val msg =
+                                    (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                                HudHelper.showErrorMessage(view, msg)
+                                Eip20RevokeConfirmFragment.Result(false)
+                            }
+
                             buttonEnabled = true
-                            return@launch
-                        } catch (t: Throwable) {
-                            val msg =
-                                (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
-                            HudHelper.showErrorMessage(view, msg)
-                            Eip20RevokeConfirmFragment.Result(false)
+                            navController.setNavigationResultX(result)
+                            navController.popBackStack()
                         }
-
-                        buttonEnabled = true
-                        navController.setNavigationResultX(result)
-                        navController.popBackStack()
                     }
                 },
-                enabled = uiState.revokeEnabled && buttonEnabled,
+                enabled = uiState.revokeAvailability.clickable && buttonEnabled,
                 loadingIndicator = uiState.preparing,
             )
             VSpacer(16.dp)
@@ -178,4 +182,6 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
             Cautions(cautions = uiState.cautions)
         }
     }
+
+    offlineGatedAction.Sheet()
 }

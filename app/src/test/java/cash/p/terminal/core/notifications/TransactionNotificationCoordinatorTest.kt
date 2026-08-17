@@ -6,11 +6,15 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.zcashMnemonicAccount
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -44,6 +48,9 @@ class TransactionNotificationCoordinatorTest {
     private val transactionMonitor = mockk<TransactionMonitor>(relaxed = true)
     private val backgroundStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
     private val workManager = mockk<WorkManager>(relaxed = true)
+    private val accountManager = mockk<IAccountManager>(relaxed = true)
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+    private val effectiveMonitoredChains = EffectiveMonitoredChains(localStorage, accountManager, offlineModeManager)
 
     private var capturedCallback: (() -> Unit)? = null
     private var fallbackActive = false
@@ -60,6 +67,7 @@ class TransactionNotificationCoordinatorTest {
         every { localStorage.pushRealtimeFallbackPollingActive = any() } answers {
             fallbackActive = firstArg<Boolean>()
         }
+        every { accountManager.activeAccount } returns zcashMnemonicAccount()
         mockkObject(WorkManager.Companion)
         every { WorkManager.getInstance(any()) } returns workManager
     }
@@ -81,6 +89,7 @@ class TransactionNotificationCoordinatorTest {
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
             transactionMonitor = transactionMonitor,
+            effectiveMonitoredChains = effectiveMonitoredChains,
         )
         coordinator.start()
         return coordinator

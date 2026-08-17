@@ -4,6 +4,8 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.ZcashRescanException
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.OfflineKey
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
@@ -34,6 +36,7 @@ class RescanZcashUseCaseTest {
     private val clearZCashWalletDataUseCase = mockk<ClearZCashWalletDataUseCase>()
     private val restoreSettingsManager = mockk<RestoreSettingsManager>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
 
     private val accountId = "acc-1"
     private val account = mockk<Account> { every { id } returns accountId }
@@ -45,6 +48,7 @@ class RescanZcashUseCaseTest {
         restoreSettingsManager,
         localStorage,
         dispatcherProvider,
+        offlineModeManager,
     )
 
     /** Makes [AdapterManager.rescanZcashAccount] run the passed clearData block inline. */
@@ -53,6 +57,16 @@ class RescanZcashUseCaseTest {
         coEvery { adapterManager.rescanZcashAccount(accountId, capture(clearData)) } coAnswers {
             clearData.captured.invoke()
         }
+    }
+
+    @Test
+    fun invoke_offlinePair_abortsWithoutErasingData() = runTest(dispatcher) {
+        every { offlineModeManager.isNetworkPaused(OfflineKey(accountId, BlockchainType.Zcash)) } returns true
+
+        assertFailsWith<ZcashRescanException> { useCase(account, newHeight) }
+
+        coVerify(exactly = 0) { adapterManager.rescanZcashAccount(any(), any()) }
+        coVerify(exactly = 0) { clearZCashWalletDataUseCase(any()) }
     }
 
     @Test

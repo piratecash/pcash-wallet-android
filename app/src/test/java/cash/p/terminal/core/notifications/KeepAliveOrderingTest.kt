@@ -3,11 +3,15 @@ package cash.p.terminal.core.notifications
 import androidx.work.WorkManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.zcashMnemonicAccount
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -65,6 +69,11 @@ class KeepAliveOrderingTest {
         every { localStorage.pushEnabledBlockchainUids } returns setOf("bitcoin")
         every { localStorage.pushPollingInterval } returns PollingInterval.REALTIME
 
+        val accountManager = mockk<IAccountManager>(relaxed = true)
+        every { accountManager.activeAccount } returns zcashMnemonicAccount()
+        val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+        val effectiveMonitoredChains = EffectiveMonitoredChains(localStorage, accountManager, offlineModeManager)
+
         val notificationManager = mockk<TransactionNotificationManager>(relaxed = true)
         every { notificationManager.hasNotificationPermission() } returns true
         every { notificationManager.isTransactionChannelEnabled() } returns true
@@ -95,6 +104,7 @@ class KeepAliveOrderingTest {
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
             transactionMonitor = mockk(relaxed = true),
+            effectiveMonitoredChains = effectiveMonitoredChains,
         ).start()
 
         var keepAliveWasSetWhenKitReceivedEvent = false
@@ -130,6 +140,11 @@ class KeepAliveOrderingTest {
         every { localStorage.pushEnabledBlockchainUids } returns setOf("solana")
         every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
 
+        val accountManager = mockk<IAccountManager>(relaxed = true)
+        every { accountManager.activeAccount } returns zcashMnemonicAccount()
+        val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+        val effectiveMonitoredChains = EffectiveMonitoredChains(localStorage, accountManager, offlineModeManager)
+
         val notificationManager = mockk<TransactionNotificationManager>(relaxed = true)
         every { notificationManager.hasNotificationPermission() } returns true
         every { notificationManager.isTransactionChannelEnabled() } returns true
@@ -160,6 +175,7 @@ class KeepAliveOrderingTest {
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
             transactionMonitor = mockk(relaxed = true),
+            effectiveMonitoredChains = effectiveMonitoredChains,
         ).start()
 
         var solanaKeepAliveWasSet = false

@@ -22,9 +22,13 @@ import io.horizontalsystems.stellarkit.StellarWallet
 import io.horizontalsystems.stellarkit.SyncState
 import io.horizontalsystems.stellarkit.room.StellarAsset
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 import org.stellar.sdk.KeyPair
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -42,6 +47,7 @@ class StellarKitManager(
     private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val offlineModeManager: OfflineModeManager,
 ) {
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
@@ -76,7 +82,7 @@ class StellarKitManager(
 
             if (this.stellarKitWrapper == null) {
                 val accountType = account.type
-                this.stellarKitWrapper = when (accountType) {
+                val wrapper = when (accountType) {
                     is AccountType.Mnemonic,
                     is AccountType.StellarAddress,
                     is AccountType.HardwareCard,
@@ -98,8 +104,9 @@ class StellarKitManager(
                     is AccountType.TronAddress,
                     is AccountType.ZCashUfvKey -> throw UnsupportedAccountException()
                 }
-                scope.launch {
-                    start()
+                this.stellarKitWrapper = wrapper
+                job = scope.launch {
+                    start(account, wrapper)
                 }
                 useCount = 0
                 currentAccount = account
@@ -178,44 +185,88 @@ class StellarKitManager(
 
     suspend fun startForPolling() = lifecycleMutex.withLock {
         pollingSessionCount.onPollingStarted {
-            stellarKitWrapper?.stellarKit?.let { kit ->
-                kit.start()
-                kit.refresh()
+            val account = currentAccount
+            if (account == null || !isNetworkPaused(account)) {
+                stellarKitWrapper?.let { wrapper ->
+                    wrapper.stellarKit.start()
+                    wrapper.stellarKit.refresh()
+                    wrapper.networkStarted = true
+                }
             }
         }
     }
 
     suspend fun stopForPolling() = lifecycleMutex.withLock {
         pollingSessionCount.onPollingStopped(backgroundManager) {
-            stellarKitWrapper?.stellarKit?.stop()
+            stellarKitWrapper?.let { wrapper ->
+                wrapper.stellarKit.stop()
+                wrapper.networkStarted = false
+            }
         }
     }
 
-    private fun stop() {
-        stellarKitWrapper?.stellarKit?.destroy()
-        job?.cancel()
-        stellarKitWrapper = null
-        currentAccount = null
+    suspend fun pauseNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = stellarKitWrapper ?: return@withLock
+        if (!wrapper.networkStarted) return@withLock
+        wrapper.stellarKit.stop()
+        wrapper.networkStarted = false
     }
 
-    private suspend fun start() {
-        stellarKitWrapper?.stellarKit?.start()
-        job = scope.launch {
-            backgroundManager.stateFlow.collect { state ->
-                if (state == BackgroundManagerState.EnterForeground) {
-                    stellarKitWrapper?.stellarKit?.let { kit ->
-                        kit.start()
-                        delay(1000)
-                        kit.refresh()
-                    }
-                } else if (state == BackgroundManagerState.EnterBackground) {
-                    if (pollingSessionCount.get() == 0 &&
-                        !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Stellar)
-                    ) {
-                        stellarKitWrapper?.stellarKit?.stop()
-                    } else {
-                        Timber.tag("TxPoller").d("StellarKit staying alive")
-                    }
+    suspend fun resumeNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = stellarKitWrapper ?: return@withLock
+        if (wrapper.networkStarted) return@withLock
+        wrapper.stellarKit.start()
+        wrapper.networkStarted = true
+    }
+
+    // Ownership is invalidated before the suspending teardown, so a cancellation here cannot leave a
+    // half-destroyed wrapper published. The teardown runs under NonCancellable and cancels the start
+    // job first: a start still in flight would otherwise bring the discarded account's networking
+    // back up after teardown.
+    private suspend fun stop() {
+        val stoppingJob = job
+        val wrapper = stellarKitWrapper
+        job = null
+        stellarKitWrapper = null
+        currentAccount = null
+        withContext(NonCancellable) {
+            stoppingJob?.cancelAndJoin()
+            wrapper?.stellarKit?.destroy()
+        }
+        // NonCancellable does not rethrow on exit, so without this a cancelled account switch would
+        // go on to create and start the abandoned account's kit.
+        currentCoroutineContext().ensureActive()
+    }
+
+    private fun isNetworkPaused(account: Account): Boolean =
+        offlineModeManager.isNetworkPaused(account, BlockchainType.Stellar)
+
+    // Runs inside `job` and drives the kit it was created with: a later account switch cancels this
+    // job, so the gate can never be evaluated for one account against another account's kit.
+    private suspend fun start(account: Account, wrapper: StellarKitWrapper) {
+        val kit = wrapper.stellarKit
+        if (!isNetworkPaused(account)) {
+            kit.start()
+            wrapper.networkStarted = true
+        }
+        backgroundManager.stateFlow.collect { state ->
+            if (state == BackgroundManagerState.EnterForeground) {
+                if (!isNetworkPaused(account)) {
+                    kit.start()
+                    wrapper.networkStarted = true
+                    delay(1000)
+                    if (!isNetworkPaused(account)) kit.refresh()
+                }
+            } else if (state == BackgroundManagerState.EnterBackground) {
+                if (pollingSessionCount.get() == 0 &&
+                    !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Stellar)
+                ) {
+                    kit.stop()
+                    wrapper.networkStarted = false
+                } else {
+                    Timber.tag("TxPoller").d("StellarKit staying alive")
                 }
             }
         }
@@ -241,7 +292,10 @@ class StellarKitManager(
     }
 }
 
-class StellarKitWrapper(val stellarKit: StellarKit)
+class StellarKitWrapper(val stellarKit: StellarKit) {
+    /** True once [StellarKit.start] has been called and no matching [StellarKit.stop] followed it. */
+    var networkStarted: Boolean = false
+}
 
 fun StellarKit.statusInfo(): Map<String, Any> =
     buildMap {

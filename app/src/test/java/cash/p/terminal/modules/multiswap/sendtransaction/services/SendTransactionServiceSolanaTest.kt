@@ -9,6 +9,7 @@ import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaKitWrapper
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
@@ -91,6 +92,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
                 single<MarketKitWrapper> { marketKit }
                 single<IAppNumberFormatter> { numberFormatter }
                 single<CurrencyManager> { currencyManager }
+                single<OfflineOperationGate> { mockk(relaxed = true) }
             }
         )
     }
@@ -148,7 +150,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         advanceUntilIdle()
 
         // When
-        service.sendTransaction()
+        service.send()
         advanceUntilIdle()
 
         // Then
@@ -195,7 +197,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         advanceUntilIdle()
 
         // When
-        service.sendTransaction()
+        service.send()
         advanceUntilIdle()
 
         // Then
@@ -225,7 +227,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
 
         var thrown: Throwable? = null
         try {
-            service.sendTransaction()
+            service.send()
             advanceUntilIdle()
         } catch (e: Throwable) {
             thrown = e
@@ -265,7 +267,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         advanceUntilIdle()
 
         // When
-        service.sendTransaction()
+        service.send()
         advanceUntilIdle()
 
         // Then
@@ -305,7 +307,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
 
         var thrown: Throwable? = null
         try {
-            service.sendTransaction()
+            service.send()
             advanceUntilIdle()
         } catch (e: Throwable) {
             thrown = e
@@ -340,7 +342,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         )
         advanceUntilIdle()
 
-        service.sendTransaction()
+        service.send()
         advanceUntilIdle()
 
         coVerify { pendingRegistrar.register(any()) }
@@ -375,7 +377,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         )
         advanceUntilIdle()
 
-        service.sendTransaction()
+        service.send()
         advanceUntilIdle()
 
         coVerify { pendingRegistrar.register(any()) }
@@ -406,7 +408,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         // When
         var exceptionThrown = false
         try {
-            service.sendTransaction()
+            service.send()
             advanceUntilIdle()
         } catch (e: RuntimeException) {
             exceptionThrown = true
@@ -446,7 +448,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         // When
         var exceptionThrown = false
         try {
-            service.sendTransaction()
+            service.send()
             advanceUntilIdle()
         } catch (e: RuntimeException) {
             exceptionThrown = true

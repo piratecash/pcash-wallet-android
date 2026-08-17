@@ -14,14 +14,26 @@ import cash.p.terminal.entities.nft.NftAssetMetadata.SaleType
 import cash.p.terminal.entities.nft.NftAssetMetadata.Trait
 import cash.p.terminal.entities.nft.NftCollectionMetadata
 import cash.p.terminal.entities.nft.NftUid
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.availabilityFor
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.ui_compose.entities.viewState
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.helpers.DateHelper
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 import kotlin.math.roundToInt
 
-class NftAssetViewModel(private val service: NftAssetService) : ViewModel() {
+class NftAssetViewModel(
+    private val service: NftAssetService,
+    private val offlineOperationGate: OfflineOperationGate,
+    walletManager: IWalletManager,
+) : ViewModel() {
+    private val wallet: Wallet? = walletManager.walletFor(service.nftUid.blockchainType)
+
     var viewState by mutableStateOf<ViewState>(ViewState.Loading)
         private set
 
@@ -71,7 +83,8 @@ class NftAssetViewModel(private val service: NftAssetService) : ViewModel() {
             contractAddress = asset.nftUid.contractAddress,
             schemaName = asset.nftType,
             links = linkViewItems(asset, collection),
-            showSend = item.owned,
+            sendAvailability = offlineOperationGate.availabilityFor(wallet, item.owned),
+            wallet = wallet,
         )
     }
 
@@ -172,7 +185,8 @@ class NftAssetViewModel(private val service: NftAssetService) : ViewModel() {
         val contractAddress: String,
         val schemaName: String?,
         val links: List<LinkViewItem>,
-        val showSend: Boolean,
+        val sendAvailability: OperationAvailability,
+        val wallet: Wallet?,
     ) {
 
         val providerUrl: Pair<String, String>?

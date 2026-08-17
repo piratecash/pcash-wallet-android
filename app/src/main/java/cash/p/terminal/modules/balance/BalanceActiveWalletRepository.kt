@@ -2,6 +2,7 @@ package cash.p.terminal.modules.balance
 
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.UserDeletedWalletManager
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.isLegacyZcash
@@ -13,6 +14,7 @@ import kotlinx.coroutines.rx2.asObservable
 class BalanceActiveWalletRepository(
     private val walletManager: IWalletManager,
     private val userDeletedWalletManager: UserDeletedWalletManager,
+    private val offlineModeUseCase: OfflineModeUseCase,
     evmSyncSourceManager: EvmSyncSourceManager
 ) {
 
@@ -35,6 +37,7 @@ class BalanceActiveWalletRepository(
             userDeletedWalletManager.markAsDeleted(wallet)
             walletManager.deleteByWallet(wallet)
         }
+        offlineModeUseCase.resetIfBlockchainRemoved(wallet.account, wallet.token.blockchainType)
     }
 
 }

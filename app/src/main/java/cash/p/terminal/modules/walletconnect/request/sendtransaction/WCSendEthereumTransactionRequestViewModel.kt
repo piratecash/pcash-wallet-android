@@ -104,7 +104,7 @@ internal class WCSendEthereumTransactionRequestViewModel(
     }
 
     suspend fun confirm() = withContext(Dispatchers.Default) {
-        val sendResult = sendTransactionService.sendTransaction()
+        val sendResult = sendTransactionService.send()
         val transactionHash = sendResult.getRecordUid().orEmpty()
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->

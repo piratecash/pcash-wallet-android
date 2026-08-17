@@ -3,7 +3,9 @@ package cash.p.terminal.core.usecase
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ZcashRescanException
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.managers.isNetworkPaused
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.domain.usecase.ZcashEraseResult
 import cash.p.terminal.wallet.Account
@@ -21,12 +23,16 @@ class RescanZcashUseCase(
     private val restoreSettingsManager: RestoreSettingsManager,
     private val localStorage: ILocalStorage,
     private val dispatcherProvider: DispatcherProvider,
+    private val offlineModeManager: OfflineModeManager,
 ) {
     // NonCancellable: the destructive section (erase → persist → adapter reconstruct) must run to
     // completion even if the caller's scope (e.g. the screen's viewModelScope) is cancelled midway,
     // otherwise the account could be left with a stopped/erased Zcash wallet and no restarted adapter.
     suspend operator fun invoke(account: Account, newHeight: Long) =
         withContext(dispatcherProvider.io + NonCancellable) {
+            if (offlineModeManager.isNetworkPaused(account.id, BlockchainType.Zcash)) {
+                throw ZcashRescanException("Cannot rescan Zcash wallet for account ${account.id} while offline")
+            }
             adapterManager.rescanZcashAccount(account.id) {
                 // Only NONE (nothing erased) is a safe unchanged rollback. A PARTIAL erase has
                 // already destroyed data, so it commits to the restore just like ALL — otherwise

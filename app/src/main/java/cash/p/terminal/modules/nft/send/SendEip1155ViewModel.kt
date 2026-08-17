@@ -11,8 +11,13 @@ import cash.p.terminal.core.managers.NftMetadataManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.entities.nft.NftUid
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.availabilityFor
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.modules.send.evm.SendEvmAddressService
 import cash.p.terminal.modules.send.evm.SendEvmData
+import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.Wallet
 import java.math.BigInteger
 
 class SendEip1155ViewModel(
@@ -20,8 +25,12 @@ class SendEip1155ViewModel(
     private val nftBalance: Int,
     private val adapter: INftAdapter,
     private val addressService: SendEvmAddressService,
-    nftMetadataManager: NftMetadataManager
+    nftMetadataManager: NftMetadataManager,
+    private val offlineOperationGate: OfflineOperationGate,
+    walletManager: IWalletManager,
 ) : ViewModel() {
+
+    val wallet: Wallet? = walletManager.walletFor(nftUid.blockchainType)
 
     private var addressState = addressService.stateFlow.value
     private var amountState by mutableStateOf<DataState<Int>?>(DataState.Success(1))
@@ -35,7 +44,7 @@ class SendEip1155ViewModel(
             imageUrl = assetShortMetadata?.previewImageUrl ?: "",
             addressError = addressState.addressError,
             amountState = amountState,
-            canBeSend = addressState.canBeSend,
+            availability = offlineOperationGate.availabilityFor(wallet, addressState.canBeSend),
         )
     )
         private set
@@ -100,7 +109,7 @@ class SendEip1155ViewModel(
             imageUrl = assetShortMetadata?.previewImageUrl ?: "",
             addressError = addressError,
             amountState = amountState,
-            canBeSend = canBeSend,
+            availability = offlineOperationGate.availabilityFor(wallet, canBeSend),
         )
     }
 

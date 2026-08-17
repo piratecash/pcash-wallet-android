@@ -98,7 +98,9 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.parcelable
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.entities.Currency
@@ -129,6 +131,8 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
+import cash.p.terminal.modules.offline.OfflineBlockedBottomSheet
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.paycore.PayCoreAssets
 import cash.p.terminal.modules.paycore.PayCoreQuote
 import cash.p.terminal.modules.paycore.PayCoreSelectBankAction
@@ -234,17 +238,43 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             val direction = args.direction
             val otherToken = viewModel.uiState.otherToken(direction)
             val titleResId = direction.titleResId()
+            val offlineGate = remember { getKoinInstance<OfflineOperationGate>() }
+            val walletManager = remember { getKoinInstance<IWalletManager>() }
+            var blockedWallet by remember { mutableStateOf<Wallet?>(null) }
+
+            val selectToken: (Token) -> Unit = { token ->
+                when (direction) {
+                    SwapCoinDirection.From -> viewModel.onSelectTokenIn(token)
+                    SwapCoinDirection.To -> viewModel.onSelectTokenOut(token)
+                }
+                swapNavController.popBackStackSafely()
+            }
 
             SwapSelectCoinScreen(
                 navController = swapNavController,
                 token = otherToken,
                 title = stringResource(id = titleResId)
             ) { token ->
-                when (direction) {
-                    SwapCoinDirection.From -> viewModel.onSelectTokenIn(token)
-                    SwapCoinDirection.To -> viewModel.onSelectTokenOut(token)
+                // Only the spent side is gated: an offline output token cannot move funds.
+                val offlineWallet = if (direction == SwapCoinDirection.From) {
+                    walletManager.activeWallets
+                        .firstOrNull { it.token == token }
+                        ?.takeIf(offlineGate::isBlocked)
+                } else {
+                    null
                 }
-                swapNavController.popBackStackSafely()
+                if (offlineWallet != null) blockedWallet = offlineWallet else selectToken(token)
+            }
+
+            blockedWallet?.let { wallet ->
+                OfflineBlockedBottomSheet(
+                    wallet = wallet,
+                    onWentOnline = {
+                        blockedWallet = null
+                        selectToken(wallet.token)
+                    },
+                    onDismiss = { blockedWallet = null },
+                )
             }
         }
         composablePopup<SwapSelectProviderPage> { backStackEntry ->

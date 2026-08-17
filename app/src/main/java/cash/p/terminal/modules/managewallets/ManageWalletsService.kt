@@ -4,6 +4,7 @@ import cash.p.terminal.core.eligibleTokens
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.restoreSettingTypes
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.receive.FullCoinsProvider
@@ -28,7 +29,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,10 +53,14 @@ class ManageWalletsService(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
     private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
+    private val offlineModeUseCase: OfflineModeUseCase by inject(OfflineModeUseCase::class.java)
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
 
     private val _itemsFlow = MutableStateFlow<List<Item>>(listOf())
     val itemsFlow = _itemsFlow.asStateFlow()
+
+    private val _enabledTokensFlow = MutableSharedFlow<Token>(extraBufferCapacity = 16)
+    val enabledTokensFlow = _enabledTokensFlow.asSharedFlow()
 
     val accountType: AccountType?
         get() = account?.type
@@ -209,6 +216,10 @@ class ManageWalletsService(
 
         updateSortedItems(token, true)
         syncState()
+
+        if (wallets.isNotEmpty()) {
+            _enabledTokensFlow.tryEmit(token)
+        }
     }
 
     fun setFilter(filter: String) {
@@ -249,6 +260,7 @@ class ManageWalletsService(
             walletManager.deleteByTokenQueryIds(account.id, tokenQueryIds)
             updateSortedItems(token, false)
             syncState()
+            offlineModeUseCase.resetIfBlockchainRemoved(account, token.blockchainType)
         }
     }
 

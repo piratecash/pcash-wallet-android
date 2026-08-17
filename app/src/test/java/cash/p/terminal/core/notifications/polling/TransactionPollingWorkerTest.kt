@@ -175,4 +175,42 @@ class TransactionPollingWorkerTest {
         assertTrue(result)
         verify { workManager.cancelUniqueWork(any()) }
     }
+
+    @Test
+    fun evaluateShouldRun_allConditionsMet_returnsTrue() {
+        assertTrue(baseEvaluateShouldRun())
+    }
+
+    @Test
+    fun evaluateShouldRun_noChainsToPoll_returnsFalse() {
+        // The chain to poll set is empty after offline-filtering — nothing to check.
+        assertFalse(baseEvaluateShouldRun(hasChainsToPoll = false))
+    }
+
+    @Test
+    fun evaluateShouldRun_inForeground_returnsFalse() {
+        assertFalse(baseEvaluateShouldRun(inForeground = true))
+    }
+
+    private fun baseEvaluateShouldRun(
+        inForeground: Boolean = false,
+        interval: PollingInterval = PollingInterval.MIN_5,
+        fallbackActive: Boolean = false,
+        isPremium: Boolean = true,
+        pushNotificationsEnabled: Boolean = true,
+        hasChainsToPoll: Boolean = true,
+        hasNotificationPermission: Boolean = true,
+        isTransactionChannelEnabled: Boolean = true,
+    ): Boolean = TransactionPollingWorker.evaluateShouldRun(
+        ShouldRunGateInputs(
+            inForeground = inForeground,
+            interval = interval,
+            fallbackActive = fallbackActive,
+            isPremium = isPremium,
+            pushNotificationsEnabled = pushNotificationsEnabled,
+            hasChainsToPoll = hasChainsToPoll,
+            hasNotificationPermission = hasNotificationPermission,
+            isTransactionChannelEnabled = isTransactionChannelEnabled,
+        )
+    )
 }

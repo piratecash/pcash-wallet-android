@@ -57,7 +57,7 @@ class WCActionStellarSignAndSubmitXdr(
     }
 
     override suspend fun performAction(): String {
-        sendTransactionService.sendTransaction()
+        sendTransactionService.send()
 
         return gson.toJson(mapOf("status" to "success"))
     }

@@ -62,6 +62,25 @@ object HudHelper {
         )
     }
 
+    fun showMessage(
+        contentView: View,
+        text: String,
+        duration: SnackbarDuration = SnackbarDuration.SHORT,
+        gravity: SnackbarGravity = SnackbarGravity.BOTTOM,
+        @DrawableRes icon: Int? = null,
+        iconTint: Int? = null,
+    ): CustomSnackbar? {
+        return showHudNotification(
+            contentView = contentView,
+            text = text,
+            backgroundColor = R.color.grey,
+            duration = duration,
+            gravity = gravity,
+            icon = icon,
+            iconTint = iconTint,
+        )
+    }
+
     fun showErrorMessage(
         contenView: View,
         textRes: Int,

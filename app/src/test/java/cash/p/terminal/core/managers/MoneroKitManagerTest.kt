@@ -25,7 +25,10 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -50,6 +53,7 @@ class MoneroKitManagerTest {
     private val mockWrapper = mockk<MoneroKitWrapper>(relaxed = true) {
         every { syncState } returns wrapperSyncState
     }
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
     private val account = Account(
         id = "account-id",
         name = "Monero",
@@ -89,6 +93,8 @@ class MoneroKitManagerTest {
             every { stateFlow } returns backgroundStateFlow
             every { this@mockk.inForeground } returns inForeground
         }
+        // A live wrapper always belongs to the account whose wallet file it opened.
+        every { mockWrapper.account } returns account
         return MoneroKitManager(
             moneroWalletService = moneroWalletService,
             backgroundManager = backgroundManager,
@@ -96,9 +102,8 @@ class MoneroKitManagerTest {
             backgroundKeepAliveManager = backgroundKeepAliveManager,
             connectivityManager = connectivityManager,
             dispatcherProvider = dispatcherProvider,
-            moneroFileDao = mockk(relaxed = true),
-            removeMoneroWalletFilesUseCase = mockk(relaxed = true),
             networkErrorTracker = mockk(relaxed = true),
+            offlineModeManager = offlineModeManager,
         ).apply {
             moneroKitWrapper = mockWrapper
             createdManager = this
@@ -106,9 +111,9 @@ class MoneroKitManagerTest {
     }
 
     private fun invokeSubscribeToEvents(manager: MoneroKitManager) {
-        MoneroKitManager::class.java.getDeclaredMethod("subscribeToEvents").apply {
-            isAccessible = true
-        }.invoke(manager)
+        MoneroKitManager::class.java.getDeclaredMethod("subscribeToEvents", Account::class.java)
+            .apply { isAccessible = true }
+            .invoke(manager, account)
     }
 
     @Test
@@ -158,6 +163,52 @@ class MoneroKitManagerTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { mockWrapper.stop(saveWallet = true) }
+    }
+
+    @Test
+    fun startForPolling_offlinePair_startsLocalOnlyAndStillCountsSession() = testScope.runTest {
+        every { offlineModeManager.isNetworkPaused(OfflineKey(account.id, BlockchainType.Monero)) } returns true
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+
+        manager.startForPolling()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { mockWrapper.start(fixIfCorruptedFile = true, localOnly = true) }
+        coVerify(exactly = 0) { mockWrapper.resume() }
+        coVerify(exactly = 0) { mockWrapper.start(fixIfCorruptedFile = true, localOnly = false) }
+        assertEquals(1, (fieldValue(manager, "pollingSessionCount") as AtomicInteger).get())
+    }
+
+    @Test
+    fun rescanIfActive_activeAccount_rescansWrapper() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+
+        assertTrue(manager.rescanIfActive(account, 123L))
+
+        coVerify(exactly = 1) { mockWrapper.rescan(123L) }
+    }
+
+    @Test
+    fun rescanIfActive_inactiveAccount_leavesWrapperUntouched() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account.copy(id = "other-account-id"))
+
+        assertFalse(manager.rescanIfActive(account, 123L))
+
+        coVerify(exactly = 0) { mockWrapper.rescan(any()) }
+    }
+
+    // Claiming the account without touching a closed wrapper: the caller must not fall back to
+    // deleting the wallet files of the account this manager already owns.
+    @Test
+    fun rescanIfActive_activeAccountWithoutWrapper_claimsAccount() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+        manager.moneroKitWrapper = null
+
+        assertTrue(manager.rescanIfActive(account, 123L))
     }
 
     @Test
@@ -211,6 +262,22 @@ class MoneroKitManagerTest {
 
         coVerify(exactly = 0) { mockWrapper.refresh() }
         verify(exactly = 0) { mockWrapper.onNetworkLost() }
+    }
+
+    @Test
+    fun subscribeToEvents_offlinePairOnColdStart_doesNotRefresh() = testScope.runTest {
+        // Cold start: the collectors are installed before currentAccount is published, so the gate
+        // has to read the account passed into subscribeToEvents, not the still-null field.
+        every { offlineModeManager.isNetworkPaused(OfflineKey(account.id, BlockchainType.Monero)) } returns true
+        wrapperSyncState.value = AdapterState.NotSynced(IllegalStateException("Not connected"))
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+
+        invokeSubscribeToEvents(manager)
+        networkAvailability.emit(true)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { mockWrapper.refresh() }
+        coVerify(exactly = 0) { mockWrapper.start(fixIfCorruptedFile = true, localOnly = false) }
     }
 
     @Test

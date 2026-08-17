@@ -50,7 +50,7 @@ class StellarAssetAdapter(
 
     val activationFee = stellarKit.sendFee
 
-    override fun start() {
+    override fun attachLocalData() {
         coroutineScope.launch {
             stellarKit.getBalanceFlow(stellarAsset).collect { balance ->
                 assetBalance = balance?.balance
@@ -69,6 +69,10 @@ class StellarAssetAdapter(
             }
         }
     }
+
+    override fun pauseNetwork() = Unit
+
+    override fun resumeNetwork() = Unit
 
     override fun stop() {
         coroutineScope.cancel()

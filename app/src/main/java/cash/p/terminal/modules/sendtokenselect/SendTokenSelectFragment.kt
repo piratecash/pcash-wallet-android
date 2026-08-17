@@ -1,8 +1,11 @@
 package cash.p.terminal.modules.sendtokenselect
 
 import android.os.Parcelable
-import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,6 +14,8 @@ import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.balance.BalanceViewItem2
+import cash.p.terminal.modules.offline.OfflineBlockedBottomSheet
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
 import cash.p.terminal.modules.tokenselect.TokenSelectViewModel
@@ -36,68 +41,65 @@ class SendTokenSelectFragment : BaseComposeFragment() {
         val view = LocalView.current
         val viewModel: TokenSelectViewModel =
             viewModel(factory = TokenSelectViewModel.FactoryForSend(blockchainTypes, tokenTypes))
+        var blockedWallet by remember { mutableStateOf<Wallet?>(null) }
+
+        val onClickItem: (BalanceViewItem2) -> Unit = { viewItem ->
+            when {
+                viewItem.sendAvailability == OperationAvailability.BlockedOffline ->
+                    blockedWallet = viewItem.wallet
+
+                viewItem.sendAvailability == OperationAvailability.Available ->
+                    navigateToSend(viewItem.wallet, input, navController)
+
+                viewItem.syncingProgress.progress != null ->
+                    HudHelper.showWarningMessage(view, R.string.Hud_WaitForSynchronization)
+
+                viewItem.errorMessage != null ->
+                    HudHelper.showErrorMessage(view, viewItem.errorMessage)
+            }
+        }
+
         TokenSelectScreen(
             navController = navController,
             title = stringResource(R.string.Balance_Send),
             searchHintText = stringResource(R.string.Balance_SendHint_CoinName),
-            onClickItem = { viewItem ->
-                openSendScreen(
-                    viewItem = viewItem,
-                    view = view,
-                    input = input,
-                    navController = navController
-                )
-            },
+            onClickItem = onClickItem,
             onBalanceClick = { viewItem ->
                 if (viewModel.balanceHidden) {
                     viewModel.onBalanceClick(viewItem)
                 } else {
-                    openSendScreen(
-                        viewItem = viewItem,
-                        view = view,
-                        input = input,
-                        navController = navController
-                    )
+                    onClickItem(viewItem)
                 }
             },
             uiState = viewModel.uiState,
             updateFilter = viewModel::updateFilter,
             emptyItemsText = stringResource(R.string.Balance_NoAssetsToSend)
         )
+
+        blockedWallet?.let { wallet ->
+            OfflineBlockedBottomSheet(
+                wallet = wallet,
+                onWentOnline = {
+                    blockedWallet = null
+                    navigateToSend(wallet, input, navController)
+                },
+                onDismiss = { blockedWallet = null },
+            )
+        }
     }
 
-    private fun openSendScreen(
-        viewItem: BalanceViewItem2,
-        view: View,
-        input: Input?,
-        navController: NavController
-    ) {
-        when {
-            viewItem.sendEnabled -> {
-                val sendTitle = Translator.getString(
-                    R.string.Send_Title,
-                    viewItem.wallet.token.fullCoin.coin.code
-                )
-                navController.navigate(
-                    MainGraphDirections.actionGlobalToSendFragment(
-                        input?.toSendInput(viewItem.wallet, sendTitle)
-                            ?: SendFragment.Input(
-                                wallet = viewItem.wallet,
-                                title = sendTitle,
-                                sendEntryPointDestId = R.id.sendTokenSelectFragment,
-                            )
+    private fun navigateToSend(wallet: Wallet, input: Input?, navController: NavController) {
+        val sendTitle = Translator.getString(R.string.Send_Title, wallet.token.fullCoin.coin.code)
+        navController.navigate(
+            MainGraphDirections.actionGlobalToSendFragment(
+                input?.toSendInput(wallet, sendTitle)
+                    ?: SendFragment.Input(
+                        wallet = wallet,
+                        title = sendTitle,
+                        sendEntryPointDestId = R.id.sendTokenSelectFragment,
                     )
-                )
-            }
-
-            viewItem.syncingProgress.progress != null -> {
-                HudHelper.showWarningMessage(view, R.string.Hud_WaitForSynchronization)
-            }
-
-            viewItem.errorMessage != null -> {
-                HudHelper.showErrorMessage(view, viewItem.errorMessage)
-            }
-        }
+            )
+        )
     }
 
     @Parcelize

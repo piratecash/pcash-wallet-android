@@ -23,9 +23,13 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
 
     // IAdapter
 
-    override fun start() {
+    override fun attachLocalData() {
         // started via EthereumKitManager
     }
+
+    override fun pauseNetwork() = Unit
+
+    override fun resumeNetwork() = Unit
 
     override fun stop() {
         // stopped via EthereumKitManager

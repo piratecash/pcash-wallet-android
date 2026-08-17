@@ -36,8 +36,10 @@ import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AccountCleanerTest {
@@ -51,7 +53,7 @@ class AccountCleanerTest {
     private lateinit var moneroFileDao: MoneroFileDao
     private lateinit var smsNotificationSettings: ISmsNotificationSettings
     private lateinit var pinDbStorage: PinDbStorage
-    private lateinit var locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository
+    private lateinit var accountStorageCleaner: AccountStorageCleaner
 
     @Before
     fun setUp() {
@@ -63,7 +65,7 @@ class AccountCleanerTest {
         moneroFileDao = mockk(relaxed = true)
         smsNotificationSettings = mockk(relaxed = true)
         pinDbStorage = mockk(relaxed = true)
-        locallyCreatedTransactionRepository = mockk(relaxed = true)
+        accountStorageCleaner = mockk(relaxed = true)
 
         coEvery { clearZCashWalletDataUseCase.invoke(any()) } returns ZcashEraseResult.ALL
         coEvery { removeMoneroWalletFilesUseCase.invoke(any<Account>()) } returns true
@@ -81,7 +83,7 @@ class AccountCleanerTest {
             moneroFileDao,
             smsNotificationSettings,
             pinDbStorage,
-            locallyCreatedTransactionRepository,
+            accountStorageCleaner,
         )
     }
 
@@ -249,6 +251,37 @@ class AccountCleanerTest {
 
         coVerify(exactly = 1) { removeMoneroWalletFilesUseCase.invoke(account) }
         coVerify(exactly = 1) { clearZCashWalletDataUseCase.invoke(accountId) }
+    }
+
+    @Test
+    fun clearAccounts_severalAccounts_delegatesSameIdsToStorageCleaner() = runTest {
+        val accountIds = listOf("acc-a", "acc-b")
+
+        mockAdapterClears()
+
+        accountCleaner.clearAccounts(accountIds)
+
+        coVerify(exactly = 1) { accountStorageCleaner.clearAccounts(accountIds) }
+    }
+
+    /** Storage rows are cleared last, so their failure cannot skip the per-account wipes. */
+    @Test
+    fun clearAccounts_storageCleanerFails_stillWipesAdapterData() = runTest {
+        val accountId = "acc-a"
+
+        mockAdapterClears()
+        coEvery { accountStorageCleaner.clearAccounts(any()) } throws IOException("disk full")
+
+        var thrown: Throwable? = null
+        try {
+            accountCleaner.clearAccounts(listOf(accountId))
+        } catch (e: IOException) {
+            thrown = e
+        }
+
+        verify(exactly = 1) { BitcoinAdapter.clear(accountId) }
+        coVerify(exactly = 1) { clearZCashWalletDataUseCase.invoke(accountId) }
+        assertNotNull(thrown)
     }
 
     @Test

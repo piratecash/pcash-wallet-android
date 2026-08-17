@@ -33,6 +33,8 @@ import com.m2049r.xmrwallet.model.Wallet.ConnectionStatus
 import com.m2049r.xmrwallet.model.WalletManager
 import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import com.m2049r.xmrwallet.offline.SignedRawMoneroTransaction
+import com.m2049r.xmrwallet.service.DaemonConnectResult
+import com.m2049r.xmrwallet.service.LocalOpenResult
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.m2049r.xmrwallet.service.WalletCorruptedException
 import com.m2049r.xmrwallet.util.Helper
@@ -77,9 +79,8 @@ class MoneroKitManager(
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val connectivityManager: ConnectivityManager,
     private val dispatcherProvider: DispatcherProvider,
-    private val moneroFileDao: MoneroFileDao,
-    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val offlineModeManager: OfflineModeManager,
 ) {
     // Serializes account-lifecycle mutations (activate / unlink / stop) so the process-global
     // NetCipherHelper observer factory is set/cleared without racing a concurrent teardown.
@@ -121,7 +122,7 @@ class MoneroKitManager(
             )
             try {
                 startKit()
-                subscribeToEvents()
+                subscribeToEvents(account)
             } catch (e: Throwable) {
                 // Activation failed or was cancelled before publishing currentAccount: roll back the
                 // process-global factory and stop/discard the partial wrapper so no stale state survives.
@@ -168,27 +169,16 @@ class MoneroKitManager(
     }
 
     /**
-     * Rescans [account] from [newHeight]. Operates only on the already-active wrapper
-     * (never calls [getMoneroKitWrapper], which would bump [useCount] without a matching
-     * [unlink] and leak it). For an inactive account, the wallet files are removed and the
-     * new height persisted so the next [getMoneroKitWrapper] re-derives the wallet from it.
+     * Rescans [account] from [newHeight] on the already-active wrapper (never calls
+     * [getMoneroKitWrapper], which would bump [useCount] without a matching [unlink] and leak it).
+     *
+     * @return false when [account] is not the active one, leaving the caller to reset its wallet
+     * data offline; true otherwise, including when the wrapper is not open yet.
      */
-    suspend fun rescan(account: Account, newHeight: Long) {
-        if (currentAccount?.id == account.id) {
-            moneroKitWrapper?.rescan(newHeight)
-        } else {
-            // Same fail-loud ordering as MoneroKitWrapper.resetWalletAndRestart: require the old
-            // files to be gone before deleting the DAO record and committing the new height, so a
-            // failed removal can never leave a stale wallet file behind a claimed new height.
-            val removed = removeMoneroWalletFilesUseCase(account)
-            if (!removed) {
-                throw MoneroRescanException("Failed to remove Monero wallet files for account ${account.id}")
-            }
-            moneroFileDao.deleteAssociatedRecord(account.id)
-            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-            restoreSettings.birthdayHeight = newHeight
-            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
-        }
+    suspend fun rescanIfActive(account: Account, newHeight: Long): Boolean {
+        if (currentAccount?.id != account.id) return false
+        moneroKitWrapper?.rescan(newHeight)
+        return true
     }
 
     suspend fun startForPolling() {
@@ -201,6 +191,16 @@ class MoneroKitManager(
         pollingSessionCount.onPollingStoppedSuspend(backgroundManager) {
             stopAndSaveKit()
         }
+    }
+
+    suspend fun pauseNetwork(account: Account) = accountMutex.withLock {
+        if (account != currentAccount) return@withLock
+        moneroKitWrapper?.pause()
+    }
+
+    suspend fun resumeNetwork(account: Account) = accountMutex.withLock {
+        if (account != currentAccount) return@withLock
+        moneroKitWrapper?.resumeNetwork()
     }
 
     private suspend fun stopKit() {
@@ -218,8 +218,12 @@ class MoneroKitManager(
         withContext(NonCancellable) { wrapper?.stop() }
     }
 
+    private fun isNetworkPaused(account: Account): Boolean =
+        offlineModeManager.isNetworkPaused(account, BlockchainType.Monero)
+
     private suspend fun startKit() {
-        moneroKitWrapper?.start()
+        val wrapper = moneroKitWrapper ?: return
+        wrapper.start(localOnly = isNetworkPaused(wrapper.account))
     }
 
     private suspend fun stopAndSaveKit() {
@@ -228,12 +232,17 @@ class MoneroKitManager(
 
     private suspend fun resumeOrStartKit() {
         val wrapper = moneroKitWrapper ?: return
+        if (isNetworkPaused(wrapper.account)) {
+            // No-op if the wallet is already open: startInternal returns early on isStarted.
+            wrapper.start(localOnly = true)
+            return
+        }
         if (!wrapper.resume()) {
             startKit()
         }
     }
 
-    private fun subscribeToEvents() {
+    private fun subscribeToEvents(account: Account) {
         lifecycleJobs.forEach { it.cancel() }
         lifecycleJobs.clear()
 
@@ -257,6 +266,7 @@ class MoneroKitManager(
             connectivityManager.networkAvailabilityFlow
                 .onSubscription { emitConnectivityMissedAtStartup() }
                 .collect { connected ->
+                    if (isNetworkPaused(account)) return@collect
                     if (!connected) {
                         moneroKitWrapper?.onNetworkLost()
                     } else if (backgroundManager.inForeground) {
@@ -293,7 +303,7 @@ class MoneroKitManager(
 class MoneroKitWrapper(
     private val moneroWalletService: MoneroWalletService,
     private val restoreSettingsManager: RestoreSettingsManager,
-    private val account: Account,
+    val account: Account,
     private val dispatcherProvider: DispatcherProvider,
     private val networkErrorTracker: NetworkErrorTracker,
     private val connectivityManager: IConnectivityManager,
@@ -359,103 +369,130 @@ class MoneroKitWrapper(
         )
     }
 
-    suspend fun start(fixIfCorruptedFile: Boolean = true) = lifecycleMutex.withLock {
-        startInternal(fixIfCorruptedFile)
+    suspend fun start(fixIfCorruptedFile: Boolean = true, localOnly: Boolean = false) = lifecycleMutex.withLock {
+        startInternal(fixIfCorruptedFile, localOnly)
     }
 
-    private suspend fun startInternal(fixIfCorruptedFile: Boolean = true) =
-        withContext(Dispatchers.IO) {
-            if (!isStarted) {
-                logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, isStarted=$isStarted")
-                lastLoggedSyncProgress = -1
-                lastLoggedConnectionStatus = null
-                storedForSync = false
-                publishSyncState(AdapterState.Connecting)
-                try {
-                    val walletFileName: String
-                    val walletPassword: String
-                    walletFileNameForStatus = null
-                    when (val accountType = account.type) {
-                        is AccountType.MnemonicMonero -> {
-                            logger.info("start: using AccountType.MnemonicMonero")
-                            walletFileName = accountType.walletInnerName
-                            walletPassword = accountType.password
+    private suspend fun startInternal(fixIfCorruptedFile: Boolean = true, localOnly: Boolean = false) =
+        withContext(dispatcherProvider.io) {
+            if (isStarted) return@withContext
+            logger.info(
+                "start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, localOnly=$localOnly, " +
+                        "isStarted=$isStarted"
+            )
+            lastLoggedSyncProgress = -1
+            lastLoggedConnectionStatus = null
+            storedForSync = false
+            publishSyncState(AdapterState.Connecting)
+            try {
+                walletFileNameForStatus = null
+                val credentials = resolveWalletCredentials()
+                walletFileNameForStatus = credentials.fileName
 
-                            if (!Helper.getWalletFile(App.instance, walletFileName).exists()) {
-                                Timber.d("Restoring Monero wallet from mnemonic...")
-                                // restore wallet file if it does not exist
-                                logger.info("start: wallet file does not exist, restoring from mnemonic")
-                                moneroWalletUseCase.restore(
-                                    words = accountType.words,
-                                    height = getBirthdayHeight(account) ?: accountType.height,
-                                    crazyPassExisting = walletPassword,
-                                    walletInnerNameExisting = walletFileName
-                                )
-                            }
-                        }
-
-                        is AccountType.Mnemonic -> {
-                            logger.info("start: using AccountType.Mnemonic")
-                            // Enable first time
-                            if (moneroFileDao.getAssociatedRecord(account.id) == null) {
-                                logger.info("start: no associated wallet files, restoring from mnemonic")
-                                val restoreSettings =
-                                    restoreSettingsManager.settings(account, BlockchainType.Monero)
-                                val height = restoreSettings.birthdayHeight
-                                    ?: validateMoneroHeightUseCase.getTodayHeight()
-                                if (height == -1L) {
-                                    throw IllegalStateException("Monero restore height can't be -1")
-                                }
-                                restoreFromBip39(
-                                    account = account,
-                                    height = height
-                                )
-                            }
-
-                            requireNotNull(
-                                moneroFileDao.getAssociatedRecord(accountId = account.id),
-                                { "Account does not have a valid Monero file association" }
-                            ).run {
-                                walletFileName = this.fileName.value
-                                walletPassword = this.password.value
-                            }
-                        }
-
-                        else -> throw UnsupportedAccountException()
-                    }
-                    walletFileNameForStatus = walletFileName
-
-                    val selectedNode = MoneroConfig.autoSelectNode()
-                    if (selectedNode != null) {
-                        logger.info("start: auto-selected node=$selectedNode")
-                        WalletManager.getInstance()
-                            .setDaemon(selectedNode)
-                    } else {
-                        logger.info("start: autoSelectNode returned null, set first default node")
-                        WalletManager.getInstance()
-                            .setDaemon(NodeInfo.fromString(DefaultNodes.entries.first().uri))
-                    }
-
-                    /*val walletFolder: File = Helper.getWalletRoot(App.instance)
-                    val walletKeyFile = File(walletFolder, "$walletFileName.keys")
-                    fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
-
-                    moneroWalletService.setObserver(this@MoneroKitWrapper)
-                    logger.info("start: invoking startService for walletFileName=$walletFileName")
-                    startService(walletFileName, walletPassword, fixIfCorruptedFile)
-                    isStarted = true
-                    logger.info(
-                        "start: completed startService, connection=${moneroWalletService.connectionStatus}, " +
-                                "walletStatus=${moneroWalletService.wallet?.status}"
-                    )
-                    fixWalletHeight()
-                } catch (e: Exception) {
-                    _syncState.value = AdapterState.NotSynced(e)
-                    logger.warning("start: failed with exception", e)
-                    Timber.e(e, "Failed to start Monero wallet")
+                if (localOnly) {
+                    startLocalOnly(credentials)
+                } else {
+                    startOnline(credentials, fixIfCorruptedFile)
                 }
+            } catch (e: Exception) {
+                _syncState.value = AdapterState.NotSynced(e)
+                logger.warning("start: failed with exception", e)
+                Timber.e(e, "Failed to start Monero wallet")
             }
         }
+
+    private data class WalletCredentials(val fileName: String, val password: String)
+
+    private suspend fun resolveWalletCredentials(): WalletCredentials =
+        when (val accountType = account.type) {
+            is AccountType.MnemonicMonero -> {
+                logger.info("start: using AccountType.MnemonicMonero")
+                if (!Helper.getWalletFile(App.instance, accountType.walletInnerName).exists()) {
+                    Timber.d("Restoring Monero wallet from mnemonic...")
+                    // restore wallet file if it does not exist
+                    logger.info("start: wallet file does not exist, restoring from mnemonic")
+                    moneroWalletUseCase.restore(
+                        words = accountType.words,
+                        height = getBirthdayHeight(account) ?: accountType.height,
+                        crazyPassExisting = accountType.password,
+                        walletInnerNameExisting = accountType.walletInnerName
+                    )
+                }
+                WalletCredentials(accountType.walletInnerName, accountType.password)
+            }
+
+            is AccountType.Mnemonic -> {
+                logger.info("start: using AccountType.Mnemonic")
+                // Enable first time
+                if (moneroFileDao.getAssociatedRecord(account.id) == null) {
+                    logger.info("start: no associated wallet files, restoring from mnemonic")
+                    val restoreSettings =
+                        restoreSettingsManager.settings(account, BlockchainType.Monero)
+                    val height = restoreSettings.birthdayHeight
+                        ?: validateMoneroHeightUseCase.getTodayHeight()
+                    if (height == -1L) {
+                        throw IllegalStateException("Monero restore height can't be -1")
+                    }
+                    restoreFromBip39(
+                        account = account,
+                        height = height
+                    )
+                }
+
+                requireNotNull(
+                    moneroFileDao.getAssociatedRecord(accountId = account.id),
+                    { "Account does not have a valid Monero file association" }
+                ).run { WalletCredentials(fileName.value, password.value) }
+            }
+
+            else -> throw UnsupportedAccountException()
+        }
+
+    /** Opens the wallet from local storage only: no daemon selection, no network refresh. */
+    private suspend fun startLocalOnly(credentials: WalletCredentials) {
+        moneroWalletService.setObserver(this@MoneroKitWrapper)
+        logger.info("start: invoking startOffline for walletFileName=${credentials.fileName}")
+        when (val result = moneroWalletService.startOffline(credentials.fileName, credentials.password)) {
+            is LocalOpenResult.Opened -> {
+                isStarted = true
+                isPaused = true
+            }
+
+            is LocalOpenResult.Failed -> {
+                logger.warning("start: startOffline failed: ${result.error}")
+                _syncState.value =
+                    AdapterState.NotSynced(IllegalStateException(result.error.orEmpty()))
+            }
+        }
+    }
+
+    private suspend fun startOnline(credentials: WalletCredentials, fixIfCorruptedFile: Boolean) {
+        val selectedNode = MoneroConfig.autoSelectNode()
+        if (selectedNode != null) {
+            logger.info("start: auto-selected node=$selectedNode")
+            WalletManager.getInstance()
+                .setDaemon(selectedNode)
+        } else {
+            logger.info("start: autoSelectNode returned null, set first default node")
+            WalletManager.getInstance()
+                .setDaemon(NodeInfo.fromString(DefaultNodes.entries.first().uri))
+        }
+
+        /*val walletFolder: File = Helper.getWalletRoot(App.instance)
+        val walletKeyFile = File(walletFolder, "$walletFileName.keys")
+        fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
+
+        moneroWalletService.setObserver(this@MoneroKitWrapper)
+        logger.info("start: invoking startService for walletFileName=${credentials.fileName}")
+        startService(credentials.fileName, credentials.password, fixIfCorruptedFile)
+        isStarted = true
+        logger.info(
+            "start: completed startService, connection=${moneroWalletService.connectionStatus}, " +
+                    "walletStatus=${moneroWalletService.wallet?.status}"
+        )
+        // Automatic destructive path (resetWalletAndRestart): must not run offline.
+        fixWalletHeight()
+    }
 
     private suspend fun startService(
         walletFileName: String,
@@ -678,6 +715,27 @@ class MoneroKitWrapper(
         } else {
             logger.info("resume: skip, isStarted=$isStarted isPaused=$isPaused")
             return false
+        }
+    }
+
+    /** True while the wallet is open and its network refresh is not paused. */
+    val isNetworkOnline: Boolean
+        get() = isStarted && !isPaused
+
+    /** Re-selects a daemon and reconnects before resuming: mirrors [pause], which only stops the
+     * refresh loop without tearing down the daemon connection assumptions. */
+    suspend fun resumeNetwork(): Boolean = lifecycleMutex.withLock {
+        if (!isStarted || !isPaused) return@withLock isStarted
+        withContext(dispatcherProvider.io) {
+            val selectedNode = MoneroConfig.autoSelectNode()
+                ?: NodeInfo.fromString(DefaultNodes.entries.first().uri)
+            WalletManager.getInstance().setDaemon(selectedNode)
+            moneroWalletService.setObserver(this@MoneroKitWrapper)
+            if (moneroWalletService.connectDaemon() !is DaemonConnectResult.Connected) {
+                false
+            } else {
+                resumeInternal()
+            }
         }
     }
 

@@ -46,6 +46,7 @@ class SolanaKitManager(
     private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val offlineModeManager: OfflineModeManager,
 ) {
 
     private companion object {
@@ -143,8 +144,8 @@ class SolanaKitManager(
         }
 
         this.solanaKitWrapper = newWrapper
-        startKit()
-        subscribeToEvents()
+        startKit(account)
+        subscribeToEvents(account)
         useCount = 1
         currentAccount = account
 
@@ -216,9 +217,12 @@ class SolanaKitManager(
 
     suspend fun startForPolling() = mutex.withLock {
         pollingSessionCount.onPollingStartedSuspend {
-            solanaKitWrapper?.solanaKit?.let { kit ->
-                kit.resume()
-                kit.refresh()
+            val account = currentAccount
+            if (account == null || !isNetworkPaused(account)) {
+                solanaKitWrapper?.solanaKit?.let { kit ->
+                    kit.resume()
+                    kit.refresh()
+                }
             }
         }
     }
@@ -227,6 +231,22 @@ class SolanaKitManager(
         pollingSessionCount.onPollingStoppedSuspend(backgroundManager) {
             solanaKitWrapper?.solanaKit?.pause()
         }
+    }
+
+    suspend fun pauseNetwork(account: Account) = mutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = solanaKitWrapper ?: return@withLock
+        if (!wrapper.networkStarted) return@withLock
+        wrapper.solanaKit.stop()
+        wrapper.networkStarted = false
+    }
+
+    suspend fun resumeNetwork(account: Account) = mutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = solanaKitWrapper ?: return@withLock
+        if (wrapper.networkStarted) return@withLock
+        wrapper.solanaKit.start()
+        wrapper.networkStarted = true
     }
 
     /**
@@ -257,11 +277,17 @@ class SolanaKitManager(
         rpcUpdatedJob?.cancel()
     }
 
-    private fun startKit() {
-        solanaKitWrapper?.solanaKit?.let { kit ->
+    private fun isNetworkPaused(account: Account): Boolean =
+        offlineModeManager.isNetworkPaused(account, BlockchainType.Solana)
+
+    private fun startKit(account: Account) {
+        solanaKitWrapper?.let { wrapper ->
             tokenAccountJob = coroutineScope.launch {
-                kit.start()
-                kit.fungibleTokenAccountsFlow.collect {
+                if (!isNetworkPaused(account)) {
+                    wrapper.solanaKit.start()
+                    wrapper.networkStarted = true
+                }
+                wrapper.solanaKit.fungibleTokenAccountsFlow.collect {
                     walletManager.add(it)
                 }
             }
@@ -281,14 +307,16 @@ class SolanaKitManager(
             }
         )
 
-    private fun subscribeToEvents() {
+    private fun subscribeToEvents(account: Account) {
         backgroundEventListenerJob = coroutineScope.launch {
             backgroundManager.stateFlow.collect { state ->
                 if (state == BackgroundManagerState.EnterForeground) {
-                    solanaKitWrapper?.solanaKit?.let { kit ->
-                        kit.resume()
-                        delay(1000)
-                        kit.refresh()
+                    if (!isNetworkPaused(account)) {
+                        solanaKitWrapper?.solanaKit?.let { kit ->
+                            kit.resume()
+                            delay(1000)
+                            if (!isNetworkPaused(account)) kit.refresh()
+                        }
                     }
                 } else if (state == BackgroundManagerState.EnterBackground) {
                     if (pollingSessionCount.get() == 0 &&
@@ -309,4 +337,7 @@ class SolanaKitManager(
     }
 }
 
-class SolanaKitWrapper(val solanaKit: SolanaKit, val signer: Signer?)
+class SolanaKitWrapper(val solanaKit: SolanaKit, val signer: Signer?) {
+    /** True once [SolanaKit.start] has been called and no matching [SolanaKit.stop] followed it. */
+    var networkStarted: Boolean = false
+}

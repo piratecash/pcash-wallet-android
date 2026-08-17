@@ -764,6 +764,32 @@
     <string name="address_poisoning_view_suspicious">verdächtige Transaktion</string>
     <string name="address_poisoning_view_address_book">Adresse ist im Adressbuch</string>
     <string name="address_poisoning_view_blockchain">aus der Blockchain empfangen</string>
+
+    <string name="offline_mode_title">Offline-Modus</string>
+    <string name="offline_mode_settings_description">Blockchain-Synchronisierung stoppen. Betrifft das gesamte %1$s-Netzwerk — %2$s</string>
+    <string name="offline_mode_settings_assets_more">weitere %1$s</string>
+    <string name="offline_mode_info_title">Offline-Modus</string>
+    <string name="offline_mode_info_description">Die Blockchain-Synchronisierung wird gestoppt. Es werden die zuletzt verfügbaren Daten angezeigt.</string>
+    <string name="offline_mode_info_price">Der Preis wird weiterhin aktualisiert</string>
+    <string name="offline_mode_info_history">Der Transaktionsverlauf bleibt erhalten</string>
+    <string name="offline_mode_info_no_new_tx">Neue Transaktionen werden nicht geladen</string>
+    <string name="offline_mode_info_no_send">Senden ist im Offline-Modus nicht verfügbar</string>
+    <string name="offline_mode_confirm_title">Offline betrifft das gesamte Netzwerk</string>
+    <string name="offline_mode_confirm_description">%1$s wird als Ganzes synchronisiert. Alle Assets des Netzwerks gehen offline:</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash verwendet drei Adressen innerhalb einer Wallet — transparent, unified und shielded. Sie teilen sich dieselbe Synchronisierung, daher wird der Offline-Modus für alle gleichzeitig aktiviert:</string>
+    <string name="offline_mode_confirm_button">Gesamtes Netzwerk offline schalten</string>
+    <string name="offline_mode_go_online_failed">Online-Schalten fehlgeschlagen. Bitte erneut versuchen.</string>
+    <string name="offline_mode_go_offline_failed">Offline-Schalten fehlgeschlagen. Bitte erneut versuchen.</string>
+    <string name="offline_mode_state_degraded">Einige Assets des Netzwerks wurden nicht umgeschaltet. Bitte erneut versuchen.</string>
+    <string name="offline_mode_active_title">Offline-Modus ist aktiv</string>
+    <string name="offline_mode_active_description">Blockchain-Daten werden seit %1$s nicht aktualisiert. Der Preis ist aktuell.</string>
+    <string name="offline_mode_go_online">Online gehen</string>
+    <string name="offline_mode_badge">Offline</string>
+    <string name="offline_mode_blocked_title">Netzwerk ist offline</string>
+    <string name="offline_mode_blocked_description">%1$s befindet sich im Offline-Modus. Gehen Sie online, um fortzufahren.</string>
+    <string name="offline_mode_operation_blocked">Netzwerk %1$s ist offline</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) im Offline-Modus hinzugefügt</string>
+
     <string name="Button_GotIt">Verstanden</string>
     <string name="transaction_statuses_title">Transaktionsstatus</string>
     <string name="transaction_statuses_description">Jeder Transaktion in Ihrem Verlauf wird ein Status basierend auf einer Risikoanalyse zugewiesen.\nDies hilft, potenziell betrügerische Operationen zu erkennen und das Risiko zu verringern, Gelder an gefälschte Adressen zu senden.</string>

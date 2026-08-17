@@ -5,9 +5,13 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.diffPercentage
+import cash.p.terminal.core.managers.OfflineModeManager
+import cash.p.terminal.core.managers.isNetworkPaused
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.balance.BalanceModule.warningText
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.offline.OfflineOperationGate.Companion.availability
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui.compose.components.diffSign
@@ -36,7 +40,7 @@ data class BalanceViewItem(
     val exchangeValue: DeemedValue<String>,
     val secondaryValue: DeemedValue<String>,
     val lockedValues: List<LockedValue>,
-    val sendEnabled: Boolean = false,
+    val sendAvailability: OperationAvailability = OperationAvailability.Unavailable,
     val syncingProgress: SyncingProgress,
     val syncingTextValue: String?,
     val syncedUntilTextValue: String?,
@@ -44,7 +48,7 @@ data class BalanceViewItem(
     val coinIconVisible: Boolean,
     val badge: String?,
     val swapVisible: Boolean,
-    val swapEnabled: Boolean = false,
+    val swapAvailability: OperationAvailability = OperationAvailability.Unavailable,
     val errorMessage: String?,
     val isWatchAccount: Boolean,
     val isSendDisabled: Boolean,
@@ -53,6 +57,7 @@ data class BalanceViewItem(
     val diff: BigDecimal? = null,
     val fullDiff: String = "",
     val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
+    val offline: Boolean = false,
 )
 
 data class WarningText(
@@ -75,18 +80,19 @@ data class BalanceViewItem2(
     val diff: BigDecimal?,
     val fullDiff: String,
     val secondaryValue: DeemedValue<String>,
-    val sendEnabled: Boolean = false,
+    val sendAvailability: OperationAvailability = OperationAvailability.Unavailable,
     val syncingProgress: SyncingProgress,
     val syncingTextValue: String?,
     val syncedUntilTextValue: String?,
     val failedIconVisible: Boolean,
     val badge: String?,
-    val swapEnabled: Boolean = false,
+    val swapAvailability: OperationAvailability = OperationAvailability.Unavailable,
     val errorMessage: String?,
     val isWatchAccount: Boolean,
     val isSwipeToDeleteEnabled: Boolean,
     val displayDiffOptionType: DisplayDiffOptionType,
-    val stackingUnpaid: DeemedValue<String>?
+    val stackingUnpaid: DeemedValue<String>?,
+    val offline: Boolean = false,
 )
 
 enum class SyncingProgressType {
@@ -116,7 +122,44 @@ private val BalanceItem.displaySyncState: AdapterState
         return if (state is AdapterState.Synced && txDisplayState != null) txDisplayState else state
     }
 
-class BalanceViewItemFactory {
+class BalanceViewItemFactory(
+    private val offlineModeManager: OfflineModeManager,
+) {
+
+    private data class SyncDisplayState(
+        val syncingProgress: SyncingProgress,
+        val syncingTextValue: String?,
+        val syncedUntilTextValue: String?,
+        val failedIconVisible: Boolean,
+        val coinIconVisible: Boolean,
+        val offline: Boolean,
+    )
+
+    private fun syncDisplayState(
+        wallet: Wallet,
+        displaySyncState: AdapterState,
+    ): SyncDisplayState {
+        val offline = offlineModeManager.isNetworkPaused(wallet.account.id, wallet.token.blockchainType)
+        return if (offline) {
+            SyncDisplayState(
+                syncingProgress = SyncingProgress(null, null),
+                syncingTextValue = null,
+                syncedUntilTextValue = null,
+                failedIconVisible = false,
+                coinIconVisible = true,
+                offline = true,
+            )
+        } else {
+            SyncDisplayState(
+                syncingProgress = getSyncingProgress(displaySyncState, wallet.token.blockchainType),
+                syncingTextValue = getSyncingText(displaySyncState),
+                syncedUntilTextValue = getSyncedUntilText(displaySyncState),
+                failedIconVisible = displaySyncState is AdapterState.NotSynced,
+                coinIconVisible = displaySyncState !is AdapterState.NotSynced,
+                offline = false,
+            )
+        }
+    }
 
     private fun getSyncingProgress(
         state: AdapterState?,
@@ -408,21 +451,23 @@ class BalanceViewItemFactory {
             (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent &&
                     item.balanceData.available > ZcashAdapter.MINERS_FEE
 
+        val syncDisplayState = syncDisplayState(wallet, displaySyncState)
+
         return BalanceViewItem(
             wallet = item.wallet,
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
             lockedValues = lockedValues,
             exchangeValue = BalanceViewHelper.rateValue(latestRate, currency, true),
-            sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(displaySyncState, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(displaySyncState),
-            syncedUntilTextValue = getSyncedUntilText(displaySyncState),
-            failedIconVisible = displaySyncState is AdapterState.NotSynced,
-            coinIconVisible = displaySyncState !is AdapterState.NotSynced,
+            sendAvailability = availability(item.sendAllowed, syncDisplayState.offline),
+            syncingProgress = syncDisplayState.syncingProgress,
+            syncingTextValue = syncDisplayState.syncingTextValue,
+            syncedUntilTextValue = syncDisplayState.syncedUntilTextValue,
+            failedIconVisible = syncDisplayState.failedIconVisible,
+            coinIconVisible = syncDisplayState.coinIconVisible,
             badge = wallet.badge,
             swapVisible = isSwappable,
-            swapEnabled = state !is AdapterState.NotSynced,
+            swapAvailability = availability(state !is AdapterState.NotSynced, syncDisplayState.offline),
             errorMessage = (displaySyncState as? AdapterState.NotSynced)?.error?.message,
             isWatchAccount = watchAccount,
             warning = item.warning?.warningText,
@@ -431,7 +476,25 @@ class BalanceViewItemFactory {
             diff = item.coinPrice?.diffPercentage,
             fullDiff = getFullDiff(item, displayDiffOptionType, currency),
             displayDiffOptionType = displayDiffOptionType,
+            offline = syncDisplayState.offline,
         )
+    }
+
+    private fun stackingUnpaidValue(
+        item: BalanceItem,
+        showStackingUnpaid: Boolean,
+        visible: Boolean,
+    ): DeemedValue<String>? {
+        if (!showStackingUnpaid || item.balanceData.stackingUnpaid == BigDecimal.ZERO) return null
+        return coinValue(
+            balance = item.balanceData.stackingUnpaid,
+            visible = visible,
+            fullFormat = false,
+            coinDecimals = item.wallet.decimal,
+            dimmed = item.state !is AdapterState.Synced
+        ).run {
+            copy(value = this.value + " " + item.wallet.token.coin.code.uppercase())
+        }
     }
 
     fun viewItem2(
@@ -464,28 +527,15 @@ class BalanceViewItemFactory {
             balanceViewType = balanceViewType
         )
 
-        val stackingUnpaid =
-            if (showStackingUnpaid && item.balanceData.stackingUnpaid != BigDecimal.ZERO) {
-                coinValue(
-                    balance = item.balanceData.stackingUnpaid,
-                    visible = balanceTotalVisibility,
-                    fullFormat = false,
-                    coinDecimals = wallet.decimal,
-                    dimmed = state !is AdapterState.Synced
-                ).run {
-                    copy(
-                        value = this.value + " " + wallet.token.coin.code.uppercase()
-                    )
-                }
-            } else {
-                null
-            }
+        val stackingUnpaid = stackingUnpaidValue(item, showStackingUnpaid, balanceTotalVisibility)
 
         val errorMessage = if (networkAvailable) {
             (displaySyncState as? AdapterState.NotSynced)?.error?.message
         } else {
             Translator.getString(R.string.Hud_Text_NoInternet)
         }
+
+        val syncDisplayState = syncDisplayState(wallet, displaySyncState)
 
         return BalanceViewItem2(
             wallet = item.wallet,
@@ -494,18 +544,19 @@ class BalanceViewItemFactory {
             exchangeValue = BalanceViewHelper.rateValue(latestRate, currency, true),
             diff = item.coinPrice?.diffPercentage,
             fullDiff = getFullDiff(item, displayDiffOptionType, currency),
-            sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(displaySyncState, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(displaySyncState),
-            syncedUntilTextValue = getSyncedUntilText(displaySyncState),
-            failedIconVisible = displaySyncState is AdapterState.NotSynced,
+            sendAvailability = availability(item.sendAllowed, syncDisplayState.offline),
+            syncingProgress = syncDisplayState.syncingProgress,
+            syncingTextValue = syncDisplayState.syncingTextValue,
+            syncedUntilTextValue = syncDisplayState.syncedUntilTextValue,
+            failedIconVisible = syncDisplayState.failedIconVisible,
             badge = wallet.badge,
-            swapEnabled = state !is AdapterState.NotSynced,
+            swapAvailability = availability(state !is AdapterState.NotSynced, syncDisplayState.offline),
             errorMessage = errorMessage,
             isWatchAccount = watchAccount,
             isSwipeToDeleteEnabled = isSwipeToDeleteEnabled,
             stackingUnpaid = stackingUnpaid,
-            displayDiffOptionType = displayDiffOptionType
+            displayDiffOptionType = displayDiffOptionType,
+            offline = syncDisplayState.offline,
         )
     }
 

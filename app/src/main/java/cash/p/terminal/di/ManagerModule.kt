@@ -22,6 +22,7 @@ import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.DeviceFlipDetector
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
 import cash.p.terminal.modules.send.offline.OfflineBroadcastTokenResolver
 import android.content.Context
 import android.net.ConnectivityManager as AndroidConnectivityManager
@@ -59,6 +60,9 @@ import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.OfflineModeManager
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.core.managers.OfflineNetworkController
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
@@ -197,6 +201,10 @@ val managerModule = module {
             providers = listOf(get<TonFallbackAddressProvider>())
         )
     }
+    singleOf(::OfflineModeManager)
+    singleOf(::OfflineOperationGate)
+    singleOf(::OfflineNetworkController)
+    singleOf(::EffectiveMonitoredChains)
     singleOf(::AdapterManager) bind IAdapterManager::class
     singleOf(::LocalStorageManager) {
         bind<ILocalStorage>()

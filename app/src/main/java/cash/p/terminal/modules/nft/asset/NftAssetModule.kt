@@ -8,7 +8,10 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.modules.balance.DefaultBalanceXRateRepository
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.wallet.IWalletManager
 import kotlinx.parcelize.Parcelize
+import org.koin.java.KoinJavaComponent.inject
 
 object NftAssetModule {
 
@@ -26,7 +29,10 @@ object NftAssetModule {
                 App.nftMetadataManager.provider(nftUid.blockchainType),
                 DefaultBalanceXRateRepository("nft-asset", App.currencyManager, App.marketKit)
             )
-            return NftAssetViewModel(service) as T
+            val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+            val walletManager: IWalletManager by inject(IWalletManager::class.java)
+
+            return NftAssetViewModel(service, offlineOperationGate, walletManager) as T
         }
     }
 

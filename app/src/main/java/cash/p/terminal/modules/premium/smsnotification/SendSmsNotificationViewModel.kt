@@ -10,6 +10,9 @@ import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.feature.logging.domain.usecase.GetZecWalletsUseCase
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.availabilityFor
 import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.pin.SendZecResult
 import cash.p.terminal.strings.helpers.Translator
@@ -29,7 +32,8 @@ class SendSmsNotificationViewModel(
     private val getZecWalletsUseCase: GetZecWalletsUseCase,
     private val adapterManager: IAdapterManager,
     private val userManager: UserManager,
-    private val sendZecOnDuressUseCase: SendZecOnDuressUseCase
+    private val sendZecOnDuressUseCase: SendZecOnDuressUseCase,
+    private val offlineOperationGate: OfflineOperationGate,
 ) : ViewModel() {
 
     private val currentLevel: Int
@@ -194,10 +198,11 @@ class SendSmsNotificationViewModel(
     private fun updateButtonStates() {
         val hasWallet = uiState.selectedWallet != null
         val hasValidAddress = uiState.address.isNotBlank() && uiState.addressError == null
+        val canSend = hasWallet && hasValidAddress
 
         uiState = uiState.copy(
-            isSaveEnabled = hasWallet && hasValidAddress,
-            isTestEnabled = hasWallet && hasValidAddress
+            isSaveEnabled = canSend,
+            testAvailability = offlineOperationGate.availabilityFor(uiState.selectedWallet?.wallet, canSend)
         )
     }
 
@@ -270,7 +275,7 @@ data class SendSmsNotificationUiState(
     val memoBytesUsed: Int = 0,
     val requiredCoins: BigDecimal = BigDecimal.ZERO,
     val isSaveEnabled: Boolean = false,
-    val isTestEnabled: Boolean = false,
+    val testAvailability: OperationAvailability = OperationAvailability.Unavailable,
     val saveSuccess: Boolean = false,
     val testResult: TestResult? = null
 ) {

@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -18,6 +22,8 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.modules.offline.OfflineBlockedBottomSheet
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
@@ -30,6 +36,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.Wallet
 
 class DonateTokenSelectFragment : BaseComposeFragment() {
 
@@ -37,28 +44,16 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         val viewModel: TokenSelectViewModel =
             viewModel(factory = TokenSelectViewModel.FactoryForSend())
+        var blockedWallet by remember { mutableStateOf<Wallet?>(null) }
+
         TokenSelectScreen(
             navController = navController,
             title = stringResource(R.string.Settings_DonateWith),
             onClickItem = { viewItem ->
-                val donateAddress: String? =
-                    AppConfigProvider.donateAddresses[viewItem.wallet.token.blockchainType]
-                donateAddress?.let {
-                    val sendTitle = Translator.getString(
-                        R.string.Settings_DonateToken,
-                        viewItem.wallet.token.fullCoin.coin.code
-                    )
-                    navController.navigate(
-                        MainGraphDirections.actionGlobalToSendFragment(
-                            SendFragment.Input(
-                                wallet = viewItem.wallet,
-                                title = sendTitle,
-                                sendEntryPointDestId = R.id.donateTokenSelectFragment,
-                                prefilledData = PrefilledData(donateAddress),
-                                hideAddress = true
-                            )
-                        )
-                    )
+                if (viewItem.sendAvailability == OperationAvailability.BlockedOffline) {
+                    blockedWallet = viewItem.wallet
+                } else {
+                    navigateToDonate(viewItem.wallet, navController)
                 }
             },
             onBalanceClick = viewModel::onBalanceClick,
@@ -66,6 +61,34 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
             updateFilter = viewModel::updateFilter,
             emptyItemsText = stringResource(R.string.Balance_NoAssetsToSend)
         ) { DonateHeader(navController) }
+
+        blockedWallet?.let { wallet ->
+            OfflineBlockedBottomSheet(
+                wallet = wallet,
+                onWentOnline = {
+                    blockedWallet = null
+                    navigateToDonate(wallet, navController)
+                },
+                onDismiss = { blockedWallet = null },
+            )
+        }
+    }
+
+    private fun navigateToDonate(wallet: Wallet, navController: NavController) {
+        val donateAddress = AppConfigProvider.donateAddresses[wallet.token.blockchainType] ?: return
+        val sendTitle =
+            Translator.getString(R.string.Settings_DonateToken, wallet.token.fullCoin.coin.code)
+        navController.navigate(
+            MainGraphDirections.actionGlobalToSendFragment(
+                SendFragment.Input(
+                    wallet = wallet,
+                    title = sendTitle,
+                    sendEntryPointDestId = R.id.donateTokenSelectFragment,
+                    prefilledData = PrefilledData(donateAddress),
+                    hideAddress = true
+                )
+            )
+        )
     }
 }
 

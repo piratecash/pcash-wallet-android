@@ -12,6 +12,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +26,7 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -40,6 +42,14 @@ fun WcRequestScreen(
     )
 
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            HudHelper.showErrorMessage(view, it.message ?: it.javaClass.simpleName)
+            viewModel.errorShown()
+        }
+    }
 
     LaunchedEffect(uiState.finish) {
         if (uiState.finish) {

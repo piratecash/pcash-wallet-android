@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.modules.balance.DefaultBalanceService
@@ -160,7 +161,7 @@ class TokenSelectViewModel(
 
             return TokenSelectViewModel(
                 service = DefaultBalanceService.getInstance("wallet"),
-                balanceViewItemFactory = BalanceViewItemFactory(),
+                balanceViewItemFactory = BalanceViewItemFactory(getKoinInstance()),
                 balanceViewTypeManager = App.balanceViewTypeManager,
                 itemsFilter = {
                     !it.wallet.account.isWatchAccount

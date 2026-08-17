@@ -1,8 +1,10 @@
 package cash.p.terminal.core.managers
 
 import android.os.HandlerThread
+import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.ZcashRescanException
 import cash.p.terminal.core.factories.AdapterFactory
+import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAdapterManager
@@ -20,6 +22,7 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -59,6 +62,7 @@ class AdapterManager(
     private val stellarKitManager: StellarKitManager,
     private val pendingBalanceCalculator: PendingBalanceCalculator,
     private val fallbackAddressProvider: FallbackAddressProvider,
+    private val offlineModeManager: OfflineModeManager,
     dispatcherProvider: DispatcherProvider
 ) : IAdapterManager, HandlerThread("A") {
 
@@ -135,7 +139,7 @@ class AdapterManager(
                 .filter { it.token.blockchainType == blockchainType }
                 .mapNotNull { wallet ->
                     val adapter = adaptersMap.remove(wallet) ?: return@mapNotNull null
-                    balanceSubscriptionJobs.remove(wallet)?.cancel()
+                    cancelBalanceSubscription(wallet)
                     wallet to adapter
                 }
                 .also {
@@ -154,20 +158,32 @@ class AdapterManager(
     }
 
     override suspend fun refresh() {
+        val pausedChains = pausedChains()
+
         coroutineScope.launch {
-            adaptersMap.values.forEach { it.refresh() }
+            adaptersMap.forEach { (wallet, adapter) ->
+                if (!wallet.isNetworkPaused()) adapter.refresh()
+            }
         }
 
         for (blockchain in evmBlockchainManager.allBlockchains) {
+            if (blockchain.type in pausedChains) continue
             evmBlockchainManager.getEvmKitManager(blockchain.type).refresh()
         }
 
-        solanaKitManager.solanaKitWrapper?.solanaKit?.refresh()
-        tronKitManager.tronKitWrapper?.tronKit?.refresh()
-        tonKitManager.tonKitWrapper?.tonKit?.refresh()
-        moneroKitManager.moneroKitWrapper?.refresh()
-        stellarKitManager.stellarKitWrapper?.stellarKit?.refresh()
+        if (BlockchainType.Solana !in pausedChains) solanaKitManager.solanaKitWrapper?.solanaKit?.refresh()
+        if (BlockchainType.Tron !in pausedChains) tronKitManager.tronKitWrapper?.tronKit?.refresh()
+        if (BlockchainType.Ton !in pausedChains) tonKitManager.tonKitWrapper?.tonKit?.refresh()
+        if (BlockchainType.Monero !in pausedChains) moneroKitManager.moneroKitWrapper?.refresh()
+        if (BlockchainType.Stellar !in pausedChains) stellarKitManager.stellarKitWrapper?.stellarKit?.refresh()
     }
+
+    /** A chain counts as paused only when a wallet of the active account actually holds it paused. */
+    private fun pausedChains(): Set<BlockchainType> =
+        adaptersMap.keys.filter { it.isNetworkPaused() }.mapTo(mutableSetOf()) { it.token.blockchainType }
+
+    private fun Wallet.isNetworkPaused(): Boolean =
+        offlineModeManager.isNetworkPaused(account.id, token.blockchainType)
 
     private fun requestInitAdapters(wallets: List<Wallet>) {
         initRequests.tryEmit(wallets)
@@ -210,7 +226,7 @@ class AdapterManager(
         // This is critical for Zcash: its SDK forbids creating a new Synchronizer
         // while another one with the same alias is still active.
         currentAdapters.forEach { (wallet, adapter) ->
-            balanceSubscriptionJobs.remove(wallet)?.cancel()
+            cancelBalanceSubscription(wallet)
             adapter.stop()
             coroutineScope.launch {
                 adapterFactory.unlinkAdapter(wallet)
@@ -236,11 +252,8 @@ class AdapterManager(
                 val jobs = toCreate.map { wallet ->
                     launch {
                         try {
-                            val adapter = adapterFactory.getAdapterOrNull(wallet, activeLitecoinMwebAccounts)
-                            adapter?.start()
-                            adapter?.let {
-                                adaptersMap[wallet] = it
-                                (it as? IBalanceAdapter)?.let { ba -> subscribeToBalanceUpdates(wallet, ba) }
+                            adapterFactory.getAdapterOrNull(wallet, activeLitecoinMwebAccounts)?.let {
+                                startAdapter(wallet, it)
                             }
                         } catch (ex: Exception) {
                             Timber.e(ex, "Can't get adapter")
@@ -296,7 +309,7 @@ class AdapterManager(
 
                 // remove and stop adapters
                 walletsToRefresh.forEach { wallet ->
-                    balanceSubscriptionJobs.remove(wallet)?.cancel()
+                    cancelBalanceSubscription(wallet)
                     adaptersMap.remove(wallet)?.let { previousAdapter ->
                         previousAdapter.stop()
                         coroutineScope.launch {
@@ -308,11 +321,7 @@ class AdapterManager(
                 // add and start new adapters
                 walletsToRefresh.forEach { wallet ->
                     adapterFactory.getAdapterOrNull(wallet, activeLitecoinMwebAccounts)?.let { adapter ->
-                        adaptersMap[wallet] = adapter
-                        adapter.start()
-                        (adapter as? IBalanceAdapter)?.let { balanceAdapter ->
-                            subscribeToBalanceUpdates(wallet, balanceAdapter)
-                        }
+                        startAdapter(wallet, adapter)
                     }
                 }
 
@@ -358,7 +367,7 @@ class AdapterManager(
 
     private suspend fun stopAndUnlinkGroup(group: List<Wallet>) {
         group.forEach { wallet ->
-            balanceSubscriptionJobs.remove(wallet)?.cancel()
+            cancelBalanceSubscription(wallet)
             adaptersMap[wallet]?.stop()
             adapterFactory.unlinkAdapter(wallet)
             adaptersMap.remove(wallet)
@@ -373,15 +382,15 @@ class AdapterManager(
             adapterFactory.getAdapterOrNull(wallet)?.let { wallet to it }
         }
         constructed.forEach { (wallet, adapter) ->
-            adaptersMap[wallet] = adapter
-            adapter.start()
-            (adapter as? IBalanceAdapter)?.let { subscribeToBalanceUpdates(wallet, it) }
+            startAdapter(wallet, adapter)
         }
         adaptersReadySubject.onNext(HashMap(adaptersMap))
         return constructed.size
     }
 
     override fun refreshByWallet(wallet: Wallet) {
+        if (wallet.isNetworkPaused()) return
+
         val blockchain = evmBlockchainManager.getBlockchain(wallet.token)
 
         if (blockchain != null) {
@@ -411,7 +420,7 @@ class AdapterManager(
                 .filter(matchingWallet)
                 .mapNotNull { wallet ->
                     adaptersMap.remove(wallet)?.let { adapter ->
-                        balanceSubscriptionJobs.remove(wallet)?.cancel()
+                        cancelBalanceSubscription(wallet)
                         wallet to adapter
                     }
                 }
@@ -481,9 +490,42 @@ class AdapterManager(
         return fallbackAddressProvider.getAddress(wallet)
     }
 
-    private fun subscribeToBalanceUpdates(wallet: Wallet, adapter: IBalanceAdapter) {
+    /**
+     * Registers the adapter only once it has started, so a failed start is never published.
+     * The sync state is captured beforehand, so a kit that syncs instantly still looks like a transition.
+     */
+    private fun startAdapter(wallet: Wallet, adapter: IAdapter) {
+        val stateBeforeStart = (adapter as? IBalanceAdapter)?.balanceState
+        if (wallet.isNetworkPaused()) {
+            adapter.attachLocalData()
+            // Kits that reach the network from a local read (Bitcoin resolves input addresses while
+            // serving history) only stay offline once they are told the network is paused.
+            adapter.pauseNetwork()
+        } else {
+            adapter.start()
+        }
+        adaptersMap[wallet] = adapter
+        (adapter as? IBalanceAdapter)?.let { subscribeToBalanceUpdates(wallet, it, stateBeforeStart) }
+    }
+
+    private fun subscribeToBalanceUpdates(
+        wallet: Wallet,
+        adapter: IBalanceAdapter,
+        stateBeforeStart: AdapterState? = null,
+    ) {
         balanceSubscriptionJobs[wallet]?.cancel()
+        offlineModeManager.onSubscribed(wallet, adapter, stateBeforeStart ?: adapter.balanceState)
         balanceSubscriptionJobs[wallet] = coroutineScope.launch {
+            launch(start = CoroutineStart.UNDISPATCHED) {
+                adapter.balanceStateUpdatedFlow.collect {
+                    offlineModeManager.onBalanceState(wallet, adapter, adapter.balanceState)
+                }
+            }
+            offlineModeManager.onBalanceState(wallet, adapter, adapter.balanceState)
+            offlineModeManager.seedLastSynced(
+                wallet = wallet,
+                lastBlockTimestampSec = (adapter as? ITransactionsAdapter)?.lastBlockInfo?.timestamp,
+            )
             merge(
                 adapter.balanceUpdatedFlow,
                 adapter.balanceStateUpdatedFlow,
@@ -492,6 +534,11 @@ class AdapterManager(
                 _walletBalanceUpdatedFlow.emit(wallet)
             }
         }
+    }
+
+    private fun cancelBalanceSubscription(wallet: Wallet) {
+        balanceSubscriptionJobs.remove(wallet)?.cancel()
+        offlineModeManager.onAdapterGone(wallet)
     }
 
     companion object {

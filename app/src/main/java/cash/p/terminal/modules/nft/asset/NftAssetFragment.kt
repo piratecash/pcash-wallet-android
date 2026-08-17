@@ -69,6 +69,7 @@ import cash.p.terminal.modules.nft.collection.events.NftEventListType
 import cash.p.terminal.modules.nft.collection.events.NftEvents
 import cash.p.terminal.modules.nft.send.SendNftFragment
 import cash.p.terminal.modules.nft.ui.CellLink
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
@@ -243,6 +244,7 @@ private fun AssetContent(
     val context = LocalContext.current
     val view = LocalView.current
     var showActionSelectorDialog by remember { mutableStateOf(false) }
+    val offlineGatedAction = rememberOfflineGatedAction(asset.wallet)
 
     var nftFileByteArray by remember { mutableStateOf(byteArrayOf()) }
 
@@ -308,7 +310,7 @@ private fun AssetContent(
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.End) {
                     Crossfade(
-                        targetState = asset.showSend,
+                        targetState = asset.sendAvailability.clickable,
                         modifier = Modifier.weight(1f)
                     ) { showSend ->
                         if (showSend) {
@@ -317,10 +319,12 @@ private fun AssetContent(
                                     modifier = Modifier.weight(1f),
                                     title = stringResource(R.string.Button_Send),
                                     onClick = {
-                                        navController.slideFromBottom(
-                                            R.id.nftSendFragment,
-                                            SendNftFragment.Input(nftUid.uid)
-                                        )
+                                        offlineGatedAction.onClick(asset.sendAvailability) {
+                                            navController.slideFromBottom(
+                                                R.id.nftSendFragment,
+                                                SendNftFragment.Input(nftUid.uid)
+                                            )
+                                        }
                                     }
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -592,6 +596,8 @@ private fun AssetContent(
             }
         )
     }
+
+    offlineGatedAction.Sheet()
 }
 
 @Composable

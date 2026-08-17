@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
 import cash.p.terminal.core.factories.FeeRateProviderFactory
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
 import cash.p.terminal.modules.xrate.XRateService
@@ -36,7 +37,8 @@ object ResendBitcoinModule {
                 adapter = adapter,
                 xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency),
                 feeRateProvider =  FeeRateProviderFactory.provider(adapter.wallet.token.blockchainType)!!,
-                contactsRepo = App.contactsRepository
+                contactsRepo = App.contactsRepository,
+                offlineOperationGate = getKoinInstance()
             ) as T
         }
     }

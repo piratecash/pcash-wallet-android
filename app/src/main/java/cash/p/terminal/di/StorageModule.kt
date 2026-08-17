@@ -5,6 +5,7 @@ import cash.p.terminal.core.IRestoreSettingsStorage
 import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.core.factories.EvmAccountManagerFactory
 import cash.p.terminal.core.managers.AccountCleaner
+import cash.p.terminal.core.managers.AccountStorageCleaner
 import cash.p.terminal.core.managers.CoinManager
 import cash.p.terminal.core.managers.DeletedWalletChecker
 import cash.p.terminal.core.managers.LitecoinBirthdayProvider
@@ -17,6 +18,7 @@ import cash.p.terminal.core.providers.FeeRateProvider
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.storage.BlockchainSettingsStorage
+import cash.p.terminal.core.storage.OfflineModeStorage
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.storage.EnabledWalletsStorage
 import cash.p.terminal.core.storage.EvmSyncSourceStorage
@@ -58,10 +60,12 @@ val storageModule = module {
     singleOf(::RestoreSettingsStorage) bind IRestoreSettingsStorage::class
     singleOf(::CoinManager) bind ICoinManager::class
     singleOf(::AccountsStorage) bind IAccountsStorage::class
+    singleOf(::AccountStorageCleaner)
     singleOf(::AccountCleaner) bind IAccountCleaner::class
     singleOf(::EnabledWalletsStorage) bind IEnabledWalletStorage::class
     singleOf(::HardwarePublicKeyStorage) bind IHardwarePublicKeyStorage::class
     singleOf(::BlockchainSettingsStorage)
+    singleOf(::OfflineModeStorage)
     singleOf(::SpamAddressStorage)
     factoryOf(::SwapProviderTransactionsStorage)
     factoryOf(::SwapTransactionMatcher)

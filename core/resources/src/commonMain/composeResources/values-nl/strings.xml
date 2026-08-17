@@ -772,6 +772,32 @@
     <string name="address_poisoning_view_suspicious">verdachte transactie</string>
     <string name="address_poisoning_view_address_book">adres staat in het adresboek</string>
     <string name="address_poisoning_view_blockchain">ontvangen van de blockchain</string>
+
+    <string name="offline_mode_title">Offlinemodus</string>
+    <string name="offline_mode_settings_description">Blockchainsynchronisatie stoppen. Dit geldt voor het hele %1$s-netwerk — %2$s</string>
+    <string name="offline_mode_settings_assets_more">%1$s andere</string>
+    <string name="offline_mode_info_title">Offlinemodus</string>
+    <string name="offline_mode_info_description">De blockchainsynchronisatie stopt. De laatst beschikbare gegevens worden getoond.</string>
+    <string name="offline_mode_info_price">De prijs wordt nog steeds bijgewerkt</string>
+    <string name="offline_mode_info_history">De transactiegeschiedenis blijft behouden</string>
+    <string name="offline_mode_info_no_new_tx">Nieuwe transacties worden niet geladen</string>
+    <string name="offline_mode_info_no_send">Verzenden is niet beschikbaar in offlinemodus</string>
+    <string name="offline_mode_confirm_title">Offline geldt voor het hele netwerk</string>
+    <string name="offline_mode_confirm_description">%1$s wordt als geheel gesynchroniseerd. Alle assets van het netwerk gaan offline:</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash gebruikt drie adressen binnen één wallet — transparent, unified en shielded. Ze delen dezelfde synchronisatie, dus de offlinemodus wordt voor alle drie tegelijk ingeschakeld:</string>
+    <string name="offline_mode_confirm_button">Het hele netwerk offline zetten</string>
+    <string name="offline_mode_go_online_failed">Online gaan is mislukt. Probeer het opnieuw.</string>
+    <string name="offline_mode_go_offline_failed">Offline gaan is mislukt. Probeer het opnieuw.</string>
+    <string name="offline_mode_state_degraded">Sommige assets van het netwerk zijn niet omgeschakeld. Probeer het opnieuw.</string>
+    <string name="offline_mode_active_title">Offlinemodus is actief</string>
+    <string name="offline_mode_active_description">Blockchaingegevens worden sinds %1$s niet bijgewerkt. De prijs is actueel.</string>
+    <string name="offline_mode_go_online">Ga online</string>
+    <string name="offline_mode_badge">Offline</string>
+    <string name="offline_mode_blocked_title">Netwerk is offline</string>
+    <string name="offline_mode_blocked_description">%1$s staat in offlinemodus. Ga online om door te gaan.</string>
+    <string name="offline_mode_operation_blocked">Netwerk %1$s is offline</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) toegevoegd in offlinemodus</string>
+
     <string name="Button_GotIt">Begrepen</string>
     <string name="transaction_statuses_title">Transactiestatussen</string>
     <string name="transaction_statuses_description">Elke transactie in uw geschiedenis krijgt een status op basis van een risicoanalysesysteem.\nDit helpt bij het identificeren van mogelijk frauduleuze operaties en vermindert het risico van het verzenden van fondsen naar valse adressen.</string>

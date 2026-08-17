@@ -3,6 +3,7 @@ package cash.p.terminal.modules.walletconnect.request
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.modules.offline.OfflineOperationBlockedException
 import cash.p.terminal.modules.sendevmtransaction.SectionViewItem
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -39,15 +40,28 @@ class WCRequestViewModel(
         finish = finish,
         runnable = !approveInProgress && actionState.runnable,
         approveButtonTitle = wcAction.getApproveButtonTitle(),
-        contentItems = actionState.items
+        contentItems = actionState.items,
+        error = error
     )
+
+    fun errorShown() {
+        error = null
+        emitState()
+    }
 
     fun approve() = viewModelScope.launch(Dispatchers.Default) {
         error = null
         approveInProgress = true
         emitState()
 
-        val actionResult = wcAction.performAction()
+        val actionResult = try {
+            wcAction.performAction()
+        } catch (e: OfflineOperationBlockedException) {
+            approveInProgress = false
+            error = e
+            emitState()
+            return@launch
+        }
 
         WCDelegate.respondPendingRequest(
             sessionRequest.request.id,
@@ -59,7 +73,7 @@ class WCRequestViewModel(
                 emitState()
             },
             onErrorResult = {
-                approveInProgress = true
+                approveInProgress = false
                 error = it
                 emitState()
             }
@@ -101,5 +115,6 @@ data class WCRequestUiState(
     val finish: Boolean,
     val runnable: Boolean,
     val approveButtonTitle: TranslatableString,
-    val contentItems: List<SectionViewItem>
+    val contentItems: List<SectionViewItem>,
+    val error: Throwable? = null
 )

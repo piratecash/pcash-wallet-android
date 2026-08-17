@@ -12,6 +12,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
@@ -110,6 +111,7 @@ class BalanceViewModel(
     private val resolvePayCoreNavigation: ResolvePayCoreNavigationUseCase by inject(
         ResolvePayCoreNavigationUseCase::class.java
     )
+    private val offlineModeManager: OfflineModeManager by inject(OfflineModeManager::class.java)
 
     private var pendingSwapCount = 0
     private var singlePendingSwapId: String? = null
@@ -204,6 +206,13 @@ class BalanceViewModel(
         // To hide balance for Samsung devices with hide balance feature enabled
         viewModelScope.launch {
             balanceHiddenManager.anyWalletVisibilityChangedFlow.collect {
+                refreshViewItems(service.balanceItemsFlow.value)
+            }
+        }
+
+        // A paused chain stops emitting balance items, so nothing else would redraw its offline badge.
+        viewModelScope.launch {
+            offlineModeManager.effectiveFlow.collect {
                 refreshViewItems(service.balanceItemsFlow.value)
             }
         }

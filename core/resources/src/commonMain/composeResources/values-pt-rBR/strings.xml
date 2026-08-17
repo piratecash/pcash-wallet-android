@@ -770,6 +770,32 @@
     <string name="address_poisoning_view_suspicious">transação suspeita</string>
     <string name="address_poisoning_view_address_book">endereço está no livro de endereços</string>
     <string name="address_poisoning_view_blockchain">recebida da blockchain</string>
+
+    <string name="offline_mode_title">Modo offline</string>
+    <string name="offline_mode_settings_description">Parar a sincronização da blockchain. Afeta toda a rede %1$s — %2$s</string>
+    <string name="offline_mode_settings_assets_more">outros %1$s</string>
+    <string name="offline_mode_info_title">Modo offline</string>
+    <string name="offline_mode_info_description">A sincronização da blockchain será interrompida. Os últimos dados disponíveis são exibidos.</string>
+    <string name="offline_mode_info_price">O preço continua sendo atualizado</string>
+    <string name="offline_mode_info_history">O histórico de transações é mantido</string>
+    <string name="offline_mode_info_no_new_tx">Novas transações não são carregadas</string>
+    <string name="offline_mode_info_no_send">O envio não está disponível no modo offline</string>
+    <string name="offline_mode_confirm_title">O modo offline afeta toda a rede</string>
+    <string name="offline_mode_confirm_description">A %1$s é sincronizada por inteiro. Todos os ativos da rede ficarão offline:</string>
+    <string name="offline_mode_confirm_description_zcash">A Zcash usa três endereços dentro da mesma carteira — transparent, unified e shielded. A sincronização é compartilhada, por isso o modo offline é ativado para todos ao mesmo tempo:</string>
+    <string name="offline_mode_confirm_button">Colocar toda a rede offline</string>
+    <string name="offline_mode_go_online_failed">Não foi possível ficar online. Tente novamente.</string>
+    <string name="offline_mode_go_offline_failed">Não foi possível ficar offline. Tente novamente.</string>
+    <string name="offline_mode_state_degraded">Alguns ativos da rede não foram alterados. Tente novamente.</string>
+    <string name="offline_mode_active_title">O modo offline está ativo</string>
+    <string name="offline_mode_active_description">Os dados da blockchain não são atualizados desde %1$s. O preço está atualizado.</string>
+    <string name="offline_mode_go_online">Ficar online</string>
+    <string name="offline_mode_badge">Offline</string>
+    <string name="offline_mode_blocked_title">A rede está offline</string>
+    <string name="offline_mode_blocked_description">%1$s está em modo offline. Volte a ficar online para continuar.</string>
+    <string name="offline_mode_operation_blocked">A rede %1$s está offline</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) adicionado em modo offline</string>
+
     <string name="Button_GotIt">Entendi</string>
     <string name="transaction_statuses_title">Status das transações</string>
     <string name="transaction_statuses_description">Cada transação no seu histórico recebe um status com base em um sistema de análise de riscos.\nIsso ajuda a identificar operações potencialmente fraudulentas e reduzir o risco de enviar fundos para endereços falsos.</string>

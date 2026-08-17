@@ -214,6 +214,12 @@ class TransactionAdapterManagerTest {
 
         override fun start() = Unit
 
+        override fun attachLocalData() = Unit
+
+        override fun pauseNetwork() = Unit
+
+        override fun resumeNetwork() = Unit
+
         override fun stop() = Unit
 
         override suspend fun refresh() = Unit

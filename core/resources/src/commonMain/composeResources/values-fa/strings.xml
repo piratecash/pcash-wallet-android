@@ -771,6 +771,32 @@
     <string name="address_poisoning_view_suspicious">تراکنش مشکوک</string>
     <string name="address_poisoning_view_address_book">آدرس در دفترچه آدرس است</string>
     <string name="address_poisoning_view_blockchain">دریافت شده از بلاکچین</string>
+
+    <string name="offline_mode_title">حالت آفلاین</string>
+    <string name="offline_mode_settings_description">توقف همگام‌سازی بلاکچین. کل شبکه %1$s را تحت تأثیر قرار می‌دهد — %2$s</string>
+    <string name="offline_mode_settings_assets_more">%1$s دیگر</string>
+    <string name="offline_mode_info_title">حالت آفلاین</string>
+    <string name="offline_mode_info_description">همگام‌سازی بلاکچین متوقف می‌شود. آخرین داده‌های موجود نمایش داده می‌شود.</string>
+    <string name="offline_mode_info_price">قیمت همچنان به‌روزرسانی می‌شود</string>
+    <string name="offline_mode_info_history">تاریخچه تراکنش‌ها حفظ می‌شود</string>
+    <string name="offline_mode_info_no_new_tx">تراکنش‌های جدید بارگذاری نمی‌شوند</string>
+    <string name="offline_mode_info_no_send">ارسال در حالت آفلاین در دسترس نیست</string>
+    <string name="offline_mode_confirm_title">حالت آفلاین بر کل شبکه اثر می‌گذارد</string>
+    <string name="offline_mode_confirm_description">%1$s به‌صورت یکپارچه همگام‌سازی می‌شود. همه دارایی‌های شبکه آفلاین می‌شوند:</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash در یک کیف پول از سه آدرس استفاده می‌کند — transparent، unified و shielded. همگام‌سازی آن‌ها مشترک است، بنابراین حالت آفلاین برای همه به‌طور همزمان فعال می‌شود:</string>
+    <string name="offline_mode_confirm_button">کل شبکه را آفلاین کن</string>
+    <string name="offline_mode_go_online_failed">آنلاین شدن ناموفق بود. دوباره تلاش کنید.</string>
+    <string name="offline_mode_go_offline_failed">آفلاین شدن ناموفق بود. دوباره تلاش کنید.</string>
+    <string name="offline_mode_state_degraded">برخی دارایی‌های شبکه تغییر نکردند. دوباره تلاش کنید.</string>
+    <string name="offline_mode_active_title">حالت آفلاین فعال است</string>
+    <string name="offline_mode_active_description">داده‌های بلاک‌چین از %1$s به‌روزرسانی نمی‌شود. قیمت به‌روز است.</string>
+    <string name="offline_mode_go_online">آنلاین شدن</string>
+    <string name="offline_mode_badge">آفلاین</string>
+    <string name="offline_mode_blocked_title">شبکه آفلاین است</string>
+    <string name="offline_mode_blocked_description">%1$s در حالت آفلاین است. برای ادامه، آنلاین شوید.</string>
+    <string name="offline_mode_operation_blocked">شبکه %1$s آفلاین است</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) در حالت آفلاین اضافه شد</string>
+
     <string name="Button_GotIt">متوجه شدم</string>
     <string name="transaction_statuses_title">وضعیت تراکنش‌ها</string>
     <string name="transaction_statuses_description">به هر تراکنش در تاریخچه شما بر اساس سیستم تحلیل ریسک وضعیتی اختصاص داده می‌شود.\nاین به شناسایی عملیات‌های احتمالی تقلبی و کاهش خطر ارسال وجوه به آدرس‌های جعلی کمک می‌کند.</string>

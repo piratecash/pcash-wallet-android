@@ -11,6 +11,7 @@ import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
 import cash.p.terminal.core.usecase.IterativeExactOutSearch
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.core.usecase.RescanMoneroUseCase
 import cash.p.terminal.core.usecase.RescanZcashUseCase
 import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
@@ -58,6 +59,7 @@ val useCaseModule = module {
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
     singleOf(::ClearZCashWalletDataUseCase)
+    singleOf(::OfflineModeUseCase)
     singleOf(::DeleteAllContactsUseCase)
     singleOf(::ResetUseCase)
     singleOf(::SendZecOnDuressUseCase)

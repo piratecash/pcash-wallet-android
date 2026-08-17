@@ -771,6 +771,32 @@
     <string name="address_poisoning_view_suspicious">şüpheli işlem</string>
     <string name="address_poisoning_view_address_book">adres, adres defterinde mevcut</string>
     <string name="address_poisoning_view_blockchain">blok zincirinden alındı</string>
+
+    <string name="offline_mode_title">Çevrimdışı Mod</string>
+    <string name="offline_mode_settings_description">Blok zinciri senkronizasyonunu durdur. Tüm %1$s ağını etkiler — %2$s</string>
+    <string name="offline_mode_settings_assets_more">diğer %1$s</string>
+    <string name="offline_mode_info_title">Çevrimdışı Mod</string>
+    <string name="offline_mode_info_description">Blok zinciri senkronizasyonu duracak. Mevcut son veriler gösterilir.</string>
+    <string name="offline_mode_info_price">Fiyat güncellenmeye devam eder</string>
+    <string name="offline_mode_info_history">İşlem geçmişi korunur</string>
+    <string name="offline_mode_info_no_new_tx">Yeni işlemler yüklenmez</string>
+    <string name="offline_mode_info_no_send">Çevrimdışı modda gönderim kullanılamaz</string>
+    <string name="offline_mode_confirm_title">Çevrimdışı mod tüm ağı etkiler</string>
+    <string name="offline_mode_confirm_description">%1$s bir bütün olarak senkronize edilir. Ağdaki tüm varlıklar çevrimdışı olacak:</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash tek bir cüzdan içinde üç adres kullanır — transparent, unified ve shielded. Senkronizasyonları ortaktır, bu yüzden çevrimdışı mod hepsi için aynı anda açılır:</string>
+    <string name="offline_mode_confirm_button">Tüm ağı çevrimdışına al</string>
+    <string name="offline_mode_go_online_failed">Çevrimiçi olunamadı. Lütfen tekrar deneyin.</string>
+    <string name="offline_mode_go_offline_failed">Çevrimdışı olunamadı. Lütfen tekrar deneyin.</string>
+    <string name="offline_mode_state_degraded">Ağdaki bazı varlıklar geçiş yapmadı. Lütfen tekrar deneyin.</string>
+    <string name="offline_mode_active_title">Çevrimdışı mod etkin</string>
+    <string name="offline_mode_active_description">Blockchain verileri %1$s tarihinden beri güncellenmiyor. Fiyat güncel.</string>
+    <string name="offline_mode_go_online">Çevrimiçi ol</string>
+    <string name="offline_mode_badge">Çevrimdışı</string>
+    <string name="offline_mode_blocked_title">Ağ çevrimdışı</string>
+    <string name="offline_mode_blocked_description">%1$s çevrimdışı modda. Devam etmek için çevrimiçi olun.</string>
+    <string name="offline_mode_operation_blocked">%1$s ağı çevrimdışı</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) çevrimdışı olarak eklendi</string>
+
     <string name="Button_GotIt">Anladım</string>
     <string name="transaction_statuses_title">İşlem Durumları</string>
     <string name="transaction_statuses_description">Geçmişinizdeki her işleme bir risk analizi sistemine dayalı durum atanır.\nBu, potansiyel dolandırıcılık işlemlerini tespit etmeye ve sahte adreslere para gönderme riskini azaltmaya yardımcı olur.</string>

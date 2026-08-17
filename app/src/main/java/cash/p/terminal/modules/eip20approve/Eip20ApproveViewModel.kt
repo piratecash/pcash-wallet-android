@@ -13,9 +13,15 @@ import cash.p.terminal.modules.eip20allowance.collectSendTransactionServiceState
 import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.FiatService
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.availabilityFor
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
@@ -40,6 +46,10 @@ internal class Eip20ApproveViewModel(
     private val contactsRepository: ContactsRepository,
     private val dispatcherProvider: DispatcherProvider,
 ) : ViewModelUiState<Eip20ApproveUiState>() {
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+    private val walletManager: IWalletManager by inject(IWalletManager::class.java)
+
+    val wallet: Wallet? = walletManager.walletFor(token)
     private val currency = currencyManager.baseCurrency
     private var allowanceMode = initialAllowanceMode
     private val sendTransactionServiceFlow = MutableStateFlow<ISendTransactionService<*>?>(null)
@@ -65,7 +75,10 @@ internal class Eip20ApproveViewModel(
         fiatAmount = fiatAmount,
         spenderAddress = spenderAddress,
         contact = contact,
-        approveEnabled = sendTransactionService != null && sendTransactionState.sendable,
+        approveAvailability = offlineOperationGate.availabilityFor(
+            wallet,
+            sendTransactionService != null && sendTransactionState.sendable
+        ),
         preparing = preparing
     )
 
@@ -167,7 +180,7 @@ internal class Eip20ApproveViewModel(
 
     suspend fun approve() = withContext(dispatcherProvider.default) {
         checkNotNull(sendTransactionService) { "Send transaction service is not prepared" }
-            .sendTransaction()
+            .send()
     }
 
     class Factory(private val input: Eip20ApproveFragment.Input) : ViewModelProvider.Factory {
@@ -184,7 +197,7 @@ internal class Eip20ApproveViewModel(
                 currencyManager = App.currencyManager,
                 fiatService = FiatService(getKoinInstance<AssetFiatRateService>()),
                 contactsRepository = App.contactsRepository,
-                dispatcherProvider = dispatcherProvider
+                dispatcherProvider = dispatcherProvider,
             ) as T
         }
     }
@@ -200,7 +213,7 @@ data class Eip20ApproveUiState(
     val fiatAmount: BigDecimal?,
     val spenderAddress: String,
     val contact: Contact?,
-    val approveEnabled: Boolean,
+    val approveAvailability: OperationAvailability,
     val preparing: Boolean,
 )
 

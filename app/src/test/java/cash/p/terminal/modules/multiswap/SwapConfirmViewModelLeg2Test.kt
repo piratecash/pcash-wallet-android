@@ -93,7 +93,7 @@ class SwapConfirmViewModelLeg2Test {
             ).also { it.tryEmit(sendTransactionServiceState) }.asSharedFlow()
         )
         every { sendTransactionSettingsFlow } returns MutableStateFlow(SendTransactionSettings.Common)
-        coEvery { sendTransaction(any()) } returns sendResult
+        coEvery { send(any()) } returns sendResult
     }
 
     @Before

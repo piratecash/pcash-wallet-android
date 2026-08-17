@@ -68,6 +68,7 @@ import cash.p.terminal.modules.solananetwork.SolanaNetworkViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
 import cash.p.terminal.modules.zcashmigration.ZcashMigrationViewModel
 import cash.p.terminal.modules.multiswap.SwapSelectCoinViewModel
+import cash.p.terminal.modules.offline.OfflineModeToggleViewModel
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
@@ -217,6 +218,15 @@ val viewModelModule = module {
             numberFormatter = get(),
             adapterManager = get(),
             xRateService = XRateService(get(), get<CurrencyManager>().baseCurrency)
+        )
+    }
+    viewModel { (wallet: Wallet) ->
+        OfflineModeToggleViewModel(
+            wallet = wallet,
+            offlineModeManager = get(),
+            offlineModeUseCase = get(),
+            walletManager = get(),
+            adapterManager = get(),
         )
     }
 }

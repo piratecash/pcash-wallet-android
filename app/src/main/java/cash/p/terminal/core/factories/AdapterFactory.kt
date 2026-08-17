@@ -565,76 +565,21 @@ class AdapterFactory(
         )
     }
 
-    suspend fun unlinkAdapter(wallet: Wallet) {
-        when (val blockchainType = wallet.transactionSource.blockchain.type) {
-            BlockchainType.Ethereum,
-            BlockchainType.BinanceSmartChain,
-            BlockchainType.Polygon,
-            BlockchainType.Optimism,
-            BlockchainType.Base,
-            BlockchainType.ZkSync,
-            BlockchainType.ArbitrumOne -> {
-                val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
-                evmKitManager.unlink(wallet.account)
-            }
-
-            BlockchainType.Solana -> {
-                solanaKitManager.unlink(wallet.account)
-            }
-
-            BlockchainType.Tron -> {
-                tronKitManager.unlink(wallet.account)
-            }
-
-            BlockchainType.Ton -> {
-                tonKitManager.unlink(wallet.account)
-            }
-
-            BlockchainType.Monero -> {
-                moneroKitManager.unlink(wallet.account)
-            }
-
-            BlockchainType.Stellar -> {
-                stellarKitManager.unlink(wallet.account)
-            }
-
-            else -> Unit
-        }
-    }
+    suspend fun unlinkAdapter(wallet: Wallet) = unlinkAdapter(wallet.transactionSource)
 
     suspend fun unlinkAdapter(transactionSource: TransactionSource) {
+        val account = transactionSource.account
         when (val blockchainType = transactionSource.blockchain.type) {
-            BlockchainType.Ethereum,
-            BlockchainType.BinanceSmartChain,
-            BlockchainType.Polygon,
-            BlockchainType.Optimism,
-            BlockchainType.Base,
-            BlockchainType.ZkSync,
-            BlockchainType.ArbitrumOne -> {
-                val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
-                evmKitManager.unlink(transactionSource.account)
-            }
+            // Membership in the canonical list, not a hand-copied one: a chain added there must not
+            // stay linked here, keeping its kit syncing after the user disabled it.
+            in EvmBlockchainManager.blockchainTypes ->
+                evmBlockchainManager.getEvmKitManager(blockchainType).unlink(account)
 
-            BlockchainType.Solana -> {
-                solanaKitManager.unlink(transactionSource.account)
-            }
-
-            BlockchainType.Tron -> {
-                tronKitManager.unlink(transactionSource.account)
-            }
-
-            BlockchainType.Ton -> {
-                tonKitManager.unlink(transactionSource.account)
-            }
-
-            BlockchainType.Monero -> {
-                moneroKitManager.unlink(transactionSource.account)
-            }
-
-            BlockchainType.Stellar -> {
-                stellarKitManager.unlink(transactionSource.account)
-            }
-
+            BlockchainType.Solana -> solanaKitManager.unlink(account)
+            BlockchainType.Tron -> tronKitManager.unlink(account)
+            BlockchainType.Ton -> tonKitManager.unlink(account)
+            BlockchainType.Monero -> moneroKitManager.unlink(account)
+            BlockchainType.Stellar -> stellarKitManager.unlink(account)
             else -> Unit
         }
     }

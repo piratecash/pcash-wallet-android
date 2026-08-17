@@ -3,6 +3,7 @@ package cash.p.terminal.core.notifications
 import android.app.Application
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
 import cash.p.terminal.core.notifications.polling.TransactionPollingWorker
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -24,6 +25,7 @@ class TransactionNotificationCoordinator(
     private val keepAliveManager: BackgroundKeepAliveManager,
     private val walletManager: IWalletManager,
     private val transactionMonitor: TransactionMonitor,
+    private val effectiveMonitoredChains: EffectiveMonitoredChains,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     @Volatile
@@ -54,7 +56,7 @@ class TransactionNotificationCoordinator(
     private fun shouldStartMonitoring(): Boolean {
         if (!checkPremiumUseCase.getPremiumType().isPremium()) return false
         if (!localStorage.pushNotificationsEnabled) return false
-        if (localStorage.pushEnabledBlockchainUids.isEmpty()) return false
+        if (effectiveMonitoredChains.chains().isEmpty()) return false
         if (!notificationManager.hasNotificationPermission()) return false
         if (!notificationManager.isTransactionChannelEnabled()) return false
         // Service channel only matters for the realtime FGS path.
@@ -76,10 +78,10 @@ class TransactionNotificationCoordinator(
     }
 
     private fun startRealtime() {
-        val enabledUids = localStorage.pushEnabledBlockchainUids
+        val effectiveTypes = effectiveMonitoredChains.chains()
         val monitoredTypes = walletManager.activeWallets
             .map { it.token.blockchainType }
-            .filter { it.uid in enabledUids }
+            .filter { it in effectiveTypes }
             .toSet()
         keepAliveManager.setKeepAlive(monitoredTypes)
 

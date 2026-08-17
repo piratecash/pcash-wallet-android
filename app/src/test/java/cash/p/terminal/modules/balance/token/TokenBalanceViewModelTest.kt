@@ -7,6 +7,8 @@ import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
+import cash.p.terminal.core.managers.OfflineKey
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -17,8 +19,10 @@ import cash.p.terminal.core.managers.StackingManager
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.entities.OfflineBlockchain
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewItemFactory
@@ -121,6 +125,10 @@ class TokenBalanceViewModelTest : KoinTest {
     private val addressLabelsChangedFlow = MutableSharedFlow<Unit>()
     private val addressLabelManager = mockk<AddressLabelManager>(relaxed = true) {
         every { labelsChangedFlow } returns addressLabelsChangedFlow
+    }
+    private val offlineStateFlow = MutableStateFlow<Map<OfflineKey, OfflineBlockchain>>(emptyMap())
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true) {
+        every { stateFlow } returns offlineStateFlow
     }
 
     // Controllable flows
@@ -461,6 +469,39 @@ class TokenBalanceViewModelTest : KoinTest {
         advanceUntilIdle()
 
         assertEquals(true, viewModel.uiState.balanceViewItem?.swapVisible)
+    }
+
+    @Test
+    fun offlineStateFlowEmits_offlineEnabled_recomputesBalanceViewItem() = runTest(dispatcher) {
+        val balanceItem = createBalanceItem(wallet = testWallet)
+        every { balanceService.balanceItem } returns balanceItem
+        var offline = false
+        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } answers {
+            createBalanceViewItem(failedIconVisible = !offline)
+        }
+
+        val viewModel = createViewModel()
+        balanceItemFlow.value = balanceItem
+        advanceUntilIdle()
+        assertEquals(true, viewModel.uiState.balanceViewItem?.failedIconVisible)
+
+        offline = true
+        offlineStateFlow.value = mapOf(offlineKey() to offlineBlockchain(enabledAt = OFFLINE_SINCE))
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.balanceViewItem?.failedIconVisible)
+        assertEquals(OFFLINE_SINCE, viewModel.uiState.offlineSince)
+    }
+
+    @Test
+    fun offlineStateFlowEmits_noBalanceItem_publishesOfflineSince() = runTest(dispatcher) {
+        every { balanceService.balanceItem } returns null
+
+        val viewModel = createViewModel()
+        offlineStateFlow.value = mapOf(offlineKey() to offlineBlockchain(enabledAt = OFFLINE_SINCE))
+        advanceUntilIdle()
+
+        assertEquals(OFFLINE_SINCE, viewModel.uiState.offlineSince)
     }
 
     @Test
@@ -1452,6 +1493,7 @@ class TokenBalanceViewModelTest : KoinTest {
         localStorage = localStorage,
         numberFormatter = numberFormatter,
         contactsRepository = contactsRepository,
+        offlineModeManager = offlineModeManager,
     )
 
     private fun createHiddenState(
@@ -1527,21 +1569,22 @@ class TokenBalanceViewModelTest : KoinTest {
     private fun createBalanceViewItem(
         secondaryValue: DeemedValue<String> = DeemedValue("", dimmed = false, visible = true),
         swapVisible: Boolean = false,
+        failedIconVisible: Boolean = false,
     ) = BalanceViewItem(
         wallet = testWallet,
         primaryValue = DeemedValue("1.5 TEST", dimmed = false, visible = true),
         exchangeValue = DeemedValue("", dimmed = false, visible = false),
         secondaryValue = secondaryValue,
         lockedValues = emptyList(),
-        sendEnabled = false,
+        sendAvailability = OperationAvailability.Unavailable,
         syncingProgress = SyncingProgress(null, null),
         syncingTextValue = null,
         syncedUntilTextValue = null,
-        failedIconVisible = false,
+        failedIconVisible = failedIconVisible,
         coinIconVisible = true,
         badge = null,
         swapVisible = swapVisible,
-        swapEnabled = false,
+        swapAvailability = OperationAvailability.Unavailable,
         errorMessage = null,
         isWatchAccount = false,
         isSendDisabled = false,
@@ -1613,5 +1656,19 @@ class TokenBalanceViewModelTest : KoinTest {
         coinPrice = null
     )
 
+    private fun offlineKey() = OfflineKey(testWallet.account.id, testWallet.token.blockchainType)
+
+    private fun offlineBlockchain(lastSyncedAt: Long? = null, enabledAt: Long? = null) = OfflineBlockchain(
+        accountId = testWallet.account.id,
+        blockchainType = testWallet.token.blockchainType,
+        offline = true,
+        enabledAt = enabledAt,
+        lastSyncedAt = lastSyncedAt,
+    )
+
     // endregion
+
+    private companion object {
+        const val OFFLINE_SINCE = 1_700_000_000_000L
+    }
 }

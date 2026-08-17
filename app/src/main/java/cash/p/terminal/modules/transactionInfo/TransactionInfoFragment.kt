@@ -487,6 +487,8 @@ fun TransactionInfoSection(
                             TransactionInfoSpeedUpCell(
                                 transactionHash = viewItem.transactionHash,
                                 blockchainType = viewItem.blockchainType,
+                                availability = viewItem.availability,
+                                wallet = viewItem.wallet,
                                 navController = navController
                             )
                         }

@@ -1,12 +1,15 @@
 package cash.p.terminal.modules.tonconnect
 
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toTonWalletFullAccess
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
@@ -37,6 +40,7 @@ class TonConnectSendRequestViewModel(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage by inject(
         HardwarePublicKeyStorage::class.java
     )
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
 
     private val sendRequestEntity = signTransaction?.request
     private var error: TonConnectSendRequestError? = null
@@ -134,6 +138,14 @@ class TonConnectSendRequestViewModel(
             return
         } else if (account != accountManager.activeAccount) {
             error = TonConnectSendRequestError.DifferentAccount("Incorrect account selected")
+            responseBadRequest(sendRequestEntity)
+            return
+        }
+
+        if (offlineOperationGate.isBlocked(account, BlockchainType.Ton)) {
+            error = TonConnectSendRequestError.InvalidData(
+                Translator.getString(R.string.offline_mode_operation_blocked, TON_NETWORK_NAME)
+            )
             responseBadRequest(sendRequestEntity)
             return
         }
@@ -277,6 +289,8 @@ class TonConnectSendRequestViewModel(
         }
     }
 }
+
+private const val TON_NETWORK_NAME = "TON"
 
 sealed class TonConnectSendRequestError : Error() {
     class InvalidData(override val message: String) : TonConnectSendRequestError()

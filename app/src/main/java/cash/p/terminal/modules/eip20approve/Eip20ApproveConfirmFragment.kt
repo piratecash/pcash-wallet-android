@@ -24,6 +24,8 @@ import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.multiswap.TokenRowUnlimited
 import cash.p.terminal.modules.fee.DataFieldFee
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
@@ -39,6 +41,7 @@ import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.chartview.cell.BoxBorderedTop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,7 +99,8 @@ internal fun Eip20ApproveConfirmScreen(
                 onCancel = {
                     navController.popBackStack(R.id.eip20ApproveFragment, true)
                 },
-                approveEnabled = uiState.approveEnabled,
+                wallet = viewModel.wallet,
+                approveAvailability = uiState.approveAvailability,
                 preparing = uiState.preparing
             )
         }
@@ -118,50 +122,54 @@ private fun Eip20ApproveConfirmButtons(
     onApprove: suspend () -> Unit,
     onResult: (Eip20ApproveConfirmFragment.Result) -> Unit,
     onCancel: () -> Unit,
-    approveEnabled: Boolean,
+    wallet: Wallet?,
+    approveAvailability: OperationAvailability,
     preparing: Boolean,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var buttonEnabled by remember { mutableStateOf(true) }
     val view = LocalView.current
+    val offlineGatedAction = rememberOfflineGatedAction(wallet)
 
     Column {
         ButtonPrimaryYellow(
             modifier = Modifier.fillMaxWidth(),
             title = stringResource(R.string.Swap_Approve),
             onClick = {
-                coroutineScope.launch {
-                    buttonEnabled = false
-                    val currentSnackbar = HudHelper.showInProcessMessage(
-                        view,
-                        R.string.Swap_Approving,
-                        SnackbarDuration.INDEFINITE
-                    )
+                offlineGatedAction.onClick(approveAvailability) {
+                    coroutineScope.launch {
+                        buttonEnabled = false
+                        val currentSnackbar = HudHelper.showInProcessMessage(
+                            view,
+                            R.string.Swap_Approving,
+                            SnackbarDuration.INDEFINITE
+                        )
 
-                    val result = try {
-                        onApprove()
+                        val result = try {
+                            onApprove()
 
-                        HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                        delay(1200)
-                        Eip20ApproveConfirmFragment.Result(true)
-                    } catch (e: TrezorCancelledException) {
-                        currentSnackbar?.dismiss()
-                        Eip20ApproveConfirmFragment.Result(false)
-                    } catch (t: Throwable) {
-                        if (t.isHardwareWalletUserCancelled()) {
+                            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                            delay(1200)
+                            Eip20ApproveConfirmFragment.Result(true)
+                        } catch (e: TrezorCancelledException) {
                             currentSnackbar?.dismiss()
-                        } else {
-                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
-                            HudHelper.showErrorMessage(view, msg)
+                            Eip20ApproveConfirmFragment.Result(false)
+                        } catch (t: Throwable) {
+                            if (t.isHardwareWalletUserCancelled()) {
+                                currentSnackbar?.dismiss()
+                            } else {
+                                val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                                HudHelper.showErrorMessage(view, msg)
+                            }
+                            Eip20ApproveConfirmFragment.Result(false)
                         }
-                        Eip20ApproveConfirmFragment.Result(false)
-                    }
 
-                    buttonEnabled = true
-                    onResult(result)
+                        buttonEnabled = true
+                        onResult(result)
+                    }
                 }
             },
-            enabled = approveEnabled && buttonEnabled && !preparing,
+            enabled = approveAvailability.clickable && buttonEnabled && !preparing,
             loadingIndicator = preparing
         )
         VSpacer(16.dp)
@@ -171,6 +179,7 @@ private fun Eip20ApproveConfirmButtons(
             onClick = onCancel
         )
     }
+    offlineGatedAction.Sheet()
 }
 
 @Composable

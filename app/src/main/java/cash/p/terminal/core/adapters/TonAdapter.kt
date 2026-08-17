@@ -18,6 +18,7 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,15 +40,24 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     private var balance = getBalanceFromAccount(tonKit.account)
     private val _fee = MutableStateFlow(BigDecimal.ZERO)
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+    private var networkJob: Job? = null
 
-    override fun start() {
-        coroutineScope.launch {
+    override fun attachLocalData() = Unit
+
+    // Balance read and fee estimation happen in the same emission, so they stay in one job:
+    // splitting them would make the local `balance` field's value race with its network-driven read.
+    override fun resumeNetwork() {
+        networkJob = coroutineScope.launch {
             tonKit.accountFlow.collect { account ->
                 balance = getBalanceFromAccount(account)
                 estimateFeeForMax()
                 balanceUpdatedSubject.onNext(Unit)
             }
         }
+    }
+
+    override fun pauseNetwork() {
+        networkJob?.cancel()
     }
 
     private fun getBalanceFromAccount(account: Account?): BigDecimal {

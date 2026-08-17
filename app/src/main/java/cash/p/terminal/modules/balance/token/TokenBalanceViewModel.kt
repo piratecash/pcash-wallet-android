@@ -17,6 +17,8 @@ import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.MarketFavoritesManager
+import cash.p.terminal.core.managers.OfflineKey
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.StackingManager
@@ -109,6 +111,7 @@ class TokenBalanceViewModel(
     private val localStorage: ILocalStorage,
     private val numberFormatter: IAppNumberFormatter,
     private val contactsRepository: ContactsRepository,
+    private val offlineModeManager: OfflineModeManager,
 ) : ViewModelUiState<TokenBalanceUiState>(), TransactionSearchController.Host {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
@@ -175,6 +178,7 @@ class TokenBalanceViewModel(
     private var networkFeeWarning: TokenBalanceModule.NetworkFeeWarningBannerData? = null
     private var networkFeeWarningDismissed =
         localStorage.isNetworkFeeWarningDismissed(wallet.token.blockchainType.uid)
+    private var offlineSince: Long? = null
 
     init {
         viewModelScope.launch {
@@ -218,6 +222,18 @@ class TokenBalanceViewModel(
                 if (balanceService.balanceItem == null) return@collect
                 updateNetworkFeeWarning()
                 emitState()
+            }
+        }
+
+        // A paused chain stops emitting balance items, so nothing else would recompute the view item.
+        viewModelScope.launch {
+            offlineModeManager.stateFlow.collect { rows ->
+                offlineSince = rows[OfflineKey(wallet.account.id, wallet.token.blockchainType)]
+                    ?.takeIf { it.offline }
+                    ?.let { it.lastSyncedAt ?: it.enabledAt }
+                balanceService.balanceItem
+                    ?.let { updateBalanceViewItem(balanceItem = it, isSwappable = isSwappable()) }
+                    ?: emitState()
             }
         }
 
@@ -467,6 +483,7 @@ class TokenBalanceViewModel(
         searchScanning = searchScanning,
         searchEmptyResult = appliedSearchQuery.isNotEmpty() && !searchScanning && transactions?.values?.flatten()
             .isNullOrEmpty(),
+        offlineSince = offlineSince,
     )
 
     private fun calculateHoursUntilNextAccrual(): Int? {

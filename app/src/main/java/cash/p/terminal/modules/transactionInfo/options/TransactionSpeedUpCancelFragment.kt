@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackSafely
@@ -72,6 +73,7 @@ private fun TransactionSpeedUpCancelScreen(
     ) ?: return
 
     val uiState = viewModel.uiState
+    val offlineGatedAction = rememberOfflineGatedAction(viewModel.wallet)
 
     LaunchedEffect(uiState.error) {
         if (uiState.error is TransactionAlreadyInBlock) {
@@ -101,37 +103,38 @@ private fun TransactionSpeedUpCancelScreen(
                 modifier = Modifier.fillMaxWidth(),
                 title = buttonTitle,
                 onClick = {
-                    logger.info("click $buttonTitle button")
+                    offlineGatedAction.onClick(uiState.sendAvailability) {
+                        logger.info("click $buttonTitle button")
 
-                    coroutineScope.launch {
-                        buttonEnabled = false
-                        HudHelper.showInProcessMessage(
-                            view,
-                            R.string.Send_Sending,
-                            SnackbarDuration.INDEFINITE
-                        )
+                        coroutineScope.launch {
+                            buttonEnabled = false
+                            HudHelper.showInProcessMessage(
+                                view,
+                                R.string.Send_Sending,
+                                SnackbarDuration.INDEFINITE
+                            )
 
-                        val result = try {
-                            logger.info("sending tx")
-                            viewModel.send()
-                            logger.info("success")
+                            val result = try {
+                                logger.info("sending tx")
+                                viewModel.send()
+                                logger.info("success")
 
-                            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                            delay(1200)
-                            TransactionSpeedUpCancelFragment.Result(true)
-                        } catch (t: Throwable) {
-                            logger.warning("failed", t)
-                            HudHelper.showErrorMessage(view, t.javaClass.simpleName)
-                            TransactionSpeedUpCancelFragment.Result(false)
+                                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                                delay(1200)
+                                TransactionSpeedUpCancelFragment.Result(true)
+                            } catch (t: Throwable) {
+                                logger.warning("failed", t)
+                                HudHelper.showErrorMessage(view, t.javaClass.simpleName)
+                                TransactionSpeedUpCancelFragment.Result(false)
+                            }
+
+                            buttonEnabled = true
+                            navController.setNavigationResultX(result)
+                            navController.popBackStack()
                         }
-
-                        buttonEnabled = true
-                        navController.setNavigationResultX(result)
-                        navController.popBackStack()
                     }
-
                 },
-                enabled = uiState.sendEnabled && buttonEnabled
+                enabled = uiState.sendAvailability.clickable && buttonEnabled
             )
         }
     ) {
@@ -143,4 +146,6 @@ private fun TransactionSpeedUpCancelScreen(
             sendTransactionState.networkFee,
         )
     }
+
+    offlineGatedAction.Sheet()
 }

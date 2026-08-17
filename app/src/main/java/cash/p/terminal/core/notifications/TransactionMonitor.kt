@@ -5,6 +5,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
@@ -45,6 +46,7 @@ class TransactionMonitor(
     private val currencyManager: CurrencyManager,
     private val numberFormatter: IAppNumberFormatter,
     private val pollingManager: TransactionPollingManager,
+    private val effectiveMonitoredChains: EffectiveMonitoredChains,
 ) {
     private var monitoringJob: Job? = null
     private var monitoredTypes: Set<BlockchainType> = emptySet()
@@ -55,11 +57,7 @@ class TransactionMonitor(
     fun start(scope: CoroutineScope) {
         stop()
 
-        val enabledUids = localStorage.pushEnabledBlockchainUids
-        monitoredTypes = walletManager.activeWallets
-            .map { it.token.blockchainType }
-            .filter { it.uid in enabledUids }
-            .toSet()
+        monitoredTypes = activeWalletTypesIn(effectiveMonitoredChains.chains())
         activeWallets = walletManager.activeWallets
 
         if (monitoredTypes.isEmpty()) return
@@ -96,11 +94,7 @@ class TransactionMonitor(
      * that re-enables monitoring).
      */
     fun resetPollingBaseline() {
-        val enabledUids = localStorage.pushEnabledBlockchainUids
-        val types = walletManager.activeWallets
-            .map { it.token.blockchainType }
-            .filter { it.uid in enabledUids }
-            .toSet()
+        val types = activeWalletTypesIn(effectiveMonitoredChains.chains())
         if (types.isEmpty()) return
         resetBaseline(types)
     }
@@ -110,11 +104,7 @@ class TransactionMonitor(
      * WorkManager-driven polling — each worker invocation is one cycle.
      */
     suspend fun pollOnce() {
-        val enabledUids = localStorage.pushEnabledBlockchainUids
-        val types = walletManager.activeWallets
-            .map { it.token.blockchainType }
-            .filter { it.uid in enabledUids }
-            .toSet()
+        val types = activeWalletTypesIn(effectiveMonitoredChains.chains())
         if (types.isEmpty()) return
 
         val wallets = walletManager.activeWallets
@@ -122,6 +112,12 @@ class TransactionMonitor(
         Timber.tag("TxMonitor").d("pollOnce returned %d records", records.size)
         processRecords(records)
     }
+
+    private fun activeWalletTypesIn(effectiveTypes: Set<BlockchainType>): Set<BlockchainType> =
+        walletManager.activeWallets
+            .map { it.token.blockchainType }
+            .filter { it in effectiveTypes }
+            .toSet()
 
     private fun resetBaseline(types: Set<BlockchainType>) {
         val now = System.currentTimeMillis() / 1000

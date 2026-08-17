@@ -5,6 +5,8 @@ import cash.p.terminal.core.managers.TonHelper
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.multiswap.providers.UnstoppableProvider
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.availabilityFor
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -24,10 +26,12 @@ import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.ColorName
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 
 class TransactionInfoViewItemFactory(
-    private val resendEnabled: Boolean,
+    private val offlineOperationGate: OfflineOperationGate,
+    private val wallet: Wallet?,
     private val blockchainType: BlockchainType,
 ) {
     fun getViewItemSections(transactionItem: TransactionInfoItem): List<List<TransactionInfoViewItem>> {
@@ -735,46 +739,37 @@ class TransactionInfoViewItemFactory(
         )
         itemSections.add(statusItems.withOfflineStatus(transactionItem.offlineStatus))
 
-        if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected &&
-            status == TransactionStatus.Pending && resendEnabled) {
-            itemSections.add(
-                listOf(
-                    SpeedUpCancel(
-                        transactionHash = transaction.transactionHash,
-                        blockchainType = transaction.blockchainType
-                    )
-                )
+        val canResend = (
+            transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected &&
+                status == TransactionStatus.Pending
+            ) || (
+            transaction is BitcoinTransactionRecord &&
+                transaction.transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING &&
+                transaction.replaceable
             )
-            itemSections.add(
-                listOf(
-                    TransactionInfoViewItem.Description(
-                        Translator.getString(
-                            R.string.TransactionInfo_SpeedUpDescription
+        if (canResend) {
+            val resendAvailability = offlineOperationGate.availabilityFor(wallet, blockchainType.resendable)
+            if (resendAvailability.clickable) {
+                itemSections.add(
+                    listOf(
+                        SpeedUpCancel(
+                            transactionHash = transaction.transactionHash,
+                            blockchainType = transaction.blockchainType,
+                            availability = resendAvailability,
+                            wallet = wallet,
                         )
                     )
                 )
-            )
-        } else if (transaction is BitcoinTransactionRecord &&
-            transaction.transactionRecordType == TransactionRecordType.BITCOIN_OUTGOING &&
-            transaction.replaceable && resendEnabled
-        ) {
-            itemSections.add(
-                listOf(
-                    SpeedUpCancel(
-                        transactionHash = transaction.transactionHash,
-                        blockchainType = transaction.blockchainType
-                    )
-                )
-            )
-            itemSections.add(
-                listOf(
-                    TransactionInfoViewItem.Description(
-                        Translator.getString(
-                            R.string.TransactionInfo_SpeedUpDescription
+                itemSections.add(
+                    listOf(
+                        TransactionInfoViewItem.Description(
+                            Translator.getString(
+                                R.string.TransactionInfo_SpeedUpDescription
+                            )
                         )
                     )
                 )
-            )
+            }
         }
         if (transactionItem.record.transactionHash.isNotEmpty() && transactionItem.explorerData.isNotEmpty()) {
             val explorerItems = TransactionViewItemFactoryHelper.getExplorerSectionItems(transactionItem.explorerData)

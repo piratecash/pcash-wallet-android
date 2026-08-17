@@ -19,6 +19,8 @@ import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.UnsupportedFilterException
 import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.OfflineModeManager
+import cash.p.terminal.core.managers.isNetworkPaused
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.OfflineTransactionOutpoint
@@ -76,6 +78,7 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,9 +112,13 @@ abstract class BitcoinBaseAdapter(
     private val networkErrorTracker: NetworkErrorTracker
             by inject(NetworkErrorTracker::class.java)
 
+    private val offlineModeManager: OfflineModeManager
+            by inject(OfflineModeManager::class.java)
+
     private val pollingSessionCount = AtomicInteger(0)
 
     protected val scope = CoroutineScope(Dispatchers.Default)
+    private var feeJob: Job? = null
 
     // Fee state
     private val _fee = MutableStateFlow(BigDecimal.ZERO)
@@ -278,10 +285,10 @@ abstract class BitcoinBaseAdapter(
     private val balanceNotRelayed: BigDecimal
         get() = satoshiToBTC(kit.balance.unspendableNotRelayed)
 
-    override fun start() {
+    override fun attachLocalData() {
         // Installed here (not in an init block): `kit` is an overridden open val whose
         // subclass backing field is still null during base-class construction, so touching
-        // it from init would NPE. By start() the kit is fully constructed, and network
+        // it from init would NPE. By this point the kit is fully constructed, and network
         // errors can only occur once syncing has begun.
         kit.networkErrorListener = BitcoinNetworkErrorListener { error ->
             networkErrorTracker.record(
@@ -290,11 +297,19 @@ abstract class BitcoinBaseAdapter(
                 error.toNetworkErrorInfo()
             )
         }
-        kit.start()
         subscribeToEvents()
-        scope.launch {
+    }
+
+    override fun resumeNetwork() {
+        kit.start()
+        feeJob = scope.launch {
             estimateFeeForMax()
         }
+    }
+
+    override fun pauseNetwork() {
+        kit.pauseNetwork()
+        feeJob?.cancel()
     }
 
     override fun stop() {
@@ -308,7 +323,9 @@ abstract class BitcoinBaseAdapter(
 
     fun startForPolling() {
         pollingSessionCount.onPollingStarted {
-            kit.onEnterForeground()
+            if (!offlineModeManager.isNetworkPaused(wallet.account.id, wallet.token.blockchainType)) {
+                kit.onEnterForeground()
+            }
         }
     }
 

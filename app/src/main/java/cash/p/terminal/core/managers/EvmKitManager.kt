@@ -54,6 +54,7 @@ class EvmKitManager(
     private val syncSourceManager: EvmSyncSourceManager,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val offlineModeManager: OfflineModeManager,
 ) {
     private val evmSignerFactory: EvmSignerFactory
             by inject(EvmSignerFactory::class.java)
@@ -193,7 +194,9 @@ class EvmKitManager(
         )
         merkleTransactionAdapter?.registerInKit(evmKit)
 
-        evmKit.start()
+        if (!offlineModeManager.isNetworkPaused(account.id, blockchainType)) {
+            evmKit.start()
+        }
 
         return EvmKitWrapper(
             evmKit = evmKit,
@@ -216,9 +219,13 @@ class EvmKitManager(
 
     suspend fun startForPolling() = lifecycleMutex.withLock {
         pollingSessionCount.onPollingStarted {
-            evmKitWrapper?.evmKit?.let { kit ->
-                kit.start()
-                kit.refresh()
+            val wrapper = evmKitWrapper
+            val account = currentAccount
+            if (wrapper != null &&
+                (account == null || !offlineModeManager.isNetworkPaused(account.id, wrapper.blockchainType))
+            ) {
+                wrapper.evmKit.start()
+                wrapper.evmKit.refresh()
             }
         }
     }
@@ -229,14 +236,34 @@ class EvmKitManager(
         }
     }
 
+    suspend fun pauseNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        evmKitWrapper?.evmKit?.pauseNetwork()
+    }
+
+    suspend fun resumeNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        evmKitWrapper?.evmKit?.let { kit ->
+            kit.start()
+            kit.refresh()
+        }
+    }
+
     private fun subscribeToEvents() {
         job = coroutineScope.launch {
             backgroundManager.stateFlow.collect { state ->
                 if (state == BackgroundManagerState.EnterForeground) {
-                    evmKitWrapper?.evmKit?.let { kit ->
+                    evmKitWrapper?.let { wrapper ->
                         Handler(Looper.getMainLooper()).postDelayed({
-                            kit.start()
-                            kit.refresh()
+                            val account = currentAccount
+                            if (account != null &&
+                                offlineModeManager.isNetworkPaused(account.id, wrapper.blockchainType)
+                            ) {
+                                wrapper.evmKit.attachLocalState()
+                            } else {
+                                wrapper.evmKit.start()
+                                wrapper.evmKit.refresh()
+                            }
                         }, 1000)
                     }
                 } else if (state == BackgroundManagerState.EnterBackground) {

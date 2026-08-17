@@ -12,6 +12,7 @@ import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.ui.DataField
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
@@ -55,6 +56,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository by inject(
         LocallyCreatedTransactionRepository::class.java
     )
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
 
     protected val rate: CurrencyValue?
         get() {
@@ -77,7 +79,16 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     @Composable
     abstract fun GetSettingsContent(navController: NavController)
 
-    abstract suspend fun sendTransaction(mevProtectionEnabled: Boolean = false): SendTransactionResult
+    /**
+     * The last cancellable point before an irreversible signature or broadcast: a flow opened online
+     * must not reach the network if the chain was switched to offline meanwhile.
+     */
+    suspend fun send(mevProtectionEnabled: Boolean = false): SendTransactionResult {
+        offlineOperationGate.requireOnline(wallet)
+        return sendTransaction(mevProtectionEnabled)
+    }
+
+    protected abstract suspend fun sendTransaction(mevProtectionEnabled: Boolean = false): SendTransactionResult
     abstract val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
 
     private fun getRate(coin: Coin): CurrencyValue? {

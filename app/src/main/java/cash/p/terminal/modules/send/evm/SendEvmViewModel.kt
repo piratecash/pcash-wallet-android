@@ -186,7 +186,7 @@ internal class SendEvmViewModel(
 
         viewModelScope.launch(dispatcherProvider.default) {
             sendResult = try {
-                val sendResult = sendTransactionService.sendTransaction()
+                val sendResult = sendTransactionService.send()
                 onSendSuccess(addressState.address?.hex)
                 SendResult.Sent(sendResult.getRecordUid())
             } catch (e: TrezorCancelledException) {

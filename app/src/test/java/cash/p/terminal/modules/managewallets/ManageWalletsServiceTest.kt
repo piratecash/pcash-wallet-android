@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.managewallets
 
 import cash.p.terminal.core.managers.UserDeletedWalletManager
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -8,10 +9,12 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -27,6 +30,9 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManageWalletsServiceTest {
@@ -35,6 +41,7 @@ class ManageWalletsServiceTest {
     private val walletManager = mockk<IWalletManager>(relaxed = true)
     private val restoreSettingsService = mockk<RestoreSettingsService>(relaxed = true)
     private val userDeletedWalletManager = mockk<UserDeletedWalletManager>(relaxed = true)
+    private val offlineModeUseCase = mockk<OfflineModeUseCase>(relaxed = true)
 
     private val approveSettingsSubject =
         PublishSubject.create<RestoreSettingsService.TokenWithSettings>()
@@ -49,6 +56,8 @@ class ManageWalletsServiceTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        stopKoin()
+        startKoin { modules(module { single { offlineModeUseCase } }) }
 
         activeWallets = emptyList()
         activeWalletsFlow.value = activeWallets
@@ -70,6 +79,7 @@ class ManageWalletsServiceTest {
     @After
     fun tearDown() {
         service.clear()
+        stopKoin()
         Dispatchers.resetMain()
     }
 
@@ -91,6 +101,31 @@ class ManageWalletsServiceTest {
             )
         }
     }
+
+    @Test
+    fun disable_lastWalletOfChain_resetsOfflineModeAfterDeletion() = runTest(dispatcher) {
+        val token = bitcoinToken()
+        activeWallets = listOf(wallet(token))
+
+        service.disable(token)
+        advanceUntilIdle()
+
+        coVerifyOrder {
+            walletManager.deleteByTokenQueryIds(account.id, setOf(token.tokenQuery.id))
+            offlineModeUseCase.resetIfBlockchainRemoved(account, BlockchainType.Bitcoin)
+        }
+    }
+
+    private fun bitcoinToken() = Token(
+        coin = Coin(uid = "bitcoin", name = "Bitcoin", code = "BTC"),
+        blockchain = Blockchain(BlockchainType.Bitcoin, "Bitcoin", null),
+        type = TokenType.Derived(TokenType.Derivation.Bip84),
+        decimals = 8
+    )
+
+    private fun wallet(token: Token): Wallet = checkNotNull(
+        WalletFactory(mockk(relaxed = true)).create(token, account, null)
+    )
 
     private fun zcashTokens(): List<Token> {
         val coin = Coin(uid = "zcash", name = "Zcash", code = "ZEC")

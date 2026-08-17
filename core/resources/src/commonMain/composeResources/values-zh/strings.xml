@@ -767,6 +767,32 @@
     <string name="address_poisoning_view_suspicious">可疑交易</string>
     <string name="address_poisoning_view_address_book">地址在通讯录中</string>
     <string name="address_poisoning_view_blockchain">从区块链接收</string>
+
+    <string name="offline_mode_title">离线模式</string>
+    <string name="offline_mode_settings_description">停止区块链同步。将影响整个 %1$s 网络 — %2$s</string>
+    <string name="offline_mode_settings_assets_more">其他 %1$s</string>
+    <string name="offline_mode_info_title">离线模式</string>
+    <string name="offline_mode_info_description">区块链同步将停止，显示最近获取的数据。</string>
+    <string name="offline_mode_info_price">价格仍会持续更新</string>
+    <string name="offline_mode_info_history">交易记录会保留</string>
+    <string name="offline_mode_info_no_new_tx">不会加载新交易</string>
+    <string name="offline_mode_info_no_send">离线模式下无法发送</string>
+    <string name="offline_mode_confirm_title">离线模式影响整个网络</string>
+    <string name="offline_mode_confirm_description">%1$s 作为整体进行同步，网络中的所有资产都将转为离线：</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash 在同一个钱包中使用三种地址 — transparent、unified 和 shielded。它们共用同一套同步，因此离线模式会同时对三者生效：</string>
+    <string name="offline_mode_confirm_button">将整个网络转为离线</string>
+    <string name="offline_mode_go_online_failed">无法切换到在线。请重试。</string>
+    <string name="offline_mode_go_offline_failed">无法切换到离线。请重试。</string>
+    <string name="offline_mode_state_degraded">网络中的部分资产未切换。请重试。</string>
+    <string name="offline_mode_active_title">离线模式已开启</string>
+    <string name="offline_mode_active_description">自 %1$s 起区块链数据未更新。价格为最新。</string>
+    <string name="offline_mode_go_online">恢复在线</string>
+    <string name="offline_mode_badge">离线</string>
+    <string name="offline_mode_blocked_title">网络处于离线模式</string>
+    <string name="offline_mode_blocked_description">%1$s 处于离线模式。请切换到在线以继续。</string>
+    <string name="offline_mode_operation_blocked">%1$s 网络处于离线模式</string>
+    <string name="offline_mode_asset_added">已在离线模式下添加 %1$s（%2$s）</string>
+
     <string name="Button_GotIt">知道了</string>
     <string name="transaction_statuses_title">交易状态</string>
     <string name="transaction_statuses_description">您历史记录中的每笔交易都会根据风险分析系统分配一个状态。\n这有助于识别潜在的欺诈操作，并降低向虚假地址发送资金的风险。</string>

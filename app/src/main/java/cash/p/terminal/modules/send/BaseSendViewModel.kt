@@ -27,6 +27,7 @@ import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.ui_compose.components.HudHelper
 import android.os.SystemClock
 import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.send.offline.isWithinSyncGrace
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Job
@@ -51,6 +52,7 @@ abstract class BaseSendViewModel<T>(
         LocallyCreatedTransactionRepository::class.java
     )
     private val connectivityManager: IConnectivityManager by inject(IConnectivityManager::class.java)
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
 
     var isSynced by mutableStateOf(true)
         private set
@@ -70,7 +72,8 @@ abstract class BaseSendViewModel<T>(
     private var graceTimerJob: Job? = null
 
     val isEffectivelySynced: Boolean
-        get() = (isSynced && connectivityManager.isConnected.value) || syncGraceActive
+        get() = ((isSynced && connectivityManager.isConnected.value) || syncGraceActive) &&
+            !offlineOperationGate.isBlocked(wallet)
 
     /** Observable connectivity, so send flows can react to reconnection. */
     protected val isConnectedFlow: StateFlow<Boolean>

@@ -12,14 +12,21 @@ import cash.p.terminal.core.managers.EvmKitWrapper
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.availabilityFor
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.modules.sendevmtransaction.SectionViewItem
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionViewItemFactory
+import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.ethereumkit.core.hexStringToByteArray
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 
 // import java.math.BigInteger // MOBILE-593
 
@@ -28,8 +35,12 @@ internal class TransactionSpeedUpCancelViewModel(
     private val transactionHash: String,
     private val evmKitWrapper: EvmKitWrapper,
     private val optionType: SpeedUpCancelType,
-    private val sendEvmTransactionViewItemFactory: SendEvmTransactionViewItemFactory
+    private val sendEvmTransactionViewItemFactory: SendEvmTransactionViewItemFactory,
+    private val offlineOperationGate: OfflineOperationGate,
+    walletManager: IWalletManager,
 ) : ViewModelUiState<TransactionSpeedUpCancelUiState>() {
+
+    val wallet: Wallet? = walletManager.walletFor(evmKitWrapper.blockchainType)
 
     val title: String = when (optionType) {
         SpeedUpCancelType.SpeedUp -> Translator.getString(
@@ -53,7 +64,10 @@ internal class TransactionSpeedUpCancelViewModel(
         sendTransactionState = sendTransactionState,
         sectionViewItems = sectionViewItems,
         error = error,
-        sendEnabled = error == null && sendTransactionState.sendable
+        sendAvailability = offlineOperationGate.availabilityFor(
+            wallet,
+            error == null && sendTransactionState.sendable
+        )
     )
 
     init {
@@ -113,7 +127,7 @@ internal class TransactionSpeedUpCancelViewModel(
     }
 
     suspend fun send() = withContext(Dispatchers.Default) {
-        sendTransactionService.sendTransaction()
+        sendTransactionService.send()
     }
 
     class Factory(
@@ -142,12 +156,17 @@ internal class TransactionSpeedUpCancelViewModel(
             val evmKitWrapper =
                 App.evmBlockchainManager.getEvmKitManager(blockchainType).evmKitWrapper!!
 
+            val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+            val walletManager: IWalletManager by inject(IWalletManager::class.java)
+
             return TransactionSpeedUpCancelViewModel(
                 sendTransactionService,
                 transactionHash,
                 evmKitWrapper,
                 optionType,
-                sendEvmTransactionViewItemFactory
+                sendEvmTransactionViewItemFactory,
+                offlineOperationGate,
+                walletManager
             ) as T
         }
     }
@@ -157,7 +176,7 @@ data class TransactionSpeedUpCancelUiState(
     val sendTransactionState: SendTransactionServiceState,
     val sectionViewItems: List<SectionViewItem>,
     val error: Throwable?,
-    val sendEnabled: Boolean
+    val sendAvailability: OperationAvailability
 )
 
 class TransactionAlreadyInBlock : Exception()

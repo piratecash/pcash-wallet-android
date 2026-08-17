@@ -8,6 +8,7 @@ import cash.p.terminal.core.managers.PendingBalanceCalculator
 import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.storage.MoneroFileDao
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
@@ -267,12 +268,14 @@ class DefaultBalanceService private constructor(
         private val userDeletedWalletManager: UserDeletedWalletManager by inject(UserDeletedWalletManager::class.java)
         private val pendingBalanceCalculator: PendingBalanceCalculator by inject(PendingBalanceCalculator::class.java)
         private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
+        private val offlineModeUseCase: OfflineModeUseCase by inject(OfflineModeUseCase::class.java)
 
         fun getInstance(tag: String): DefaultBalanceService {
             return DefaultBalanceService(
                 BalanceActiveWalletRepository(
                     App.walletManager,
                     userDeletedWalletManager,
+                    offlineModeUseCase,
                     App.evmSyncSourceManager
                 ),
                 DefaultBalanceXRateRepository(tag, App.currencyManager, App.marketKit),

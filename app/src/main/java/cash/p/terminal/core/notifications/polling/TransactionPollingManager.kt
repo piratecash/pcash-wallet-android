@@ -33,7 +33,12 @@ class TransactionPollingManager(
                 }
 
                 val blockchains = poller.blockchainTypes.joinToString(", ") { it.uid }
-                val relevantWallets = wallets.filter { it.token.blockchainType in poller.blockchainTypes }
+                // A poller can cover multiple chains (e.g. all UTXO chains); without this
+                // intersection a chain outside blockchainTypes rides along with an online
+                // sibling the poller also handles.
+                val relevantWallets = wallets.filter {
+                    it.token.blockchainType in poller.blockchainTypes && it.token.blockchainType in blockchainTypes
+                }
                 Timber.tag("KeepAlive").d("Poll started: %s", blockchains)
                 try {
                     val records = poller.pollOnce(relevantWallets)

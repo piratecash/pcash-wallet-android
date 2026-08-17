@@ -6,6 +6,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.StackingManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.featureStacking.ui.staking.StackingType
@@ -82,6 +83,7 @@ class TokenBalanceModule {
             )
 
             val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
+            val offlineModeManager: OfflineModeManager = getKoinInstance()
 
             return TokenBalanceViewModel(
                 totalBalance = TotalBalance(
@@ -90,7 +92,7 @@ class TokenBalanceModule {
                 ),
                 wallet = wallet,
                 balanceService = balanceService,
-                balanceViewItemFactory = BalanceViewItemFactory(),
+                balanceViewItemFactory = BalanceViewItemFactory(offlineModeManager),
                 transactionsService = tokenTransactionsService,
                 transactionViewItem2Factory = getKoinInstance(),
                 connectivityManager = App.connectivityManager,
@@ -105,6 +107,7 @@ class TokenBalanceModule {
                 localStorage = App.localStorage,
                 numberFormatter = numberFormatter,
                 contactsRepository = getKoinInstance(),
+                offlineModeManager = offlineModeManager,
             ) as T
         }
     }
@@ -145,5 +148,6 @@ class TokenBalanceModule {
         val searchQuery: String = "",
         val searchScanning: Boolean = false,
         val searchEmptyResult: Boolean = false,
+        val offlineSince: Long? = null,
     )
 }

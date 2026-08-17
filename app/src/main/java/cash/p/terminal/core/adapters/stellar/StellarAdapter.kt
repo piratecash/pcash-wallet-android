@@ -61,7 +61,7 @@ class StellarAdapter(
     override val balanceUpdatedFlow: Flow<Unit>
         get() = balanceUpdatedSubject.asFlow()
 
-    override fun start() {
+    override fun attachLocalData() {
         coroutineScope.launch {
             stellarKit.getBalanceFlow(StellarAsset.Native).collect { balance ->
                 totalBalance = balance?.balance
@@ -76,6 +76,10 @@ class StellarAdapter(
             }
         }
     }
+
+    override fun pauseNetwork() = Unit
+
+    override fun resumeNetwork() = Unit
 
     override fun stop() {
         coroutineScope.cancel()

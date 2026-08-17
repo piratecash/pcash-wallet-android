@@ -68,7 +68,9 @@ internal class Eip20Adapter(
 
     // IAdapter
 
-    override fun start() {
+    override fun attachLocalData() = Unit
+
+    override fun resumeNetwork() {
         // started via EthereumKitManager
         if (!wallet.isStakingWallet()) return
         refreshStaking()
@@ -78,9 +80,13 @@ internal class Eip20Adapter(
         }
     }
 
-    override fun stop() {
+    override fun pauseNetwork() {
         balanceSubscriptionJob?.cancel()
         balanceSubscriptionJob = null
+    }
+
+    override fun stop() {
+        pauseNetwork()
         // stopped via EthereumKitManager
     }
 

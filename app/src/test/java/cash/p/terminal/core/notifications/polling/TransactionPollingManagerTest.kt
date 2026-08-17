@@ -158,4 +158,27 @@ class TransactionPollingManagerTest {
         coVerify { btcPoller.pollOnce(listOf(btcWallet)) }
         coVerify { ethPoller.pollOnce(listOf(ethWallet)) }
     }
+
+    @Test
+    fun pollAll_pollerCoversChainOutsideEffectiveSet_excludesThatChainsWallet() = runTest {
+        // One poller handles both Bitcoin and Litecoin, but only Bitcoin is in the
+        // effective (offline-filtered) set passed in — Litecoin must be excluded
+        // even though the poller technically covers it.
+        val btcWallet = mockWallet(BlockchainType.Bitcoin)
+        val ltcWallet = mockWallet(BlockchainType.Litecoin)
+
+        val utxoPoller = mockk<TransactionsPoller> {
+            every { blockchainTypes } returns setOf(BlockchainType.Bitcoin, BlockchainType.Litecoin)
+            coEvery { pollOnce(any()) } returns emptyList()
+        }
+
+        val manager = TransactionPollingManager(listOf(utxoPoller), backgroundManager)
+
+        manager.pollAll(
+            blockchainTypes = setOf(BlockchainType.Bitcoin),
+            wallets = listOf(btcWallet, ltcWallet),
+        )
+
+        coVerify { utxoPoller.pollOnce(listOf(btcWallet)) }
+    }
 }

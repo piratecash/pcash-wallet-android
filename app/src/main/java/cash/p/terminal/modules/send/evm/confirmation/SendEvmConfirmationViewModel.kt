@@ -63,7 +63,7 @@ internal class SendEvmConfirmationViewModel(
     )
 
     suspend fun send() = withContext(Dispatchers.Default) {
-        sendTransactionService.sendTransaction()
+        sendTransactionService.send()
     }
 
     class Factory(

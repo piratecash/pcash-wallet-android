@@ -6,6 +6,7 @@ import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.wallet.Account
@@ -81,7 +82,8 @@ class TransactionInfoViewItemFactoryTest {
         )
 
         val sections = TransactionInfoViewItemFactory(
-            resendEnabled = false,
+            offlineOperationGate = mockk<OfflineOperationGate>(relaxed = true),
+            wallet = null,
             blockchainType = BlockchainType.Bitcoin,
         ).getViewItemSections(item)
 

@@ -6,6 +6,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -93,6 +94,9 @@ class SendZecOnDuressUseCaseTest {
     @MockK
     private lateinit var accountManager: IAccountManager
 
+    @MockK
+    private lateinit var offlineModeUseCase: OfflineModeUseCase
+
     @MockK(relaxed = true)
     private lateinit var locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository
 
@@ -104,6 +108,9 @@ class SendZecOnDuressUseCaseTest {
         MockKAnnotations.init(this, relaxUnitFun = true)
         testScope = TestScope()
         every { dispatcherProvider.applicationScope } returns testScope
+        coEvery { offlineModeUseCase.withTemporaryOnline<Any?>(any(), any(), any()) } coAnswers {
+            thirdArg<suspend () -> Any?>().invoke()
+        }
         startKoin {
             modules(
                 module {
@@ -126,6 +133,7 @@ class SendZecOnDuressUseCaseTest {
             walletFactory = walletFactory,
             clearZCashWalletDataUseCase = clearZCashWalletDataUseCase,
             accountManager = accountManager,
+            offlineModeUseCase = offlineModeUseCase,
         )
     }
 

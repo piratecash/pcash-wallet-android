@@ -6,6 +6,8 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.entities.TransactionValue
@@ -15,9 +17,11 @@ import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.zcashMnemonicAccount
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.Currency
@@ -59,6 +63,9 @@ class TransactionMonitorTest {
     private val currencyManager = mockk<CurrencyManager>(relaxed = true)
     private val numberFormatter = mockk<IAppNumberFormatter>(relaxed = true)
     private val pollingManager = mockk<TransactionPollingManager>(relaxed = true)
+    private val accountManager = mockk<IAccountManager>(relaxed = true)
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+    private val effectiveMonitoredChains = EffectiveMonitoredChains(localStorage, accountManager, offlineModeManager)
 
     private val bitcoinBlockchain = Blockchain(BlockchainType.Bitcoin, "Bitcoin", null)
     private val bitcoinSource = mockk<TransactionSource> {
@@ -115,6 +122,7 @@ class TransactionMonitorTest {
         }
 
         every { checkPremiumUseCase.getPremiumType() } returns PremiumType.PIRATE
+        every { accountManager.activeAccount } returns zcashMnemonicAccount()
     }
 
     private fun createMonitor() = TransactionMonitor(
@@ -130,6 +138,7 @@ class TransactionMonitorTest {
         currencyManager = currencyManager,
         numberFormatter = numberFormatter,
         pollingManager = pollingManager,
+        effectiveMonitoredChains = effectiveMonitoredChains,
     )
 
 

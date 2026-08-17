@@ -10,6 +10,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
 import cash.p.terminal.core.notifications.TransactionMonitor
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
@@ -18,6 +19,18 @@ import io.horizontalsystems.core.BackgroundManager
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
+
+/** Inputs to [TransactionPollingWorker.evaluateShouldRun], bundled to stay under the parameter-count limit. */
+internal data class ShouldRunGateInputs(
+    val inForeground: Boolean,
+    val interval: PollingInterval,
+    val fallbackActive: Boolean,
+    val isPremium: Boolean,
+    val pushNotificationsEnabled: Boolean,
+    val hasChainsToPoll: Boolean,
+    val hasNotificationPermission: Boolean,
+    val isTransactionChannelEnabled: Boolean,
+)
 
 /**
  * Drives interval-based push notifications via WorkManager. One worker invocation
@@ -35,6 +48,7 @@ class TransactionPollingWorker(
     private val notificationManager: TransactionNotificationManager by lazy { getKoinInstance() }
     private val localStorage: ILocalStorage by lazy { getKoinInstance() }
     private val backgroundManager: BackgroundManager by lazy { getKoinInstance() }
+    private val effectiveMonitoredChains: EffectiveMonitoredChains by lazy { getKoinInstance() }
 
     override suspend fun doWork(): Result {
         if (!shouldRun()) {
@@ -59,22 +73,18 @@ class TransactionPollingWorker(
         return Result.success()
     }
 
-    private fun shouldRun(): Boolean {
-        // Foreground means the coordinator owns lifecycle; orphan chain must die.
-        if (backgroundManager.inForeground) return false
-        val interval = localStorage.pushPollingInterval
-        return shouldRunForInterval(interval) &&
-            checkPremiumUseCase.getPremiumType().isPremium() &&
-            localStorage.pushNotificationsEnabled &&
-            localStorage.pushEnabledBlockchainUids.isNotEmpty() &&
-            notificationManager.hasNotificationPermission() &&
-            notificationManager.isTransactionChannelEnabled()
-    }
-
-    private fun shouldRunForInterval(interval: PollingInterval): Boolean {
-        return interval != PollingInterval.REALTIME ||
-            localStorage.pushRealtimeFallbackPollingActive
-    }
+    private fun shouldRun(): Boolean = evaluateShouldRun(
+        ShouldRunGateInputs(
+            inForeground = backgroundManager.inForeground,
+            interval = localStorage.pushPollingInterval,
+            fallbackActive = localStorage.pushRealtimeFallbackPollingActive,
+            isPremium = checkPremiumUseCase.getPremiumType().isPremium(),
+            pushNotificationsEnabled = localStorage.pushNotificationsEnabled,
+            hasChainsToPoll = effectiveMonitoredChains.chains().isNotEmpty(),
+            hasNotificationPermission = notificationManager.hasNotificationPermission(),
+            isTransactionChannelEnabled = notificationManager.isTransactionChannelEnabled(),
+        )
+    )
 
     private fun currentIntervalMinutes(): Long {
         val interval = localStorage.pushPollingInterval
@@ -92,6 +102,22 @@ class TransactionPollingWorker(
         val FALLBACK_INTERVAL_MINUTES: Long = PollingInterval.MIN_5.minutes
 
         private const val UNIQUE_WORK_NAME = "transaction_polling_worker"
+
+        /**
+         * Pure gating logic extracted from [shouldRun] so it is unit-testable without a
+         * WorkManager test harness. Foreground means the coordinator owns lifecycle; an
+         * orphan chain must die.
+         */
+        internal fun evaluateShouldRun(inputs: ShouldRunGateInputs): Boolean = with(inputs) {
+            if (inForeground) return false
+            val intervalAllows = interval != PollingInterval.REALTIME || fallbackActive
+            return intervalAllows &&
+                isPremium &&
+                pushNotificationsEnabled &&
+                hasChainsToPoll &&
+                hasNotificationPermission &&
+                isTransactionChannelEnabled
+        }
 
         /**
          * External entry point: fresh chain or restart with new interval.
@@ -113,7 +139,7 @@ class TransactionPollingWorker(
         /**
          * Activates the FGS-timeout fallback: flips the persistence flag, then
          * enqueues the chain at the fallback interval. The flag MUST flip before
-         * enqueue — the worker reads it in shouldRunForInterval and would
+         * enqueue — the worker reads it in evaluateShouldRun and would
          * self-cancel on the first cycle when interval == REALTIME otherwise.
          * On enqueue failure the flag is rolled back so the next background
          * transition can retry from a clean state.

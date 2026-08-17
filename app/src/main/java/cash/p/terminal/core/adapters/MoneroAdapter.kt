@@ -69,7 +69,9 @@ class MoneroAdapter(
 
     // IAdapter
 
-    override fun start() {
+    override fun attachLocalData() = Unit
+
+    override fun resumeNetwork() {
         collectJob?.cancel()
         collectJob = coroutineScope.launch {
             moneroKitWrapper.syncState.collect { state ->
@@ -80,9 +82,13 @@ class MoneroAdapter(
         }
     }
 
-    override fun stop() {
+    override fun pauseNetwork() {
         collectJob?.cancel()
         collectJob = null
+    }
+
+    override fun stop() {
+        pauseNetwork()
     }
 
     private suspend fun estimateFeeForMax() {

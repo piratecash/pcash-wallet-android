@@ -80,6 +80,7 @@ import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SearchField
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
@@ -238,6 +239,19 @@ internal fun ManageWalletsScreen(
         LaunchedEffect(manageWalletsCallback.errorMsg) {
             manageWalletsCallback.errorMsg?.let {
                 HudHelper.showErrorMessage(context, it)
+            }
+        }
+
+        LaunchedEffect(manageWalletsCallback.offlineNoticeMsg) {
+            manageWalletsCallback.offlineNoticeMsg?.let {
+                HudHelper.showMessage(
+                    contentView = context,
+                    text = it,
+                    duration = SnackbarDuration.LONG,
+                    icon = R.drawable.ic_offline_16,
+                    iconTint = R.color.white,
+                )
+                manageWalletsCallback.onOfflineNoticeShown()
             }
         }
 
@@ -580,8 +594,10 @@ private fun ManageWalletsScreenPreview() {
                 override val showScanToAddButton = false
                 override val hardwareActionButtonText = ""
                 override val errorMsg: String? = null
+                override val offlineNoticeMsg: String? = null
                 override val closeScreen: Boolean = false
                 override fun updateFilter(text: String) = Unit
+                override fun onOfflineNoticeShown() = Unit
                 override fun enable(token: Token) = Unit
                 override fun disable(token: Token) = Unit
                 override fun toggleGroupExpansion(coinUid: String) = Unit

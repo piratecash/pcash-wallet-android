@@ -3,10 +3,12 @@ package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.R
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import java.util.Date
 
@@ -81,8 +83,12 @@ sealed class TransactionInfoViewItem {
 
     object SentToSelf : TransactionInfoViewItem()
 
-    class SpeedUpCancel(val transactionHash: String, val blockchainType: BlockchainType) :
-        TransactionInfoViewItem()
+    class SpeedUpCancel(
+        val transactionHash: String,
+        val blockchainType: BlockchainType,
+        val availability: OperationAvailability,
+        val wallet: Wallet?,
+    ) : TransactionInfoViewItem()
 
     class WarningMessage(val message: String) : TransactionInfoViewItem()
 

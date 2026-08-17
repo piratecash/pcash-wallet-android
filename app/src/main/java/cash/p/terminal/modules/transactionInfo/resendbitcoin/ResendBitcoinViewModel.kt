@@ -12,6 +12,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.SendWarningRiskOfGettingStuck
 import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
@@ -42,6 +43,7 @@ class ResendBitcoinViewModel(
     private val feeRateProvider: IFeeRateProvider,
     private val xRateService: XRateService,
     private val contactsRepo: ContactsRepository,
+    private val offlineOperationGate: OfflineOperationGate,
 ) : ViewModelUiState<ResendBitcoinUiState>() {
 
     private val titleResId: Int
@@ -210,34 +212,33 @@ class ResendBitcoinViewModel(
         }
     }
 
-    private fun send() {
+    private suspend fun send() {
         val replacementTransaction = replacementTransaction ?: return
+        val logger = logger.getScopedUnique()
+        logger.info("click")
 
-        viewModelScope.launch {
-            val logger = logger.getScopedUnique()
-            logger.info("click")
+        try {
+            offlineOperationGate.requireOnline(adapter.wallet)
 
-            try {
-                sendResult = SendResult.Sending
-                emitState()
+            sendResult = SendResult.Sending
+            emitState()
 
-                val fullTransaction = adapter.send(replacementTransaction)
-                val txHash = fullTransaction.header.uid
+            val fullTransaction = adapter.send(replacementTransaction)
+            val txHash = fullTransaction.header.uid
 
-                val isQueued = adapter.isTransactionInSendQueue(txHash)
-                logger.info("success, queued=$isQueued")
+            val isQueued = adapter.isTransactionInSendQueue(txHash)
+            logger.info("success, queued=$isQueued")
 
-                sendResult = if (isQueued) {
-                    SendResult.SentButQueued(txHash)
-                } else {
-                    SendResult.Sent(txHash)
-                }
-                emitState()
-            } catch (e: Throwable) {
-                logger.warning("failed", e)
-                sendResult = SendResult.Failed(createCaution(e))
-                emitState()
+            sendResult = if (isQueued) {
+                SendResult.SentButQueued(txHash)
+            } else {
+                SendResult.Sent(txHash)
             }
+            emitState()
+        } catch (e: Throwable) {
+            logger.warning("failed", e)
+            sendResult = SendResult.Failed(createCaution(e))
+            emitState()
         }
     }
 

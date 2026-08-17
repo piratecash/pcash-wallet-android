@@ -770,6 +770,32 @@
     <string name="address_poisoning_view_suspicious">معاملة مشبوهة</string>
     <string name="address_poisoning_view_address_book">العنوان موجود في دفتر العناوين</string>
     <string name="address_poisoning_view_blockchain">تم الاستلام من البلوكتشين</string>
+
+    <string name="offline_mode_title">وضع عدم الاتصال</string>
+    <string name="offline_mode_settings_description">إيقاف مزامنة البلوكتشين. يؤثر على شبكة %1$s بالكامل — %2$s</string>
+    <string name="offline_mode_settings_assets_more">%1$s أخرى</string>
+    <string name="offline_mode_info_title">وضع عدم الاتصال</string>
+    <string name="offline_mode_info_description">ستتوقف مزامنة البلوكتشين. يتم عرض آخر البيانات المتاحة.</string>
+    <string name="offline_mode_info_price">يستمر تحديث السعر</string>
+    <string name="offline_mode_info_history">يتم الاحتفاظ بسجل المعاملات</string>
+    <string name="offline_mode_info_no_new_tx">لا يتم تحميل معاملات جديدة</string>
+    <string name="offline_mode_info_no_send">الإرسال غير متاح في وضع عدم الاتصال</string>
+    <string name="offline_mode_confirm_title">وضع عدم الاتصال يؤثر على الشبكة بالكامل</string>
+    <string name="offline_mode_confirm_description">تتم مزامنة %1$s ككل. ستنتقل جميع أصول الشبكة إلى وضع عدم الاتصال:</string>
+    <string name="offline_mode_confirm_description_zcash">تستخدم Zcash ثلاثة عناوين ضمن محفظة واحدة — transparent وunified وshielded. تتشارك المزامنة نفسها، لذلك يتم تفعيل وضع عدم الاتصال لها جميعًا في الوقت نفسه:</string>
+    <string name="offline_mode_confirm_button">نقل الشبكة بالكامل إلى وضع عدم الاتصال</string>
+    <string name="offline_mode_go_online_failed">تعذّر الاتصال بالإنترنت. يرجى المحاولة مرة أخرى.</string>
+    <string name="offline_mode_go_offline_failed">تعذّر التبديل إلى وضع عدم الاتصال. يرجى المحاولة مرة أخرى.</string>
+    <string name="offline_mode_state_degraded">لم يتم تبديل بعض أصول الشبكة. يرجى المحاولة مرة أخرى.</string>
+    <string name="offline_mode_active_title">وضع عدم الاتصال مُفعَّل</string>
+    <string name="offline_mode_active_description">لم يتم تحديث بيانات البلوكشين منذ %1$s. السعر محدَّث.</string>
+    <string name="offline_mode_go_online">الاتصال بالإنترنت</string>
+    <string name="offline_mode_badge">غير متصل</string>
+    <string name="offline_mode_blocked_title">الشبكة في وضع عدم الاتصال</string>
+    <string name="offline_mode_blocked_description">%1$s في وضع عدم الاتصال. انتقل إلى وضع الاتصال للمتابعة.</string>
+    <string name="offline_mode_operation_blocked">شبكة %1$s في وضع عدم الاتصال</string>
+    <string name="offline_mode_asset_added">تمت إضافة %1$s (%2$s) في وضع عدم الاتصال</string>
+
     <string name="Button_GotIt">فهمت</string>
     <string name="transaction_statuses_title">حالات المعاملات</string>
     <string name="transaction_statuses_description">يتم تعيين حالة لكل معاملة في سجلك بناءً على نظام تحليل المخاطر.\nيساعد هذا في تحديد العمليات الاحتيالية المحتملة وتقليل مخاطر إرسال الأموال إلى عناوين مزيفة.</string>

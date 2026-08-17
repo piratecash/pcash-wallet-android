@@ -47,6 +47,8 @@ import cash.p.terminal.modules.contacts.ContactsModule
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.info.TransactionDoubleSpendInfoFragment
 import cash.p.terminal.modules.info.TransactionLockTimeInfoFragment
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.rememberOfflineGatedAction
 import cash.p.terminal.modules.transactionInfo.AmountType
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem
 import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
@@ -94,6 +96,7 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
 
@@ -672,17 +675,23 @@ fun TransactionInfoOfflineStatusCell(
 fun TransactionInfoSpeedUpCell(
     transactionHash: String,
     blockchainType: BlockchainType,
+    availability: OperationAvailability,
+    wallet: Wallet?,
     navController: NavController
 ) {
+    val offlineGatedAction = rememberOfflineGatedAction(wallet)
+
     RowUniversal(
         modifier = Modifier.padding(horizontal = 16.dp),
         onClick = {
-            openTransactionOptionsModule(
-                SpeedUpCancelType.SpeedUp,
-                transactionHash,
-                blockchainType,
-                navController
-            )
+            offlineGatedAction.onClick(availability) {
+                openTransactionOptionsModule(
+                    SpeedUpCancelType.SpeedUp,
+                    transactionHash,
+                    blockchainType,
+                    navController
+                )
+            }
         }
     ) {
         Icon(
@@ -693,6 +702,8 @@ fun TransactionInfoSpeedUpCell(
         Spacer(Modifier.width(16.dp))
         body_jacob(text = stringResource(R.string.TransactionInfo_SpeedUp))
     }
+
+    offlineGatedAction.Sheet()
 }
 
 // MOBILE-593

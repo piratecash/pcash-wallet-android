@@ -767,6 +767,32 @@
     <string name="address_poisoning_view_suspicious">transaction suspecte</string>
     <string name="address_poisoning_view_address_book">l\'adresse est dans le carnet</string>
     <string name="address_poisoning_view_blockchain">reçue de la blockchain</string>
+
+    <string name="offline_mode_title">Mode hors ligne</string>
+    <string name="offline_mode_settings_description">Arrêter la synchronisation de la blockchain. Cela affecte tout le réseau %1$s — %2$s</string>
+    <string name="offline_mode_settings_assets_more">%1$s autres</string>
+    <string name="offline_mode_info_title">Mode hors ligne</string>
+    <string name="offline_mode_info_description">La synchronisation de la blockchain va s\'arrêter. Les dernières données disponibles sont affichées.</string>
+    <string name="offline_mode_info_price">Le prix continue d\'être mis à jour</string>
+    <string name="offline_mode_info_history">L\'historique des transactions est conservé</string>
+    <string name="offline_mode_info_no_new_tx">Les nouvelles transactions ne sont pas chargées</string>
+    <string name="offline_mode_info_no_send">L\'envoi est indisponible en mode hors ligne</string>
+    <string name="offline_mode_confirm_title">Le mode hors ligne affecte tout le réseau</string>
+    <string name="offline_mode_confirm_description">%1$s est synchronisé dans son ensemble. Tous les actifs du réseau passeront hors ligne :</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash utilise trois adresses au sein d\'un même portefeuille — transparent, unified et shielded. Elles partagent la même synchronisation, le mode hors ligne s\'active donc pour toutes en même temps :</string>
+    <string name="offline_mode_confirm_button">Mettre tout le réseau hors ligne</string>
+    <string name="offline_mode_go_online_failed">Impossible de repasser en ligne. Veuillez réessayer.</string>
+    <string name="offline_mode_go_offline_failed">Impossible de passer hors ligne. Veuillez réessayer.</string>
+    <string name="offline_mode_state_degraded">Certains actifs du réseau n\'ont pas été basculés. Veuillez réessayer.</string>
+    <string name="offline_mode_active_title">Le mode hors ligne est activé</string>
+    <string name="offline_mode_active_description">Les données de la blockchain ne sont plus mises à jour depuis %1$s. Le prix est à jour.</string>
+    <string name="offline_mode_go_online">Repasser en ligne</string>
+    <string name="offline_mode_badge">Hors ligne</string>
+    <string name="offline_mode_blocked_title">Le réseau est hors ligne</string>
+    <string name="offline_mode_blocked_description">%1$s est en mode hors ligne. Repassez en ligne pour continuer.</string>
+    <string name="offline_mode_operation_blocked">Le réseau %1$s est hors ligne</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) ajouté en mode hors ligne</string>
+
     <string name="Button_GotIt">Compris</string>
     <string name="transaction_statuses_title">Statuts des transactions</string>
     <string name="transaction_statuses_description">Chaque transaction de votre historique se voit attribuer un statut basé sur un système d\'analyse des risques.\nCela permet d\'identifier les opérations potentiellement frauduleuses et de réduire le risque d\'envoyer des fonds à de fausses adresses.</string>

@@ -40,9 +40,13 @@ class Trc20Adapter(
 
     // IAdapter
 
-    override fun start() {
+    override fun attachLocalData() {
         // started via TronKitManager
     }
+
+    override fun pauseNetwork() = Unit
+
+    override fun resumeNetwork() = Unit
 
     override fun stop() {
         // stopped via TronKitManager

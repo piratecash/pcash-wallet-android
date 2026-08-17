@@ -80,6 +80,8 @@ import cash.p.terminal.modules.balance.ui.FlipHiddenBalanceInfoHost
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
+import cash.p.terminal.modules.offline.OfflineBlockedBottomSheet
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -140,6 +142,8 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
+import io.horizontalsystems.core.helpers.DateHelper
+import java.util.Date
 
 private const val HEADER_CONTENT_TYPE = "token_balance_sticky_header"
 private const val PLACEHOLDER_CONTENT_TYPE = "token_balance_empty_placeholder"
@@ -159,7 +163,8 @@ fun TokenBalanceScreen(
     onShowAllTransactionsClicked: () -> Unit,
     onClickSubtitle: () -> Unit,
     onRefresh: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onGoOnline: () -> Unit,
 ) {
     val view = LocalView.current
     TokenBalanceScreenContent(
@@ -207,6 +212,7 @@ fun TokenBalanceScreen(
         onClickSubtitle = onClickSubtitle,
         onRefresh = onRefresh,
         onSettingsClick = onSettingsClick,
+        onGoOnline = onGoOnline,
     )
 }
 
@@ -238,6 +244,7 @@ private fun TokenBalanceScreenContent(
     onClickSubtitle: () -> Unit,
     onRefresh: () -> Unit,
     onSettingsClick: () -> Unit,
+    onGoOnline: () -> Unit,
 ) {
     val view = LocalView.current
 
@@ -406,6 +413,7 @@ private fun TokenBalanceScreenContent(
         // Opening search auto-focuses the field and shows the keyboard
         val searchHeaderIndex = 1 +
                 (if (failedIconVisible) 1 else 0) +
+                (if (uiState.offlineSince != null) 1 else 0) +
                 (if (uiState.showAmlPromo) 1 else 0)
         LaunchedEffect(uiState.searchActive, searchHeaderIndex) {
             if (uiState.searchActive && listState.firstVisibleItemIndex < searchHeaderIndex) {
@@ -452,6 +460,15 @@ private fun TokenBalanceScreenContent(
                                     }
                                 },
                                 onRetry = onRefresh,
+                            )
+                        }
+                    }
+
+                    uiState.offlineSince?.let { offlineSince ->
+                        item {
+                            TokenOfflineSection(
+                                offlineSince = offlineSince,
+                                onGoOnline = onGoOnline,
                             )
                         }
                     }
@@ -1129,6 +1146,52 @@ private fun TokenNotSyncedSectionPreview() {
     }
 }
 
+@Composable
+private fun TokenOfflineSection(
+    offlineSince: Long,
+    onGoOnline: () -> Unit,
+) {
+    TextImportant(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        title = stringResource(R.string.offline_mode_active_title),
+        icon = R.drawable.ic_attention_24,
+        borderColor = ComposeAppTheme.colors.steel20,
+        backgroundColor = ComposeAppTheme.colors.lawrence,
+        textColor = ComposeAppTheme.colors.leah,
+        iconColor = ComposeAppTheme.colors.grey,
+    ) {
+        subhead2_grey(
+            text = stringResource(
+                R.string.offline_mode_active_description,
+                DateHelper.getDayAndTime(Date(offlineSince))
+            )
+        )
+        ButtonSecondary(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onGoOnline,
+            border = BorderStroke(1.dp, ComposeAppTheme.colors.steel20),
+            buttonColors = SecondaryButtonDefaults.buttonColors(
+                backgroundColor = ComposeAppTheme.colors.transparent,
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+            content = {
+                subhead1_leah(text = stringResource(R.string.offline_mode_go_online))
+            }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun TokenOfflineSectionPreview() {
+    ComposeAppTheme {
+        TokenOfflineSection(
+            offlineSince = Date().time,
+            onGoOnline = {},
+        )
+    }
+}
+
 // Never auto-open the wallet sync-error sheet while the app is locked: it lives in its
 // own Window and would leak wallet UI above the calculator/PIN disguise (deanonymization).
 internal fun shouldAutoShowSyncError(failedIconVisible: Boolean, appLocked: Boolean): Boolean =
@@ -1181,6 +1244,11 @@ private fun ButtonsRow(
     onStackingClicked: () -> Unit,
     isShowShieldFunds: Boolean
 ) {
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val onOperationClick = { availability: OperationAvailability, action: () -> Unit ->
+        if (availability == OperationAvailability.BlockedOffline) pendingAction = action else action()
+    }
+
     Row(
         modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
     ) {
@@ -1208,22 +1276,24 @@ private fun ButtonsRow(
                     modifier = Modifier.weight(1f),
                     title = stringResource(R.string.Balance_Send),
                     onClick = {
-                        val sendTitle = Translator.getString(
-                            R.string.Send_Title,
-                            viewItem.wallet.token.fullCoin.coin.code
-                        )
-                        navController.navigate(
-                            MainGraphDirections.actionGlobalToSendFragment(
-                                SendFragment.Input(
-                                    wallet = viewItem.wallet,
-                                    title = sendTitle,
-                                    sendEntryPointDestId = R.id.tokenBalanceFragment,
-                                    prefilledData = PrefilledData(null)
+                        onOperationClick(viewItem.sendAvailability) {
+                            val sendTitle = Translator.getString(
+                                R.string.Send_Title,
+                                viewItem.wallet.token.fullCoin.coin.code
+                            )
+                            navController.navigate(
+                                MainGraphDirections.actionGlobalToSendFragment(
+                                    SendFragment.Input(
+                                        wallet = viewItem.wallet,
+                                        title = sendTitle,
+                                        sendEntryPointDestId = R.id.tokenBalanceFragment,
+                                        prefilledData = PrefilledData(null)
+                                    )
                                 )
                             )
-                        )
+                        }
                     },
-                    enabled = viewItem.sendEnabled
+                    enabled = viewItem.sendAvailability.clickable
                 )
                 HSpacer(8.dp)
             }
@@ -1248,12 +1318,14 @@ private fun ButtonsRow(
                     icon = R.drawable.ic_swap_24,
                     contentDescription = stringResource(R.string.Swap),
                     onClick = {
-                        navController.slideFromRight(
-                            R.id.multiswap,
-                            SwapParams.TOKEN_IN to viewItem.wallet.token
-                        )
+                        onOperationClick(viewItem.swapAvailability) {
+                            navController.slideFromRight(
+                                R.id.multiswap,
+                                SwapParams.TOKEN_IN to viewItem.wallet.token
+                            )
+                        }
                     },
-                    enabled = viewItem.swapEnabled,
+                    enabled = viewItem.swapAvailability.clickable,
                     iconTint = Color.Black,
                     background = Color.White,
                 )
@@ -1287,6 +1359,16 @@ private fun ButtonsRow(
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
+    }
+    pendingAction?.let { action ->
+        OfflineBlockedBottomSheet(
+            wallet = viewItem.wallet,
+            onWentOnline = {
+                pendingAction = null
+                action()
+            },
+            onDismiss = { pendingAction = null },
+        )
     }
 }
 
@@ -1371,6 +1453,7 @@ private fun PreviewTokenBalanceScreenContent(
             onClickSubtitle = {},
             onRefresh = {},
             onSettingsClick = {},
+            onGoOnline = {},
         )
     }
 }
@@ -1404,7 +1487,7 @@ private fun previewBalanceViewItem() = BalanceViewItem(
     exchangeValue = DeemedValue("$1,000.00", visible = false),
     secondaryValue = DeemedValue("$1,234.56"),
     lockedValues = emptyList(),
-    sendEnabled = true,
+    sendAvailability = OperationAvailability.Available,
     syncingProgress = SyncingProgress(null, null),
     syncingTextValue = null,
     syncedUntilTextValue = null,
@@ -1412,7 +1495,7 @@ private fun previewBalanceViewItem() = BalanceViewItem(
     coinIconVisible = true,
     badge = null,
     swapVisible = true,
-    swapEnabled = true,
+    swapAvailability = OperationAvailability.Available,
     errorMessage = null,
     isWatchAccount = false,
     isSendDisabled = false,

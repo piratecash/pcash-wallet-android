@@ -1,7 +1,10 @@
 package cash.p.terminal.modules.balance
 
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
+import cash.p.terminal.core.managers.OfflineKey
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
@@ -28,7 +31,8 @@ import java.math.BigDecimal
 class BalanceViewItemFactoryDisplaySyncStateTest {
 
     private val numberFormatter = mockk<IAppNumberFormatter>()
-    private val factory = BalanceViewItemFactory()
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+    private val factory = BalanceViewItemFactory(offlineModeManager)
     private val currency = Currency("USD", "$", 2, 0)
     private val wallet = WalletFactory.previewWallet()
 
@@ -66,8 +70,8 @@ class BalanceViewItemFactoryDisplaySyncStateTest {
 
         assertTrue(viewItem.failedIconVisible)
         assertEquals(historyError.message, viewItem.errorMessage)
-        assertTrue(viewItem.sendEnabled)
-        assertTrue(viewItem.swapEnabled)
+        assertEquals(OperationAvailability.Available, viewItem.sendAvailability)
+        assertEquals(OperationAvailability.Available, viewItem.swapAvailability)
         assertFalse(viewItem.primaryValue.dimmed)
     }
 
@@ -88,9 +92,47 @@ class BalanceViewItemFactoryDisplaySyncStateTest {
 
         assertTrue(viewItem.failedIconVisible)
         assertEquals(historyError.message, viewItem.errorMessage)
-        assertTrue(viewItem.sendEnabled)
-        assertTrue(viewItem.swapEnabled)
+        assertEquals(OperationAvailability.Available, viewItem.sendAvailability)
+        assertEquals(OperationAvailability.Available, viewItem.swapAvailability)
         assertFalse(viewItem.primaryValue.dimmed)
+    }
+
+    @Test
+    fun viewItem_networkPaused_returnsOfflineStateWithoutSyncIndicators() {
+        every { offlineModeManager.isNetworkPaused(any<OfflineKey>()) } returns true
+
+        val viewItem = factory.viewItem(
+            item = balanceItem(transactionsSyncState = AdapterState.NotSynced(historyError)),
+            currency = currency,
+            hideBalance = false,
+            watchAccount = false,
+            balanceViewType = BalanceViewType.CoinThenFiat,
+            isSwappable = true,
+            displayDiffOptionType = DisplayDiffOptionType.BOTH,
+        )
+
+        assertTrue(viewItem.offline)
+        assertEquals(null, viewItem.syncingTextValue)
+        assertFalse(viewItem.failedIconVisible)
+    }
+
+    @Test
+    fun viewItem_networkNotPaused_keepsPreviousSyncBehavior() {
+        every { offlineModeManager.isNetworkPaused(any<OfflineKey>()) } returns false
+
+        val viewItem = factory.viewItem(
+            item = balanceItem(transactionsSyncState = AdapterState.NotSynced(historyError)),
+            currency = currency,
+            hideBalance = false,
+            watchAccount = false,
+            balanceViewType = BalanceViewType.CoinThenFiat,
+            isSwappable = true,
+            displayDiffOptionType = DisplayDiffOptionType.BOTH,
+        )
+
+        assertFalse(viewItem.offline)
+        assertTrue(viewItem.failedIconVisible)
+        assertEquals(historyError.message, viewItem.errorMessage)
     }
 
     @Test

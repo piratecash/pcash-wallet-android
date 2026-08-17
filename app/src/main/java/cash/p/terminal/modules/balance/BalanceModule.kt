@@ -23,7 +23,7 @@ object BalanceModule {
             )
             return BalanceViewModel(
                 service = DefaultBalanceService.getInstance("wallet"),
-                balanceViewItemFactory = BalanceViewItemFactory(),
+                balanceViewItemFactory = BalanceViewItemFactory(getKoinInstance()),
                 balanceViewTypeManager = App.balanceViewTypeManager,
                 totalBalance = TotalBalance(totalService, getKoinInstance()),
                 localStorage = getKoinInstance(),

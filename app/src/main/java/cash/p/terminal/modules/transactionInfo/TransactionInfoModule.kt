@@ -10,6 +10,8 @@ import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.modules.transactions.NftMetadataService
@@ -18,8 +20,10 @@ import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.ui_compose.ColoredValue
+import cash.p.terminal.wallet.IWalletManager
 import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
+import org.koin.java.KoinJavaComponent.inject
 
 object TransactionInfoModule {
 
@@ -43,8 +47,12 @@ object TransactionInfoModule {
                 transactionStatusUrl = transactionItem.transactionStatusUrl,
                 offlineStatus = transactionItem.offlineStatus,
             )
+            val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+            val walletManager: IWalletManager by inject(IWalletManager::class.java)
+            val wallet = walletManager.walletFor(transactionSource.blockchain.type)
             val factory = TransactionInfoViewItemFactory(
-                transactionSource.blockchain.type.resendable,
+                offlineOperationGate,
+                wallet,
                 transactionSource.blockchain.type
             )
 

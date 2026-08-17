@@ -4,6 +4,7 @@ import android.content.Context
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.wallet.Account
@@ -70,6 +71,7 @@ abstract class ZcashAdapterTestFixture {
     protected val singleUseAddressManager = mockk<ZcashSingleUseAddressManager>(relaxed = true)
     protected val clearZCashWalletDataUseCase = mockk<ClearZCashWalletDataUseCase>(relaxed = true)
     protected val backgroundKeepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
+    protected val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
     protected val restoreSettings = RestoreSettings().apply { birthdayHeight = 2000000L }
 
     protected val statusFlow = MutableStateFlow(Synchronizer.Status.SYNCING)
@@ -94,6 +96,7 @@ abstract class ZcashAdapterTestFixture {
             modules(module {
                 single { clearZCashWalletDataUseCase }
                 single { backgroundKeepAliveManager }
+                single { offlineModeManager }
             })
         }
 
@@ -125,6 +128,17 @@ abstract class ZcashAdapterTestFixture {
             every { allTransactions } returns allTransactionsFlow
             every { coroutineScope } returns appScope
             every { latestHeight } returns null
+            // Mirrors SdkSynchronizer: STOPPED is only published with a non-running lifecycle state.
+            // Relaxed mocks would answer with the first constant (Running) and hide a dead instance.
+            every { lifecycleState } answers {
+                MutableStateFlow(
+                    if (statusFlow.value == Synchronizer.Status.STOPPED) {
+                        Synchronizer.LifecycleState.TerminallyStopped
+                    } else {
+                        Synchronizer.LifecycleState.Running
+                    }
+                )
+            }
         }
         stubSynchronizer()
 

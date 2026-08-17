@@ -5,6 +5,7 @@ import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -68,6 +69,7 @@ class SendTransactionServiceTonSwapTest : KoinTest {
                 single<IAppNumberFormatter> { numberFormatter }
                 single<CurrencyManager> { currencyManager }
                 single<IAccountManager> { accountManager }
+                single<OfflineOperationGate> { mockk(relaxed = true) }
             }
         )
     }
@@ -103,7 +105,7 @@ class SendTransactionServiceTonSwapTest : KoinTest {
         val data = tonSwapData()
         service.setSendTransactionData(data)
 
-        service.sendTransaction()
+        service.send()
 
         val capturedDraft = draftSlot.captured
         assertEquals(data.routerAddress, capturedDraft.toAddress)

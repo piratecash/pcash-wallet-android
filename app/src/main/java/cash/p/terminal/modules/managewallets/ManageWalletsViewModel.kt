@@ -10,6 +10,7 @@ import cash.p.terminal.core.R
 import cash.p.terminal.trezorkit.TrezorNotInitializedException
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
 import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemScanUseCase
@@ -54,6 +55,7 @@ class ManageWalletsViewModel(
     private val fetchTrezorPublicKeys: FetchTrezorPublicKeysUseCase by inject(
         FetchTrezorPublicKeysUseCase::class.java
     )
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
 
     private val _groupsList = MutableStateFlow<List<CoinGroup>>(emptyList())
     override var groupsList: StateFlow<List<CoinGroup>> = _groupsList.asStateFlow()
@@ -76,6 +78,9 @@ class ManageWalletsViewModel(
     override var errorMsg by mutableStateOf<String?>(null)
         private set
 
+    override var offlineNoticeMsg by mutableStateOf<String?>(null)
+        private set
+
     override var closeScreen by mutableStateOf(false)
         private set
 
@@ -95,6 +100,9 @@ class ManageWalletsViewModel(
             service.itemsFlow.collect {
                 sync(it)
             }
+        }
+        viewModelScope.launch {
+            service.enabledTokensFlow.collect(::notifyIfNetworkOffline)
         }
     }
 
@@ -184,6 +192,21 @@ class ManageWalletsViewModel(
             delay(SnackbarDuration.LONG.value.toLong())
             errorMsg = null
         }
+    }
+
+    override fun onOfflineNoticeShown() {
+        offlineNoticeMsg = null
+    }
+
+    private fun notifyIfNetworkOffline(token: Token) {
+        val account = accountManager.activeAccount ?: return
+        if (!offlineOperationGate.isBlocked(account, token.blockchainType)) return
+
+        offlineNoticeMsg = App.instance.getString(
+            R.string.offline_mode_asset_added,
+            token.coin.code,
+            token.blockchain.name
+        )
     }
 
     private fun sync(items: List<ManageWalletsService.Item>) {
@@ -291,9 +314,11 @@ interface ManageWalletsCallback {
     val showScanToAddButton: Boolean
     val hardwareActionButtonText: String
     val errorMsg: String?
+    val offlineNoticeMsg: String?
     val closeScreen: Boolean
 
     fun updateFilter(text: String)
+    fun onOfflineNoticeShown()
     fun enable(token: Token)
     fun disable(token: Token)
     fun toggleGroupExpansion(coinUid: String)

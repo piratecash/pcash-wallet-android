@@ -13,9 +13,15 @@ import cash.p.terminal.modules.eip20allowance.collectSendTransactionServiceState
 import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.FiatService
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
+import cash.p.terminal.modules.offline.availabilityFor
+import cash.p.terminal.modules.offline.walletFor
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
@@ -40,6 +46,10 @@ internal class Eip20RevokeConfirmViewModel(
     private val contactsRepository: ContactsRepository,
     private val dispatcherProvider: DispatcherProvider,
 ) : ViewModelUiState<Eip20RevokeUiState>() {
+    private val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+    private val walletManager: IWalletManager by inject(IWalletManager::class.java)
+
+    val wallet: Wallet? = walletManager.walletFor(token)
     private val currency = currencyManager.baseCurrency
     private val sendTransactionServiceFlow = MutableStateFlow<ISendTransactionService<*>?>(null)
     val sendTransactionService: ISendTransactionService<*>?
@@ -63,7 +73,10 @@ internal class Eip20RevokeConfirmViewModel(
         fiatAmount = fiatAmount,
         spenderAddress = spenderAddress,
         contact = contact,
-        revokeEnabled = !preparing && sendTransactionService != null && sendTransactionState.sendable,
+        revokeAvailability = offlineOperationGate.availabilityFor(
+            wallet,
+            !preparing && sendTransactionService != null && sendTransactionState.sendable
+        ),
         preparing = preparing
     )
 
@@ -127,7 +140,7 @@ internal class Eip20RevokeConfirmViewModel(
 
     suspend fun revoke() = withContext(dispatcherProvider.default) {
         checkNotNull(sendTransactionService) { "Send transaction service is not prepared" }
-            .sendTransaction()
+            .send()
     }
 
     sealed class Event {
@@ -151,7 +164,7 @@ internal class Eip20RevokeConfirmViewModel(
                 currencyManager = App.currencyManager,
                 fiatService = FiatService(getKoinInstance<AssetFiatRateService>()),
                 contactsRepository = App.contactsRepository,
-                dispatcherProvider = dispatcherProvider
+                dispatcherProvider = dispatcherProvider,
             ) as T
         }
     }
@@ -166,6 +179,6 @@ data class Eip20RevokeUiState(
     val fiatAmount: BigDecimal?,
     val spenderAddress: String,
     val contact: Contact?,
-    val revokeEnabled: Boolean,
+    val revokeAvailability: OperationAvailability,
     val preparing: Boolean,
 )

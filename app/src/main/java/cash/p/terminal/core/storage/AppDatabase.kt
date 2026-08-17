@@ -88,11 +88,13 @@ import cash.p.terminal.core.storage.migrations.Migration_110_111
 import cash.p.terminal.core.storage.migrations.Migration_111_112
 import cash.p.terminal.core.storage.migrations.Migration_112_113
 import cash.p.terminal.core.storage.migrations.Migration_113_114
+import cash.p.terminal.core.storage.migrations.Migration_114_115
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.AddressLabel
 import cash.p.terminal.entities.BlockchainSettingRecord
 import cash.p.terminal.entities.EnabledWalletCache
+import cash.p.terminal.entities.OfflineBlockchain
 import cash.p.terminal.entities.PoisonAddress
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.EvmSyncSourceRecord
@@ -129,7 +131,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 114,
+    version = 115,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -165,7 +167,8 @@ import io.horizontalsystems.core.storage.LogsDao
         UserDeletedWallet::class,
         PoisonAddress::class,
         LocallyCreatedTransactionRecord::class,
-        OfflineSignedTransactionEntity::class
+        OfflineSignedTransactionEntity::class,
+        OfflineBlockchain::class
     ]
 )
 @TypeConverters(DatabaseConverters::class)
@@ -200,6 +203,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun poisonAddressDao(): PoisonAddressDao
     abstract fun locallyCreatedTransactionDao(): LocallyCreatedTransactionDao
     abstract fun offlineSignedTransactionDao(): OfflineSignedTransactionDao
+    abstract fun offlineBlockchainDao(): OfflineBlockchainDao
 
     companion object {
 
@@ -299,6 +303,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_111_112,
                     Migration_112_113,
                     Migration_113_114,
+                    Migration_114_115,
                 )
                 .build()
         }

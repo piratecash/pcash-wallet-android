@@ -11,6 +11,7 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.toLocalizedString
+import cash.p.terminal.core.usecase.OfflineModeUseCase
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
@@ -72,6 +73,7 @@ class SendZecOnDuressUseCase(
     private val walletFactory: WalletFactory,
     private val clearZCashWalletDataUseCase: ClearZCashWalletDataUseCase,
     private val accountManager: IAccountManager,
+    private val offlineModeUseCase: OfflineModeUseCase,
 ) {
 
     companion object {
@@ -118,7 +120,16 @@ class SendZecOnDuressUseCase(
             }
         ) {
             try {
-                sendZecTransactionByAccountId(accountId, address, memo)
+                val account = accountsStorage.loadAccount(accountId)
+                if (account == null) {
+                    Timber.w("Account not found for key: $accountId")
+                    return@launch
+                }
+                // The account may not be active and its Zcash kit may be paused/absent; temporary
+                // online keeps the send from being blocked by offline mode for the duress duration.
+                offlineModeUseCase.withTemporaryOnline(account, BlockchainType.Zcash) {
+                    sendZecTransactionByAccountId(accountId, address, memo)
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to send ZEC on duress")
             }

@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.EffectiveMonitoredChains
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import io.horizontalsystems.core.BackgroundManager
@@ -14,12 +16,14 @@ import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.transaction.TransactionSource
+import cash.p.terminal.wallet.zcashMnemonicAccount
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.Runs
@@ -63,6 +67,9 @@ class TransactionMonitorDeduplicationTest {
     private val numberFormatter = mockk<IAppNumberFormatter>(relaxed = true)
     private val backgroundManager = mockk<BackgroundManager>(relaxed = true)
     private val pollingManager = TransactionPollingManager(pollers = emptyList(), backgroundManager)
+    private val accountManager = mockk<IAccountManager>(relaxed = true)
+    private val offlineModeManager = mockk<OfflineModeManager>(relaxed = true)
+    private val effectiveMonitoredChains = EffectiveMonitoredChains(localStorage, accountManager, offlineModeManager)
 
     private val bitcoinBlockchain = Blockchain(BlockchainType.Bitcoin, "Bitcoin", null)
     private val ethereumBlockchain = Blockchain(BlockchainType.Ethereum, "Ethereum", null)
@@ -108,6 +115,7 @@ class TransactionMonitorDeduplicationTest {
         every { localStorage.pushShowFiatAmount } returns false
         every { localStorage.baseCurrencyCode } returns "USD"
         every { checkPremiumUseCase.getPremiumType() } returns PremiumType.PIRATE
+        every { accountManager.activeAccount } returns zcashMnemonicAccount()
     }
 
     private fun createMonitor(
@@ -125,6 +133,7 @@ class TransactionMonitorDeduplicationTest {
         currencyManager = currencyManager,
         numberFormatter = numberFormatter,
         pollingManager = pollingManager,
+        effectiveMonitoredChains = effectiveMonitoredChains,
     )
 
 

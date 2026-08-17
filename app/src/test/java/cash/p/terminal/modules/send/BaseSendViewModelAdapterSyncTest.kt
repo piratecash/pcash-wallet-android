@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.send
 
+import cash.p.terminal.modules.offline.OfflineOperationGate
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -57,6 +58,7 @@ class BaseSendViewModelAdapterSyncTest {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
                     }
                 }
+                single<OfflineOperationGate> { mockk(relaxed = true) }
             })
         }
     }

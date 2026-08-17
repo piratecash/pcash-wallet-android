@@ -20,12 +20,14 @@ import cash.p.terminal.core.UnsupportedException
 import cash.p.terminal.core.canonicalTransactionHash
 import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.isZcashAlreadyCommittedToBestChainError
+import cash.p.terminal.core.managers.OfflineModeManager
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.RestoreSettings
+import cash.p.terminal.core.managers.isNetworkPaused
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
@@ -147,6 +149,7 @@ class ZcashAdapter(
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager by inject(
         BackgroundKeepAliveManager::class.java
     )
+    private val offlineModeManager: OfflineModeManager by inject(OfflineModeManager::class.java)
 
     private val adapterStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
     private val lastBlockUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
@@ -248,7 +251,8 @@ class ZcashAdapter(
             walletInitMode = walletInitMode,
             setup = setup,
             isTorEnabled = localStorage.torEnabled,
-            isExchangeRateEnabled = false
+            isExchangeRateEnabled = false,
+            autoStart = !isOffline()
         )
 
         runBlocking { importWatchAccountIfNeeded() }
@@ -284,6 +288,9 @@ class ZcashAdapter(
             || wallet.account.type is AccountType.TrezorDevice
     }
 
+    private fun isOffline(): Boolean =
+        offlineModeManager.isNetworkPaused(wallet.account.id, BlockchainType.Zcash)
+
     private fun resolveWalletInitMode(): WalletInitMode {
         return if (existingWallet || requiresUfvkImport()) {
             WalletInitMode.ExistingWallet
@@ -312,6 +319,7 @@ class ZcashAdapter(
 
     private suspend fun importWatchAccountIfNeeded() {
         if (!requiresUfvkImport()) return
+        if (isOffline()) return
         val key = getWatchOnlyUfvk() ?: return
         try {
             (synchronizer as Synchronizer).importAccountByUfvk(
@@ -423,7 +431,8 @@ class ZcashAdapter(
                 walletInitMode = walletInitMode,
                 setup = setup,
                 isTorEnabled = localStorage.torEnabled,
-                isExchangeRateEnabled = false
+                isExchangeRateEnabled = false,
+                autoStart = !isOffline()
             )
 
             importWatchAccountIfNeeded()
@@ -463,7 +472,21 @@ class ZcashAdapter(
         }
     }
 
+    // ISendZcashAdapter also declares `start()` (predating this split), so Kotlin requires an
+    // explicit override to resolve the diamond; delegate straight to IAdapter's default composition.
     override fun start() {
+        super<IAdapter>.start()
+    }
+
+    override fun attachLocalData() {
+        // Binds the local-data collectors (balances/transactions/progress) to whichever
+        // synchronizer instance is current. Both subscribe() and subscribeToStatus() cancel
+        // their previous scope/job first, so rebinding after a later recreation is safe.
+        subscribe(synchronizer as SdkSynchronizer)
+        subscribeToStatus()
+    }
+
+    override fun resumeNetwork() {
         // Corruption recovery owns the whole lifecycle: it closes, erases, and recreates the
         // synchronizer itself, so every other restart trigger (foreground, polling, self-heal)
         // must stay out of the way while it is in flight.
@@ -485,10 +508,31 @@ class ZcashAdapter(
         }
     }
 
+    override fun pauseNetwork() {
+        scope.launch { synchronizer.pauseSync() }
+    }
+
+    // Authoritative for offline mode: the sync status cannot tell a resumable pause from a
+    // terminal stop, so the lifecycle is the only source that distinguishes them.
+    val isNetworkPaused: Boolean
+        get() = synchronizer.lifecycleState.value != Synchronizer.LifecycleState.Running
+
     private suspend fun startSynchronizer() {
-        val sdk = synchronizer as SdkSynchronizer
-        if (sdk.status.value == Synchronizer.Status.STOPPED || !sdk.coroutineScope.isActive) {
-            createNewSynchronizer()
+        // status/STOPPED cannot tell a resumable pause from a terminal failure (fail() sets the
+        // same status), so the decision is made from lifecycleState instead. resumeSync()'s
+        // return value has to be read: the state can turn terminal between the check and the
+        // call (e.g. a concurrent close() from stop()).
+        val paused = synchronizer.lifecycleState.value == Synchronizer.LifecycleState.Paused
+        val alive = synchronizer.lifecycleState.value != Synchronizer.LifecycleState.Closed &&
+            synchronizer.lifecycleState.value != Synchronizer.LifecycleState.TerminallyStopped
+        val resumed = paused && synchronizer.resumeSync()
+        when {
+            resumed -> importWatchAccountIfNeeded()
+            // Paused but resumeSync() failed: the pause can no longer be trusted, recreate.
+            paused -> createNewSynchronizer()
+            // Still Running: nothing to recreate, subscribe() below just rebinds to the instance.
+            alive -> {}
+            else -> createNewSynchronizer()
         }
         subscribe(synchronizer as SdkSynchronizer)
         subscribeToStatus()
@@ -524,6 +568,9 @@ class ZcashAdapter(
 
     fun startForPolling() {
         pollingSessionCount.onPollingStarted {
+            // Unlike resumeNetwork(), polling is an incidental trigger: it must not lift a pause
+            // the user asked for. Adapter creation is gated by AdapterManager, this path is not.
+            if (isOffline()) return@onPollingStarted
             start()
         }
     }
@@ -1042,6 +1089,13 @@ class ZcashAdapter(
     }
 
     private fun handleDatabaseCorruption(cause: Throwable) {
+        // Never erase local data while offline: the flows re-subscribed by attachLocalData()/
+        // startSynchronizer() will hit the same corruption again once back online, which retries
+        // recovery naturally without any extra pending-recovery state.
+        if (isOffline()) {
+            Timber.w(cause, "Zcash database corruption detected while offline, deferring recovery")
+            return
+        }
         if (!recovering.compareAndSet(false, true)) return
         Timber.e(cause, "Zcash database corruption detected, recovering")
         scope.launch {
@@ -1123,6 +1177,9 @@ class ZcashAdapter(
 
     private fun scheduleRestart() {
         if (recovering.get()) return
+        // pauseSync() (going offline) also publishes Status.STOPPED, which onStatus() cannot
+        // tell apart from a genuine failure — self-heal must stay out of the way while offline.
+        if (isOffline()) return
         if (!backgroundManager.inForeground && !hasActiveBackgroundSession()) return
         if (restartJob?.isActive == true) return
         val delayMs = zcashRestartDelayFor(restartAttempt, restartBaseDelayMs, restartMaxDelayMs)

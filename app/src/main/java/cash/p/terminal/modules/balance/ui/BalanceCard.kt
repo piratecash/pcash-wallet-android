@@ -184,6 +184,12 @@ fun BalanceCardInner(
                                     text = viewItem.badge,
                                 )
                             }
+                            if (viewItem.offline) {
+                                Badge(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    text = stringResource(R.string.offline_mode_badge),
+                                )
+                            }
                         }
                         Spacer(Modifier.width(24.dp))
                         Text(
@@ -373,6 +379,36 @@ private fun BalanceCardSwipablePreview() {
                 errorMessage = null,
                 isWatchAccount = false,
                 isSwipeToDeleteEnabled = false
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BalanceCardOfflinePreview() {
+    ComposeAppTheme {
+        BalanceCard(
+            onClick = {},
+            onClickSyncError = {},
+            viewItem = BalanceViewItem2(
+                wallet = WalletFactory.previewWallet(),
+                primaryValue = DeemedValue("1.23456", false, true),
+                secondaryValue = DeemedValue("0.123456 BTC", false, true),
+                exchangeValue = DeemedValue("1234.56 USD", false, true),
+                fullDiff = "+5.67%",
+                diff = BigDecimal("5.67"),
+                displayDiffOptionType = DisplayDiffOptionType.BOTH,
+                syncingProgress = SyncingProgress(null, null),
+                syncingTextValue = null,
+                syncedUntilTextValue = null,
+                failedIconVisible = false,
+                badge = "HOT",
+                stackingUnpaid = null,
+                errorMessage = null,
+                isWatchAccount = false,
+                isSwipeToDeleteEnabled = false,
+                offline = true,
             )
         )
     }

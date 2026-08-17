@@ -9,7 +9,11 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.entities.nft.EvmNftRecord
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.modules.address.AddressParserViewModel
+import cash.p.terminal.modules.offline.OfflineOperationGate
+import cash.p.terminal.modules.offline.OperationAvailability
 import cash.p.terminal.modules.send.evm.SendEvmAddressService
+import cash.p.terminal.wallet.IWalletManager
+import org.koin.java.KoinJavaComponent.inject
 
 object SendNftModule {
 
@@ -24,13 +28,18 @@ object SendNftModule {
     ) : ViewModelProvider.Factory {
 
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val offlineOperationGate: OfflineOperationGate by inject(OfflineOperationGate::class.java)
+            val walletManager: IWalletManager by inject(IWalletManager::class.java)
+
             return when (modelClass) {
                 SendEip721ViewModel::class.java -> {
                     SendEip721ViewModel(
                         nftUid,
                         adapter,
                         sendEvmAddressService,
-                        nftMetadataManager
+                        nftMetadataManager,
+                        offlineOperationGate,
+                        walletManager
                     ) as T
                 }
                 SendEip1155ViewModel::class.java -> {
@@ -39,7 +48,9 @@ object SendNftModule {
                         nftBalance,
                         adapter,
                         sendEvmAddressService,
-                        nftMetadataManager
+                        nftMetadataManager,
+                        offlineOperationGate,
+                        walletManager
                     ) as T
                 }
                 AddressParserViewModel::class.java -> {
@@ -54,7 +65,7 @@ object SendNftModule {
         val name: String,
         val imageUrl: String?,
         val addressError: Throwable?,
-        val canBeSend: Boolean
+        val availability: OperationAvailability
     )
 
     data class SendEip1155UiState(
@@ -62,7 +73,7 @@ object SendNftModule {
         val imageUrl: String?,
         val addressError: Throwable?,
         val amountState: DataState<Int>?,
-        val canBeSend: Boolean
+        val availability: OperationAvailability
     )
 
 }

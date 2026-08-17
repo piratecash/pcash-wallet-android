@@ -783,6 +783,32 @@
     <string name="address_poisoning_view_suspicious">подозрительная транзакция</string>
     <string name="address_poisoning_view_address_book">адрес есть в адресной книге</string>
     <string name="address_poisoning_view_blockchain">получена из блокчейна</string>
+
+    <string name="offline_mode_title">Режим Офлайн</string>
+    <string name="offline_mode_settings_description">Остановить синхронизацию блокчейна. Затронет сеть %1$s целиком — %2$s</string>
+    <string name="offline_mode_settings_assets_more">другие %1$s</string>
+    <string name="offline_mode_info_title">Offline режим</string>
+    <string name="offline_mode_info_description">Синхронизация блокчейна остановится. Отображаются последние данные.</string>
+    <string name="offline_mode_info_price">Цена продолжает обновляться</string>
+    <string name="offline_mode_info_history">История транзакций сохраняется</string>
+    <string name="offline_mode_info_no_new_tx">Новые транзакции не загружаются</string>
+    <string name="offline_mode_info_no_send">Отправка недоступна в Offline</string>
+    <string name="offline_mode_confirm_title">Offline влияет на всю сеть</string>
+    <string name="offline_mode_confirm_description">%1$s синхронизируется целиком. В офлайн перейдут все активы сети:</string>
+    <string name="offline_mode_confirm_description_zcash">Zcash использует три адреса в рамках одного кошелька — transparent, unified и shielded. Синхронизация у них общая, поэтому офлайн-режим включится сразу для всех:</string>
+    <string name="offline_mode_confirm_button">Перевести всю сеть в офлайн</string>
+    <string name="offline_mode_go_online_failed">Не удалось включить онлайн. Попробуйте ещё раз.</string>
+    <string name="offline_mode_go_offline_failed">Не удалось включить офлайн. Попробуйте ещё раз.</string>
+    <string name="offline_mode_state_degraded">Часть активов сети не переключилась. Повторите попытку.</string>
+    <string name="offline_mode_active_title">Офлайн режим активен</string>
+    <string name="offline_mode_active_description">Данные блокчейна не обновляются с %1$s. Цена актуальна.</string>
+    <string name="offline_mode_go_online">Включить онлайн</string>
+    <string name="offline_mode_badge">Офлайн</string>
+    <string name="offline_mode_blocked_title">Сеть в офлайн-режиме</string>
+    <string name="offline_mode_blocked_description">Актив %1$s находится в офлайн-режиме. Чтобы продолжить, включите онлайн.</string>
+    <string name="offline_mode_operation_blocked">Сеть %1$s в офлайн-режиме</string>
+    <string name="offline_mode_asset_added">%1$s (%2$s) добавлен в офлайн</string>
+
     <string name="Button_GotIt">Понятно</string>
     <string name="transaction_statuses_title">Статусы транзакции</string>
     <string name="transaction_statuses_description">Каждой транзакции в вашей истории присваивается статус на основе системы анализа рисков.\nЭто помогает выявлять потенциально мошеннические операции и снижать риск отправки средств на поддельные адреса.</string>

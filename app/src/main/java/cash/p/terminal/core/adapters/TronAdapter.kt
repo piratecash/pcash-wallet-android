@@ -11,6 +11,7 @@ import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.network.Network
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,18 +26,25 @@ class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, deci
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val _fee = MutableStateFlow(BigDecimal.ZERO)
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+    private var networkJob: Job? = null
 
     override val maxSpendableBalance: BigDecimal
         get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
 
     // IAdapter
 
-    override fun start() {
-        coroutineScope.launch {
+    override fun attachLocalData() = Unit
+
+    override fun resumeNetwork() {
+        networkJob = coroutineScope.launch {
             tronKit.trxBalanceFlow.collect {
                 estimateFeeForMax()
             }
         }
+    }
+
+    override fun pauseNetwork() {
+        networkJob?.cancel()
     }
 
     override fun stop() {

@@ -1,9 +1,11 @@
 package cash.p.terminal.modules.balance.token
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalView
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -33,6 +35,7 @@ import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningVi
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewModel
 import cash.p.terminal.modules.balance.token.creationblock.CreationBlockScreen
 import cash.p.terminal.modules.balance.token.creationblock.CreationBlockViewModel
+import cash.p.terminal.modules.offline.OfflineModeToggleViewModel
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
 import cash.p.terminal.wallet.AccountOrigin
@@ -133,6 +136,18 @@ private fun TokenBalanceNavHost(
     onClickSubtitle: () -> Unit
 ) {
     val navController = rememberNavController()
+    val offlineModeToggleViewModel: OfflineModeToggleViewModel =
+        koinViewModel { parametersOf(wallet) }
+
+    // Hosted above the NavHost: the transition is started from both the balance banner and the
+    // settings switch, so only one of the destinations would otherwise ever report a failure.
+    val view = LocalView.current
+    LaunchedEffect(offlineModeToggleViewModel.uiState.error) {
+        offlineModeToggleViewModel.uiState.error?.let {
+            HudHelper.showErrorMessage(view, it)
+            offlineModeToggleViewModel.errorShown()
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -156,7 +171,8 @@ private fun TokenBalanceNavHost(
                 refreshing = viewModel.refreshing,
                 onSettingsClick = {
                     navController.navigate(TokenBalanceRoute.Settings)
-                }
+                },
+                onGoOnline = offlineModeToggleViewModel::goOnline,
             )
         }
         composablePage<TokenBalanceRoute.Settings> {
@@ -191,6 +207,10 @@ private fun TokenBalanceNavHost(
                 },
                 transactionFiltersEnabled = viewModel.uiState.transactionFiltersEnabled,
                 onTransactionFiltersChange = viewModel::setTransactionFiltersEnabled,
+                offlineUiState = offlineModeToggleViewModel.uiState,
+                onConfirmOffline = offlineModeToggleViewModel::confirmOffline,
+                onGoOnline = offlineModeToggleViewModel::goOnline,
+                onOfflineSheetDismiss = offlineModeToggleViewModel::sheetClosed,
                 navController = fragmentNavController,
                 onBack = navController::popBackStackSafely,
                 creationBlockVisible = creationBlockVisible,

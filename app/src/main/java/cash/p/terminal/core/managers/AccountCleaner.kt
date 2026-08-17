@@ -32,12 +32,13 @@ class AccountCleaner(
     private val moneroFileDao: MoneroFileDao,
     private val smsNotificationSettings: ISmsNotificationSettings,
     private val pinDbStorage: PinDbStorage,
-    private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository,
+    private val accountStorageCleaner: AccountStorageCleaner,
 ) : IAccountCleaner {
 
+    /** Storage rows go last: their failure must reach the caller without skipping the wipes above. */
     override suspend fun clearAccounts(accountIds: List<String>) {
-        locallyCreatedTransactionRepository.deleteByAccountIds(accountIds)
         accountIds.forEach { clearAccount(it) }
+        accountStorageCleaner.clearAccounts(accountIds)
     }
 
 

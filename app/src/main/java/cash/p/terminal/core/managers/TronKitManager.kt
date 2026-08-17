@@ -41,6 +41,7 @@ class TronKitManager(
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
     private val trezorClient: ITrezorClient,
+    private val offlineModeManager: OfflineModeManager,
 ) {
 
     private val lifecycleMutex = Mutex()
@@ -93,7 +94,7 @@ class TronKitManager(
 
                 else -> throw UnsupportedAccountException()
             }
-            start()
+            start(account)
             useCount = 0
             currentAccount = account
         }
@@ -185,9 +186,12 @@ class TronKitManager(
 
     suspend fun startForPolling() = lifecycleMutex.withLock {
         pollingSessionCount.onPollingStarted {
-            tronKitWrapper?.tronKit?.let { kit ->
-                kit.resume()
-                kit.refresh()
+            val account = currentAccount
+            if (account == null || !isNetworkPaused(account)) {
+                tronKitWrapper?.tronKit?.let { kit ->
+                    kit.resume()
+                    kit.refresh()
+                }
             }
         }
     }
@@ -200,6 +204,22 @@ class TronKitManager(
         }
     }
 
+    suspend fun pauseNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = tronKitWrapper ?: return@withLock
+        if (!wrapper.networkStarted) return@withLock
+        wrapper.tronKit.stop()
+        wrapper.networkStarted = false
+    }
+
+    suspend fun resumeNetwork(account: Account) = lifecycleMutex.withLock {
+        if (account != currentAccount) return@withLock
+        val wrapper = tronKitWrapper ?: return@withLock
+        if (wrapper.networkStarted) return@withLock
+        wrapper.tronKit.start()
+        wrapper.networkStarted = true
+    }
+
     private fun stop() {
         tronKitWrapper?.tronKit?.stop()
         job?.cancel()
@@ -207,17 +227,27 @@ class TronKitManager(
         currentAccount = null
     }
 
-    private fun start() {
-        tronKitWrapper?.tronKit?.start()
-        tronKitWrapper?.tronKit?.refresh()
+    private fun isNetworkPaused(account: Account): Boolean =
+        offlineModeManager.isNetworkPaused(account, BlockchainType.Tron)
+
+    private fun start(account: Account) {
+        if (!isNetworkPaused(account)) {
+            tronKitWrapper?.let { wrapper ->
+                wrapper.tronKit.start()
+                wrapper.tronKit.refresh()
+                wrapper.networkStarted = true
+            }
+        }
         job = scope.launch {
             backgroundManager.stateFlow.collect { state ->
                 if (state == BackgroundManagerState.EnterForeground) {
-                    tronKitWrapper?.tronKit?.let { kit ->
-                        kit.resume()
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            kit.refresh()
-                        }, 1000)
+                    if (!isNetworkPaused(account)) {
+                        tronKitWrapper?.tronKit?.let { kit ->
+                            kit.resume()
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                if (!isNetworkPaused(account)) kit.refresh()
+                            }, 1000)
+                        }
                     }
                 } else if (state == BackgroundManagerState.EnterBackground) {
                     if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(
@@ -234,4 +264,7 @@ class TronKitManager(
     }
 }
 
-class TronKitWrapper(val tronKit: TronKit, val signer: Signer?)
+class TronKitWrapper(val tronKit: TronKit, val signer: Signer?) {
+    /** True once [TronKit.start] has been called and no matching [TronKit.stop] followed it. */
+    var networkStarted: Boolean = false
+}

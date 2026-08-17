@@ -389,7 +389,7 @@ class SwapConfirmViewModel(
     }
 
     suspend fun swap() = withContext(dispatcherProvider.default) {
-        sendTransactionService.sendTransaction(uiState.mevProtectionEnabled)
+        sendTransactionService.send(uiState.mevProtectionEnabled)
     }
 
     fun toggleMevProtection(enabled: Boolean) {

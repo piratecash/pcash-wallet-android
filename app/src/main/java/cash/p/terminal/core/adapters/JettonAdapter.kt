@@ -61,7 +61,7 @@ class JettonAdapter(
     private val nativeToken: Token =
         requireNotNull(coinManager.getToken(TokenQuery(wallet.token.blockchainType, TokenType.Native)))
 
-    override fun start() {
+    override fun attachLocalData() {
         coroutineScope.launch {
             tonKit.jettonBalanceMapFlow.collect { jettonBalanceMap ->
                 jettonBalance = jettonBalanceMap[address]
@@ -74,6 +74,10 @@ class JettonAdapter(
             }
         }
     }
+
+    override fun pauseNetwork() = Unit
+
+    override fun resumeNetwork() = Unit
 
     override fun stop() {
         coroutineScope.cancel()

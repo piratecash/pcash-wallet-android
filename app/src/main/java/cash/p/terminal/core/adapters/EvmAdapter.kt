@@ -12,12 +12,12 @@ import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -28,22 +28,31 @@ internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, co
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val _fee = MutableStateFlow(BigDecimal.ZERO)
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+    private var accountStateJob: Job? = null
+    private var initialFeeJob: Job? = null
 
     override val maxSpendableBalance: BigDecimal
         get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
 
     // IAdapter
 
-    override fun start() {
-        coroutineScope.launch {
+    override fun attachLocalData() = Unit
+
+    override fun resumeNetwork() {
+        accountStateJob = coroutineScope.launch {
             evmTransactionRepository.accountStateFlowable.asFlow().collect {
                 estimateFeeForMax()
             }
         }
         // Initial fee estimation
-        coroutineScope.launch {
+        initialFeeJob = coroutineScope.launch {
             estimateFeeForMax()
         }
+    }
+
+    override fun pauseNetwork() {
+        accountStateJob?.cancel()
+        initialFeeJob?.cancel()
     }
 
     override fun stop() {
