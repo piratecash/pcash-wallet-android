@@ -14,6 +14,9 @@ import cash.p.terminal.ui_compose.components.RestoreHeightMode
 import cash.p.terminal.ui_compose.components.isNewWallet
 import cash.p.terminal.ui_compose.components.isSelected
 import cash.p.terminal.ui_compose.components.toRestoreHeightMode
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -29,7 +32,11 @@ class ZcashConfigureViewModel(
     )
         private set
 
+    // The latest user action wins: any lookup still in flight is cancelled before a new one.
+    private var heightLookupJob: Job? = null
+
     fun onModeSelect(mode: RestoreHeightMode) {
+        heightLookupJob?.cancel()
         uiState = ZCashConfigView(
             birthdayHeight = null,
             mode = mode,
@@ -37,9 +44,11 @@ class ZcashConfigureViewModel(
     }
 
     fun setBirthdayHeight(height: String) {
+        heightLookupJob?.cancel()
         uiState = uiState.copy(
             birthdayHeight = height,
-            errorHeight = null
+            errorHeight = null,
+            loading = false
         )
     }
 
@@ -56,7 +65,8 @@ class ZcashConfigureViewModel(
     }
 
     fun onDoneClick() {
-        viewModelScope.launch {
+        heightLookupJob?.cancel()
+        heightLookupJob = viewModelScope.launch {
             uiState = uiState.copy(loading = true)
 
             val birthdayHeight = uiState.birthdayHeight?.trim().takeUnless { it.isNullOrBlank() }
@@ -79,6 +89,7 @@ class ZcashConfigureViewModel(
                     }
                 }
             }
+            currentCoroutineContext().ensureActive()
             val heightCorrect = uiState.restoreAsNew || (heightDetected != null)
             val closeWithResult = if (heightCorrect) {
                 TokenConfig(heightDetected, uiState.restoreAsNew)
@@ -98,12 +109,17 @@ class ZcashConfigureViewModel(
     }
 
     fun onDatePicked(date: LocalDate) {
-        viewModelScope.launch {
+        heightLookupJob?.cancel()
+        heightLookupJob = viewModelScope.launch {
             uiState = uiState.copy(loading = true)
 
             val (height, error) = resolveHeightForDate(date)
+            // The use case swallows cancellation, so a cancelled lookup would still write here.
+            currentCoroutineContext().ensureActive()
             uiState = uiState.copy(
-                birthdayHeight = height ?: uiState.birthdayHeight,
+                // On failure keep the picked date in the field, so Done retries the lookup
+                // instead of submitting the previous height.
+                birthdayHeight = height ?: date.toString(),
                 errorHeight = error,
                 loading = false
             )
