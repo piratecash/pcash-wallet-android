@@ -36,7 +36,8 @@ class AddressUriParserTest {
     }
     @Test
     fun parse_prefixlessAddressWithParameters_extractsKnownFields() {
-        val parsed = parser(BlockchainType.Bitcoin).uri("1address?amount=1.25&message=Thank%20you&memo=invoice&tag=customer")
+        val parsed = parser(BlockchainType.Bitcoin)
+            .uri("1address?amount=1.25&message=Thank%20you&memo=invoice&tag=customer")
         assertEquals("1address", parsed.address)
         assertEquals(BigDecimal("1.25"), parsed.amount)
         assertEquals("Thank you", parsed.value<String>(AddressUri.Field.Message))
@@ -70,12 +71,16 @@ class AddressUriParserTest {
         val result = AddressUriParser(BlockchainType.Ton, TokenType.Jetton("EQtoken"))
             .parse("ton://transfer/UQaddress?amount=1500000")
         assertTrue(result is AddressUriResult.InvalidTokenType)
-        assertTrue(AddressUriParser(BlockchainType.Ton, TokenType.Jetton("EQtoken")).parse("UQaddress") is AddressUriResult.Uri)
+        assertTrue(AddressUriParser(BlockchainType.Ton, TokenType.Jetton("EQtoken"))
+            .parse("UQaddress") is AddressUriResult.Uri)
         assertTrue(parser(BlockchainType.Ton).parse("ton://connect/UQaddress") is AddressUriResult.WrongUri)
     }
     @Test fun parse_nonTonUriWithHttpsOptionalParameter_remainsSupported() {
         val parsed = parser(BlockchainType.Dash).uri("dash:Xaddress?callback=https://example.com//pay&amount=1")
-        assertEquals(BigDecimal.ONE to "https://example.com//pay", parsed.amount to parsed.unhandledParameters["callback"])
+        assertEquals(
+            BigDecimal.ONE to "https://example.com//pay",
+            parsed.amount to parsed.unhandledParameters["callback"]
+        )
     }
     @Test
     fun parse_bitrefillDashUriWithLeadingAmpersand_retainsIsParameter() {
@@ -93,8 +98,8 @@ class AddressUriParserTest {
     }
     @Test
     fun parse_unsupportedBitcoinAndZcashRequiredParameters_returnsWrongUri() {
-        assertTrue(parser(BlockchainType.Bitcoin).parse("bitcoin:1address?req-feature=value") is AddressUriResult.WrongUri)
-        assertTrue(parser(BlockchainType.Zcash).parse("zcash:zaddress?REQ-feature=value") is AddressUriResult.WrongUri)
+        parser(BlockchainType.Bitcoin).assertWrongUri("bitcoin:1address?req-feature=value")
+        parser(BlockchainType.Zcash).assertWrongUri("zcash:zaddress?REQ-feature=value")
     }
     @Test
     fun parse_amountAndValue_usesAmountPrecedence() {
@@ -162,7 +167,8 @@ class AddressUriParserTest {
     @Test
     fun parse_solanaPaySplTokenAndNonNativeContexts_doNotApplyAmount() {
         val splTokenRequest = parser(BlockchainType.Solana).parse("solana:recipient?amount=1&spl-token=mint")
-        val splContextRequest = AddressUriParser(BlockchainType.Solana, TokenType.Spl("mint")).parse("solana:recipient?amount=1")
+        val splContextRequest = AddressUriParser(BlockchainType.Solana, TokenType.Spl("mint"))
+            .parse("solana:recipient?amount=1")
         assertTrue(splTokenRequest is AddressUriResult.WrongUri)
         assertTrue(splContextRequest is AddressUriResult.InvalidTokenType)
     }
@@ -181,12 +187,14 @@ class AddressUriParserTest {
     }
     @Test
     fun parse_crossContextAndMalformedProtocolParameters_rejectsUnsafeRequests() {
-        assertTrue(parser(BlockchainType.Solana).parse("monero:recipient?tx_amount=2.5") is AddressUriResult.InvalidBlockchainType)
-        assertTrue(parser(BlockchainType.Solana).parse("bitcoin:recipient?amount=1") is AddressUriResult.InvalidBlockchainType)
-        assertTrue(parser(BlockchainType.Bitcoin).parse("bitcoin:1address?amount=1&req-feature=%zz") is AddressUriResult.WrongUri)
-        assertTrue(parser(BlockchainType.Zcash).parse("zcash:zaddress?amount=1&address.1=%zz") is AddressUriResult.WrongUri)
-        assertTrue(parser(BlockchainType.Zcash).parse("zcash:zaddress?amount=1&address.2147483648=other") is AddressUriResult.WrongUri)
-        assertTrue(parser(BlockchainType.Solana).parse("solana:recipient?amount=1&spl-token=%zz") is AddressUriResult.WrongUri)
+        assertTrue(parser(BlockchainType.Solana).parse("monero:recipient?tx_amount=2.5")
+                is AddressUriResult.InvalidBlockchainType)
+        assertTrue(parser(BlockchainType.Solana).parse("bitcoin:recipient?amount=1")
+                is AddressUriResult.InvalidBlockchainType)
+        parser(BlockchainType.Bitcoin).assertWrongUri("bitcoin:1address?amount=1&req-feature=%zz")
+        parser(BlockchainType.Zcash).assertWrongUri("zcash:zaddress?amount=1&address.1=%zz")
+        parser(BlockchainType.Zcash).assertWrongUri("zcash:zaddress?amount=1&address.2147483648=other")
+        parser(BlockchainType.Solana).assertWrongUri("solana:recipient?amount=1&spl-token=%zz")
     }
     @Test
     fun parse_malformedParameterKeys_returnsWrongUri() {
@@ -196,7 +204,8 @@ class AddressUriParserTest {
     }
     @Test
     fun parse_unknownAndMalformedParameters_keepsValidParameters() {
-        val parsed = parser(BlockchainType.Bitcoin).uri("bitcoin:1address?unknown=one%3Dtwo&broken&amount=3&bad=%zz&label=valid")
+        val parsed = parser(BlockchainType.Bitcoin)
+            .uri("bitcoin:1address?unknown=one%3Dtwo&broken&amount=3&bad=%zz&label=valid")
         assertEquals("one=two", parsed.unhandledParameters["unknown"])
         assertEquals(BigDecimal("3"), parsed.amount)
         assertEquals("valid", parsed.value<String>(AddressUri.Field.Label))

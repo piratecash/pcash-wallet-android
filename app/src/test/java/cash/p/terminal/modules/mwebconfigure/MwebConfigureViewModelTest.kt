@@ -1,11 +1,13 @@
 package cash.p.terminal.modules.mwebconfigure
 
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class MwebConfigureViewModelTest {
 
@@ -13,6 +15,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_restoreAsNew_returnsConfigWithoutBirthdayHeight() {
         val viewModel = MwebConfigureViewModel()
 
+        viewModel.onModeSelect(RestoreHeightMode.NewWallet)
         viewModel.setBirthdayHeight("2257920")
         viewModel.onDoneClick()
 
@@ -26,7 +29,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_existingWalletValidHeight_returnsBirthdayHeight() {
         val viewModel = MwebConfigureViewModel()
 
-        viewModel.onRestoreNew(false)
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
         viewModel.setBirthdayHeight("2257920")
         viewModel.onDoneClick()
 
@@ -40,7 +43,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_existingWalletLargeHeight_returnsBirthdayHeight() {
         val viewModel = MwebConfigureViewModel()
 
-        viewModel.onRestoreNew(false)
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
         viewModel.setBirthdayHeight("100000000")
         viewModel.onDoneClick()
 
@@ -54,7 +57,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_existingWalletHeightAboveIntRange_setsError() {
         val viewModel = MwebConfigureViewModel()
 
-        viewModel.onRestoreNew(false)
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
         viewModel.setBirthdayHeight((Int.MAX_VALUE.toLong() + 1).toString())
         viewModel.onDoneClick()
 
@@ -66,7 +69,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_existingWalletEmptyHeight_setsError() {
         val viewModel = MwebConfigureViewModel()
 
-        viewModel.onRestoreNew(false)
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
         viewModel.setBirthdayHeight("")
         viewModel.onDoneClick()
 
@@ -78,7 +81,7 @@ class MwebConfigureViewModelTest {
     fun onDoneClick_existingWalletNonNumericHeight_setsError() {
         val viewModel = MwebConfigureViewModel()
 
-        viewModel.onRestoreNew(false)
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
         viewModel.setBirthdayHeight("not-a-height")
         viewModel.onDoneClick()
 
@@ -107,11 +110,42 @@ class MwebConfigureViewModelTest {
     fun onClosed_closeResultSet_clearsCloseResult() {
         val viewModel = MwebConfigureViewModel()
 
+        viewModel.onModeSelect(RestoreHeightMode.NewWallet)
         viewModel.onDoneClick()
         assertNotNull(viewModel.uiState.closeWithResult)
 
         viewModel.onClosed()
 
         assertNull(viewModel.uiState.closeWithResult)
+    }
+
+    @Test
+    fun initialState_noConfig_noModeSelectedAndDoneDisabled() {
+        val viewModel = MwebConfigureViewModel()
+
+        assertNull(viewModel.uiState.mode)
+        assertFalse(viewModel.uiState.doneEnabled)
+    }
+
+    @Test
+    fun onModeSelect_newWallet_enablesDone() {
+        val viewModel = MwebConfigureViewModel()
+
+        viewModel.onModeSelect(RestoreHeightMode.NewWallet)
+
+        assertEquals(RestoreHeightMode.NewWallet, viewModel.uiState.mode)
+        assertTrue(viewModel.uiState.doneEnabled)
+    }
+
+    @Test
+    fun setInitialConfig_savedHeight_selectsExistingWalletMode() {
+        val viewModel = MwebConfigureViewModel()
+
+        viewModel.setInitialConfig(
+            TokenConfig(birthdayHeight = "2300000", restoreAsNew = false)
+        )
+
+        assertEquals(RestoreHeightMode.ExistingWallet, viewModel.uiState.mode)
+        assertTrue(viewModel.uiState.doneEnabled)
     }
 }

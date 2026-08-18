@@ -10,6 +10,10 @@ import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.network.zcash.domain.usecase.GetZcashHeightUseCase
 import cash.p.terminal.network.zcash.domain.usecase.ZcashHeightResult
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.isNewWallet
+import cash.p.terminal.ui_compose.components.isSelected
+import cash.p.terminal.ui_compose.components.toRestoreHeightMode
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -20,37 +24,21 @@ class ZcashConfigureViewModel(
     var uiState by mutableStateOf(
         ZCashConfigView(
             birthdayHeight = null,
-            restoreAsNew = true,
-            restoreAsOld = false,
-            doneButtonEnabled = true,
+            mode = null,
         )
     )
         private set
 
-    fun restoreAsNew() {
+    fun onModeSelect(mode: RestoreHeightMode) {
         uiState = ZCashConfigView(
             birthdayHeight = null,
-            restoreAsNew = true,
-            restoreAsOld = false,
-            doneButtonEnabled = true,
-        )
-    }
-
-    fun restoreAsOld() {
-        uiState = ZCashConfigView(
-            birthdayHeight = null,
-            restoreAsNew = false,
-            restoreAsOld = true,
-            doneButtonEnabled = true
+            mode = mode,
         )
     }
 
     fun setBirthdayHeight(height: String) {
-        uiState = ZCashConfigView(
+        uiState = uiState.copy(
             birthdayHeight = height,
-            restoreAsNew = false,
-            restoreAsOld = false,
-            doneButtonEnabled = height.isNotBlank(),
             errorHeight = null
         )
     }
@@ -58,13 +46,9 @@ class ZcashConfigureViewModel(
     fun setInitialConfig(config: TokenConfig?) {
         if (config == null) return
 
-        val isNew = config.restoreAsNew
-        val height = config.birthdayHeight
         uiState = uiState.copy(
-            birthdayHeight = height,
-            restoreAsNew = isNew,
-            restoreAsOld = !isNew,
-            doneButtonEnabled = isNew || !height.isNullOrBlank(),
+            birthdayHeight = config.birthdayHeight,
+            mode = config.restoreAsNew.toRestoreHeightMode(),
             errorHeight = null,
             closeWithResult = null,
             loading = false
@@ -120,7 +104,6 @@ class ZcashConfigureViewModel(
             val (height, error) = resolveHeightForDate(date)
             uiState = uiState.copy(
                 birthdayHeight = height ?: uiState.birthdayHeight,
-                doneButtonEnabled = height != null,
                 errorHeight = error,
                 loading = false
             )
@@ -149,22 +132,17 @@ class ZcashConfigureViewModel(
     }
 
     fun onClosed() {
-        uiState = ZCashConfigView(
-            birthdayHeight = uiState.birthdayHeight,
-            restoreAsNew = uiState.restoreAsNew,
-            restoreAsOld = uiState.restoreAsOld,
-            doneButtonEnabled = uiState.doneButtonEnabled,
-            closeWithResult = null,
-        )
+        uiState = uiState.copy(closeWithResult = null)
     }
 }
 
 data class ZCashConfigView(
     val birthdayHeight: String?,
-    val restoreAsNew: Boolean,
-    val restoreAsOld: Boolean,
-    val doneButtonEnabled: Boolean,
+    val mode: RestoreHeightMode?,
     val closeWithResult: TokenConfig? = null,
     val errorHeight: String? = null,
     val loading: Boolean = false
-)
+) {
+    val restoreAsNew: Boolean get() = mode.isNewWallet
+    val doneEnabled: Boolean get() = mode.isSelected
+}

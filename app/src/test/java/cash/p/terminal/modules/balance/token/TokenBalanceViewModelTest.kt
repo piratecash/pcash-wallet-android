@@ -1497,7 +1497,7 @@ class TokenBalanceViewModelTest : KoinTest {
     }
 
     @Test
-    fun syncMoneroKeyImages_reconciliationStarted_stopsPreparationProgressAndEmitsOneOpenSendWhenReady() = runTest(dispatcher) {
+    fun syncMoneroKeyImages_reconciliationStarted_stopsProgressAndEmitsOneOpenSendWhenReady() = runTest(dispatcher) {
         setMoneroWallet()
         val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
         val adapter = mockMoneroAdapter(readiness)

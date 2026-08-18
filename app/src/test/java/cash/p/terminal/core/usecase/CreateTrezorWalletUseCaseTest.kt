@@ -4,6 +4,7 @@ import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.MoneroDeviceWalletProvisioner
 import cash.p.terminal.core.managers.MoneroTrezorReadiness
+import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.trezor.domain.TrezorCancelledException
@@ -119,7 +120,7 @@ class CreateTrezorWalletUseCaseTest {
             every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
             every {
                 restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
-            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+            } returns RestoreSettings().apply {
                 birthdayHeight = SAVED_RESTORE_HEIGHT
             }
             coEvery {
@@ -147,7 +148,7 @@ class CreateTrezorWalletUseCaseTest {
             every { accountsStorage.loadAccount(deletedAccount.id) } returns deletedAccount
             every {
                 restoreSettingsManager.settings(deletedAccount, BlockchainType.Monero)
-            } returns cash.p.terminal.core.managers.RestoreSettings().apply {
+            } returns RestoreSettings().apply {
                 birthdayHeight = -1
             }
             coEvery {

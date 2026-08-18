@@ -1,9 +1,11 @@
 package cash.p.terminal.modules.zcashconfigure
 
 import cash.p.terminal.R
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.network.zcash.domain.usecase.GetZcashHeightUseCase
 import cash.p.terminal.network.zcash.domain.usecase.ZcashHeightResult
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +20,9 @@ import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ZcashConfigureViewModelTest {
@@ -83,4 +87,45 @@ class ZcashConfigureViewModelTest {
                 viewModel.uiState.errorHeight
             )
         }
+
+    @Test
+    fun initialState_noConfig_noModeSelectedAndDoneDisabled() {
+        val viewModel = createViewModel()
+
+        assertNull(viewModel.uiState.mode)
+        assertFalse(viewModel.uiState.doneEnabled)
+    }
+
+    @Test
+    fun onModeSelect_newWallet_enablesDone() {
+        val viewModel = createViewModel()
+
+        viewModel.onModeSelect(RestoreHeightMode.NewWallet)
+
+        assertEquals(RestoreHeightMode.NewWallet, viewModel.uiState.mode)
+        assertTrue(viewModel.uiState.doneEnabled)
+    }
+
+    @Test
+    fun setInitialConfig_savedHeight_selectsExistingWalletMode() {
+        val viewModel = createViewModel()
+
+        viewModel.setInitialConfig(
+            TokenConfig(birthdayHeight = "2300000", restoreAsNew = false)
+        )
+
+        assertEquals(RestoreHeightMode.ExistingWallet, viewModel.uiState.mode)
+        assertTrue(viewModel.uiState.doneEnabled)
+    }
+
+    @Test
+    fun setBirthdayHeight_afterModeSelected_keepsSelectedMode() {
+        val viewModel = createViewModel()
+
+        viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
+        viewModel.setBirthdayHeight("2300000")
+
+        assertEquals(RestoreHeightMode.ExistingWallet, viewModel.uiState.mode)
+        assertTrue(viewModel.uiState.doneEnabled)
+    }
 }

@@ -85,7 +85,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
                 closeWithConfig(it, navController)
             },
             onCloseClick = { close(navController) },
-            onRestoreNew = viewModel::onRestoreNew,
+            onModeSelect = viewModel::onModeSelect,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
             onDatePick = viewModel::onDatePicked,
             onDoneClick = viewModel::onDoneClick,
@@ -115,7 +115,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
 fun MoneroConfigureRoute(
     onCloseClick: () -> Unit,
     onCloseWithResult: (TokenConfig) -> Unit,
-    onRestoreNew: (Boolean) -> Unit,
+    onModeSelect: (RestoreHeightMode) -> Unit,
     onSetBirthdayHeight: (String) -> Unit,
     onDoneClick: () -> Unit,
     uiState: BirthdayHeightConfigUiState,
@@ -137,15 +137,11 @@ fun MoneroConfigureRoute(
     }
 
     RestoreHeightScreen(
-        mode = if (uiState.restoreAsNew) {
-            RestoreHeightMode.NewWallet
-        } else {
-            RestoreHeightMode.ExistingWallet
-        },
-        doneEnabled = true,
+        mode = uiState.mode,
+        doneEnabled = uiState.doneEnabled,
         onDoneClick = onDoneClick,
         onModeSelect = { mode ->
-            onRestoreNew(mode == RestoreHeightMode.NewWallet)
+            onModeSelect(mode)
             focusManager.clearFocus()
         },
         topBar = {
@@ -266,15 +262,10 @@ private fun Preview_MoneroConfigure() {
         MoneroConfigureRoute(
             onCloseClick = {},
             onCloseWithResult = {},
-            onRestoreNew = {},
+            onModeSelect = {},
             onSetBirthdayHeight = {},
             onDoneClick = {},
-            uiState = BirthdayHeightConfigUiState(
-                birthdayHeight = "",
-                restoreAsNew = true,
-                closeWithResult = null,
-                errorHeight = null
-            ),
+            uiState = BirthdayHeightConfigUiState(birthdayHeight = ""),
         )
     }
 }

@@ -243,7 +243,7 @@ class MoneroKitWrapperRefreshTest {
                         refresh = { aborter ->
                             withExternalSignerRegistration(registration) {
                                 try {
-                                    throw IllegalStateException("refresh failed")
+                                    error("refresh failed")
                                 } catch (error: Throwable) {
                                     aborter.abort(error)
                                     throw error

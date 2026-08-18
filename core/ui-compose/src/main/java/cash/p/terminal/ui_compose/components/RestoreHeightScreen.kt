@@ -36,6 +36,15 @@ enum class RestoreHeightMode {
     ExistingWallet,
 }
 
+val RestoreHeightMode?.isNewWallet: Boolean
+    get() = this == RestoreHeightMode.NewWallet
+
+val RestoreHeightMode?.isSelected: Boolean
+    get() = this != null
+
+fun Boolean.toRestoreHeightMode(): RestoreHeightMode =
+    if (this) RestoreHeightMode.NewWallet else RestoreHeightMode.ExistingWallet
+
 @Composable
 fun RestoreHeightScreen(
     mode: RestoreHeightMode?,
@@ -44,6 +53,7 @@ fun RestoreHeightScreen(
     onDoneClick: () -> Unit,
     topBar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    loading: Boolean = false,
     contentWindowInsets: WindowInsets = WindowInsets(0),
     existingWalletContent: @Composable ColumnScope.() -> Unit = {},
     additionalContent: @Composable ColumnScope.() -> Unit = {},
@@ -76,9 +86,9 @@ fun RestoreHeightScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp),
-                    title = stringResource(R.string.Button_Done),
+                    title = stringResource(if (loading) R.string.Alert_Loading else R.string.Button_Done),
                     onClick = onDoneClick,
-                    enabled = doneEnabled,
+                    enabled = doneEnabled && !loading,
                 )
             }
         }

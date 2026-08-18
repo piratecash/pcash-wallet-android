@@ -72,7 +72,7 @@ internal fun NavGraphBuilder.addRestoreTokenConfigureRoutes(
                 mainViewModel.cancelTokenConfig()
                 navController.popBackStackSafely()
             },
-            onRestoreNew = viewModel::onRestoreNew,
+            onModeSelect = viewModel::onModeSelect,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
             onDatePick = viewModel::onDatePicked,
             onDoneClick = viewModel::onDoneClick,
@@ -96,7 +96,7 @@ internal fun NavGraphBuilder.addRestoreTokenConfigureRoutes(
                 mainViewModel.cancelTokenConfig()
                 navController.popBackStackSafely()
             },
-            onRestoreNew = viewModel::onRestoreNew,
+            onModeSelect = viewModel::onModeSelect,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
             onDoneClick = viewModel::onDoneClick,
             uiState = viewModel.uiState,

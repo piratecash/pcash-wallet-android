@@ -328,7 +328,9 @@ class AddressUriParser(
                 val abstractUriParse = AddressUriParser(null, null)
                 return when (val result = abstractUriParse.parse(text)) {
                     is AddressUriResult.Uri -> {
-                        if (BlockchainType.supported.any { it.uriScheme == result.addressUri.scheme || it.uid == result.addressUri.scheme })
+                        if (BlockchainType.supported.any {
+                                it.uriScheme == result.addressUri.scheme || it.uid == result.addressUri.scheme
+                            })
                             result.addressUri
                         else
                             null

@@ -9,6 +9,8 @@ import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.BirthdayHeightConfigUiState
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.toRestoreHeightMode
 import java.time.LocalDate
 
 class MoneroConfigureViewModel(
@@ -16,17 +18,12 @@ class MoneroConfigureViewModel(
 ) : ViewModel() {
 
     var uiState by mutableStateOf(
-        BirthdayHeightConfigUiState(
-            birthdayHeight = "",
-            restoreAsNew = true,
-        )
+        BirthdayHeightConfigUiState(birthdayHeight = "")
     )
         private set
 
-    fun onRestoreNew(restoreNew: Boolean) {
-        uiState = uiState.copy(
-            restoreAsNew = restoreNew,
-        )
+    fun onModeSelect(mode: RestoreHeightMode) {
+        uiState = uiState.copy(mode = mode)
     }
 
     fun setBirthdayHeight(height: String) {
@@ -48,10 +45,9 @@ class MoneroConfigureViewModel(
     fun setInitialConfig(config: TokenConfig?) {
         if (config == null) return
 
-        val isNew = config.restoreAsNew
         uiState = uiState.copy(
             birthdayHeight = config.birthdayHeight.orEmpty(),
-            restoreAsNew = isNew,
+            mode = config.restoreAsNew.toRestoreHeightMode(),
             errorHeight = null,
             closeWithResult = null
         )

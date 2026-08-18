@@ -1025,7 +1025,7 @@ class MoneroKitWrapper(
         restoreSettingsManager.pendingMoneroRescanHeight(account)
             ?: restoreSettingsManager.settings(account, BlockchainType.Monero).birthdayHeight
             ?.takeIf { it >= 0 }
-            ?: throw IllegalStateException("Monero hardware wallet has no restore height")
+            ?: error("Monero hardware wallet has no restore height")
 
     private fun storeControlledHardwareRefresh(
         wallet: Wallet,

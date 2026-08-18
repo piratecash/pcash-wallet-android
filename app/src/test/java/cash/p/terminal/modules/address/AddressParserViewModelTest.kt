@@ -43,7 +43,10 @@ class AddressParserViewModelTest {
 
     @Test fun mainPrefixlessUris_retainCompatibleAndExactBlockchains() {
         val evm = requireNotNull(
-            parsePrefixlessAddressUri("0x0000000000000000000000000000000000000001?amount=1", EvmBlockchainManager.blockchainTypes)
+            parsePrefixlessAddressUri(
+                "0x0000000000000000000000000000000000000001?amount=1",
+                EvmBlockchainManager.blockchainTypes
+            )
         )
         assertEquals(EvmBlockchainManager.blockchainTypes, evm.second)
         val bsc = parsePrefixlessAddressUri(
@@ -51,7 +54,10 @@ class AddressParserViewModelTest {
             EvmBlockchainManager.blockchainTypes,
         )
         assertEquals(listOf(BlockchainType.BinanceSmartChain), requireNotNull(bsc).second)
-        val bitcoinCash = parsePrefixlessAddressUri("legacy?req-feature=1", listOf(BlockchainType.Bitcoin, BlockchainType.BitcoinCash))
+        val bitcoinCash = parsePrefixlessAddressUri(
+            "legacy?req-feature=1",
+            listOf(BlockchainType.Bitcoin, BlockchainType.BitcoinCash)
+        )
         assertEquals(listOf(BlockchainType.BitcoinCash), requireNotNull(bitcoinCash).second)
         val token = parsePrefixlessAddressUri("0x1?token_uid=eip20:0xToKeN", EvmBlockchainManager.blockchainTypes)
         assertEquals("eip20:0xToKeN", requireNotNull(token).first.value<String>(AddressUri.Field.TokenUid))
@@ -59,7 +65,9 @@ class AddressParserViewModelTest {
             listOf(TokenType.Eip20("0xtoken")),
             token.first.openSendTokenSelect(token.second, hasExplicitScheme = false).tokenTypes,
         )
-        val spl = requireNotNull(parsePrefixlessAddressUri("recipient?token_uid=spl:mint", listOf(BlockchainType.Solana)))
+        val spl = requireNotNull(
+            parsePrefixlessAddressUri("recipient?token_uid=spl:mint", listOf(BlockchainType.Solana))
+        )
         assertEquals(listOf(TokenType.Spl("mint")), spl.first.openSendTokenSelect(spl.second, false).tokenTypes)
         val solana = parsePrefixlessAddressUri("recipient?amount=1.5", listOf(BlockchainType.Solana))
         val monero = parsePrefixlessAddressUri("4address?tx_amount=2.5", listOf(BlockchainType.Monero))
@@ -69,7 +77,10 @@ class AddressParserViewModelTest {
         assertEquals("recipient", solanaUri.address)
         assertEquals(listOf(BlockchainType.Solana), solanaUri.openSendTokenSelect().blockchainTypes)
         assertEquals(listOf(TokenType.Native), solanaUri.openSendTokenSelect().tokenTypes)
-        assertEquals(listOf(TokenType.Native), AddressUriParser.addressUri("ethereum:0x1?value=1")?.openSendTokenSelect()?.tokenTypes)
+        assertEquals(
+            listOf(TokenType.Native),
+            AddressUriParser.addressUri("ethereum:0x1?value=1")?.openSendTokenSelect()?.tokenTypes
+        )
         assertEquals("4address", AddressUriParser.addressUri("monero:4address?tx_amount=2.5")?.address)
         val tonUri = requireNotNull(AddressUriParser.addressUri("ton://transfer/UQaddress?amount=1000000000"))
         assertEquals(listOf(TokenType.Native), tonUri.openSendTokenSelect().tokenTypes)
@@ -116,7 +127,10 @@ class AddressParserViewModelTest {
     }
     @Test fun process_uriWithSupportedAndOptionalParameters_prefillsOnlySupportedFields() {
         val viewModel = createViewModel(BlockchainType.Dash)
-        assertEquals("Xaddress", viewModel.process("dash:Xaddress?amount=1.20&memo=note&label=label&message=message&tag=tag&IS=1&foo=bar"))
+        assertEquals(
+            "Xaddress",
+            viewModel.process("dash:Xaddress?amount=1.20&memo=note&label=label&message=message&tag=tag&IS=1&foo=bar")
+        )
         assertEquals(BigDecimal("1.20"), viewModel.amountUnique?.amount)
         assertEquals("note", viewModel.memoUnique?.memo)
     }
