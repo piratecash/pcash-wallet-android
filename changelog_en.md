@@ -1,3 +1,21 @@
+## 🚀 Version 0.59.2 Update
+_Release date: August 18, 2026_
+
+### ✨ New Features
+
+- **Added Offline Mode for assets**
+  If you only need to use your phone as a portfolio and want to save mobile data, an asset can stay offline and be switched back to synchronization at any time.
+
+- **Added Monero support on Trezor**
+
+### ⚙️ Improvements
+
+- **Optimized address handling**
+  A full synchronization is no longer required to get an address.
+
+- **Improved address recognition from QR codes**
+  Address detection has been refined to better read problematic QR codes created in Bitrefill.
+
 ## 🚀 Version 0.59.1 Update
 _Release date: August 12, 2026_
 
