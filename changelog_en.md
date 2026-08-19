@@ -1,5 +1,5 @@
 ## 🚀 Version 0.59.2 Update
-_Release date: August 18, 2026_
+_Release date: August 19, 2026_
 
 ### ✨ New Features
 
@@ -15,6 +15,9 @@ _Release date: August 18, 2026_
 
 - **Improved address recognition from QR codes**
   Address detection has been refined to better read problematic QR codes created in Bitrefill.
+
+- **Added protection against accidentally importing a Zcash wallet without a birthday**
+  If the user skips birthday selection, the app helps avoid importing the wallet with the import date as its birthday.
 
 ## 🚀 Version 0.59.1 Update
 _Release date: August 12, 2026_
