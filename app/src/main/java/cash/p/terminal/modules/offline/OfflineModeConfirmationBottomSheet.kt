@@ -2,6 +2,7 @@ package cash.p.terminal.modules.offline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -31,6 +33,7 @@ import cash.p.terminal.ui_compose.TransparentModalBottomSheet
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.components.VerticalScrollIndicator
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_leah
@@ -71,8 +74,18 @@ internal fun OfflineModeConfirmationBottomSheet(
             }
             subhead2_leah(modifier = Modifier.padding(horizontal = 32.dp), text = description)
             VSpacer(24.dp)
-            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = MAX_MEMBERS_LIST_HEIGHT)) {
-                items(members) { member -> OfflineMemberRow(member) }
+            val listState = rememberLazyListState()
+            Box {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = MAX_MEMBERS_LIST_HEIGHT),
+                    state = listState,
+                ) {
+                    items(members) { member -> OfflineMemberRow(member) }
+                }
+                VerticalScrollIndicator(
+                    state = listState.scrollIndicatorState,
+                    modifier = Modifier.matchParentSize(),
+                )
             }
             VSpacer(24.dp)
             ButtonPrimaryYellow(
