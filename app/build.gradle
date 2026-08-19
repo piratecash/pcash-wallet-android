@@ -11,8 +11,6 @@ plugins {
     id 'kotlin-parcelize'
     id 'com.google.devtools.ksp'
     alias(libs.plugins.compose.compiler)
-    id 'com.google.firebase.crashlytics'
-    id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
     id 'io.github.takahirom.roborazzi' version '1.65.0'
@@ -186,9 +184,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://p.cash/api/\""
-            firebaseCrashlytics {
-                nativeSymbolUploadEnabled true
-            }
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             resValue "string", "is_release", "true"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
@@ -318,9 +314,6 @@ dependencies {
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.lifecycle.extensions1
     implementation(platform(libs.compose.bom))
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.kotlinx.serialization.json)
 
     implementation libs.lifecycle.viewmodel.ktx
@@ -541,9 +534,6 @@ dependencies {
 
     api libs.android.shell
     api libs.portmapper
-
-    implementation libs.google.play.app.update
-    implementation libs.google.play.app.update.ktx
 
     implementation libs.tangem.sdk
 }

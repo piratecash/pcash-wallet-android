@@ -3,7 +3,6 @@ package cash.p.terminal.core.di
 import cash.p.terminal.core.policy.CompositeHardwareWalletTokenPolicy
 import cash.p.terminal.core.policy.CompositeScanToAddUseCase
 import cash.p.terminal.core.usecase.AddMoneroToTrezorAccountUseCase
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
@@ -51,7 +50,6 @@ val useCaseModule = module {
     factoryOf(::ValidateMoneroHeightUseCase) bind TrezorMoneroRestoreHeightResolver::class
     singleOf(::AddMoneroToTrezorAccountUseCase)
     factoryOf(::GetLocalizedAssetUseCase)
-    factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)
     factoryOf(::GetRestoreHeightForWalletUseCase)

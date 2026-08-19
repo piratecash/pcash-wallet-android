@@ -384,7 +384,6 @@ class MainViewModel(
         val showDotBadge =
             !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) ||
                     accountManager.hasNonStandardAccount ||
-                    updateAvailable.value ||
                     !localStorage.isSystemPinRequired
 
         settingsBadge = if (wcPendingRequestsCount > 0) {
