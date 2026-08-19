@@ -2,7 +2,6 @@ package cash.p.terminal.modules.main
 
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.p.terminal.core.managers.ReleaseNotesManager
@@ -43,7 +42,6 @@ class MainViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
 
     private val pinComponent = mockk<IPinComponent>(relaxed = true)
-    private val rateAppManager = mockk<IRateAppManager>(relaxed = true)
     private val backupManager = mockk<IBackupManager>(relaxed = true)
     private val termsManager = mockk<ITermsManager>(relaxed = true)
     private val accountManager = mockk<IAccountManager>(relaxed = true)
@@ -76,7 +74,6 @@ class MainViewModelTest {
         every { localStorage.isSystemPinRequired } returns true
         every { termsManager.termsAcceptedSignalFlow } returns emptyFlow()
         every { termsManager.allTermsAccepted } answers { allTermsAccepted }
-        every { rateAppManager.showRateAppFlow } returns emptyFlow()
         every { backupManager.allBackedUpFlow } returns emptyFlow()
         every { backupManager.allBackedUp } returns true
         every { wcSessionManager.pendingRequestCountFlow } returns MutableStateFlow(0)
@@ -180,7 +177,6 @@ class MainViewModelTest {
 
     private fun createViewModel() = MainViewModel(
         pinComponent = pinComponent,
-        rateAppManager = rateAppManager,
         backupManager = backupManager,
         termsManager = termsManager,
         accountManager = accountManager,

@@ -3,7 +3,6 @@ package cash.p.terminal.modules.softwareupdate
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
@@ -15,7 +14,6 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
 import cash.p.terminal.modules.softwareupdate.changelog.VersionChangelogViewModel
-import cash.p.terminal.modules.softwareupdate.domain.InstallSource
 import cash.p.terminal.modules.softwareupdate.domain.InstallSourceProvider
 import cash.p.terminal.modules.softwareupdate.history.VersionHistoryScreen
 import cash.p.terminal.modules.softwareupdate.history.VersionHistoryViewModel
@@ -24,10 +22,6 @@ import cash.p.terminal.network.github.domain.entity.AppRelease
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.ScreenWithoutConnectionPanel
-import com.google.android.play.core.appupdate.AppUpdateManager
-import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.install.model.AppUpdateType
-import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.serialization.Serializable
 import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinViewModel
@@ -35,11 +29,7 @@ import org.koin.core.parameter.parametersOf
 
 class SoftwareUpdateFragment : BaseComposeFragment() {
 
-    private val appUpdateManager: AppUpdateManager by inject()
     private val installSourceProvider: InstallSourceProvider by inject()
-
-    private val updateFlowLauncher =
-        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { }
 
     @Composable
     override fun GetContent(navController: NavController) {
@@ -48,35 +38,7 @@ class SoftwareUpdateFragment : BaseComposeFragment() {
 
     private fun onUpdateNow(release: AppRelease) {
         val destinationUrl = installSourceProvider.updateDestinationUrl(release)
-        if (installSourceProvider.installSource == InstallSource.GOOGLE_PLAY) {
-            startGooglePlayUpdate(fallbackUrl = destinationUrl)
-        } else {
-            openUrl(requireContext(), destinationUrl)
-        }
-    }
-
-    /** Native Google Play in-app update for Play installs; falls back to the store page. */
-    private fun startGooglePlayUpdate(fallbackUrl: String) {
-        appUpdateManager.appUpdateInfo
-            .addOnSuccessListener { info ->
-                // The task completes asynchronously; bail out if the fragment is already detached.
-                val context = context ?: return@addOnSuccessListener
-                val started = isAdded &&
-                    info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
-                    info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE) &&
-                    tryOrNull {
-                        appUpdateManager.startUpdateFlowForResult(
-                            info,
-                            updateFlowLauncher,
-                            AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build(),
-                        )
-                    } == true
-                if (!started) openUrl(context, fallbackUrl)
-            }
-            .addOnFailureListener {
-                val context = context ?: return@addOnFailureListener
-                openUrl(context, fallbackUrl)
-            }
+        openUrl(requireContext(), destinationUrl)
     }
 }
 
