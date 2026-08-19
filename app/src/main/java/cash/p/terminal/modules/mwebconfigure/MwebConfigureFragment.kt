@@ -48,7 +48,7 @@ class MwebConfigureFragment : BaseComposeFragment() {
                 closeWithConfig(it, navController)
             },
             onCloseClick = { close(navController) },
-            onRestoreNew = viewModel::onRestoreNew,
+            onModeSelect = viewModel::onModeSelect,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
             onDoneClick = viewModel::onDoneClick,
             uiState = viewModel.uiState,

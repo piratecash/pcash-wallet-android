@@ -542,7 +542,8 @@ class BalanceViewModel(
             text
         }
 
-        return AddressUriParser.addressUri(address)?.let { it to it.selectionBlockchainTypes } ?: prefixlessAddressUri(text)
+        return AddressUriParser.addressUri(address)?.let { it to it.selectionBlockchainTypes }
+            ?: prefixlessAddressUri(text)
     }
 
     private fun prefixlessAddressUri(text: String): KotlinPair<AddressUri, List<BlockchainType>>? {
@@ -638,7 +639,10 @@ private data class PendingSwapsSnapshot(
     val singlePayCoreRecordUid: String?,
 )
 
-internal fun parsePrefixlessAddressUri(text: String, blockchainTypes: List<BlockchainType>): KotlinPair<AddressUri, List<BlockchainType>>? {
+internal fun parsePrefixlessAddressUri(
+    text: String,
+    blockchainTypes: List<BlockchainType>
+): KotlinPair<AddressUri, List<BlockchainType>>? {
     val parsed = blockchainTypes.mapNotNull { blockchainType ->
         val uri = (AddressUriParser(blockchainType, null).parse(text) as? AddressUriResult.Uri)?.addressUri
         uri?.let { it to (it.allowedBlockchainTypes ?: listOf(blockchainType)) }
@@ -667,7 +671,10 @@ private val AddressUri.selectionBlockchainTypes: List<BlockchainType>?
     get() = allowedBlockchainTypes ?: BlockchainType.supported.filter { it.uid == scheme }.takeIf { it.isNotEmpty() }
 
 private val NATIVE_TOKEN_URI_SCHEMES = setOf(
-    BlockchainType.Solana.uid, BlockchainType.Monero.uid, BlockchainType.Ton.uriScheme, BlockchainType.Ethereum.uriScheme
+    BlockchainType.Solana.uid,
+    BlockchainType.Monero.uid,
+    BlockchainType.Ton.uriScheme,
+    BlockchainType.Ethereum.uriScheme
 )
 
 data class BalanceUiState(

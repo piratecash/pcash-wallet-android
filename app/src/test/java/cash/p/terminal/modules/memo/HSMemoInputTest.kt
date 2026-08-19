@@ -49,9 +49,12 @@ class HSMemoInputTest {
         composeTestRule.onNode(hasSetTextAction()).assertTextEquals("memo")
         assertEquals(listOf("memo"), values); assertEquals(listOf(1L), handledIds)
         composeTestRule.runOnIdle { event = MemoUnique("too long", 2) }
-        composeTestRule.onNode(hasSetTextAction()).assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
+        composeTestRule.onNode(hasSetTextAction()).assert(
+            SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString(""))
+        )
         assertEquals(listOf("memo", ""), values)
-        assertEquals(listOf(1L, 2L), handledIds); composeTestRule.onNode(hasSetTextAction()).performTextReplacement("user")
+        assertEquals(listOf(1L, 2L), handledIds)
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("user")
         composeTestRule.runOnIdle { memo = "" }; stateRestorationTester.emulateSavedInstanceStateRestore()
         composeTestRule.onNode(hasSetTextAction()).assertTextEquals("user"); assertEquals("user", memo)
         assertEquals(listOf("memo", "", "user", "user"), values)
@@ -74,7 +77,9 @@ class HSMemoInputTest {
         composeTestRule.onNode(hasSetTextAction()).performTextReplacement("")
         composeTestRule.runOnIdle { visible = false }; stateRestorationTester.emulateSavedInstanceStateRestore()
         composeTestRule.runOnIdle { visible = true }
-        composeTestRule.onNode(hasSetTextAction()).assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("")))
+        composeTestRule.onNode(hasSetTextAction()).assert(
+            SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString(""))
+        )
         assertEquals(listOf("stale", "", ""), values); assertEquals(listOf(1L, 1L), handledIds)
     }
     @Test fun externalMemo_separatePrefillLimit_preservesLongPrefillAsReadOnly() {

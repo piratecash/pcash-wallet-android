@@ -9,19 +9,18 @@ import cash.p.terminal.core.managers.LitecoinMwebRestoreHeight
 import cash.p.terminal.modules.enablecoin.restoresettings.BirthdayHeightConfigUiState
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.toRestoreHeightMode
 
 class MwebConfigureViewModel : ViewModel() {
 
     var uiState by mutableStateOf(
-        BirthdayHeightConfigUiState(
-            birthdayHeight = "",
-            restoreAsNew = true,
-        )
+        BirthdayHeightConfigUiState(birthdayHeight = "")
     )
         private set
 
-    fun onRestoreNew(restoreNew: Boolean) {
-        uiState = uiState.copy(restoreAsNew = restoreNew)
+    fun onModeSelect(mode: RestoreHeightMode) {
+        uiState = uiState.copy(mode = mode)
     }
 
     fun setBirthdayHeight(height: String) {
@@ -36,7 +35,7 @@ class MwebConfigureViewModel : ViewModel() {
 
         uiState = uiState.copy(
             birthdayHeight = config.birthdayHeight.orEmpty(),
-            restoreAsNew = config.restoreAsNew,
+            mode = config.restoreAsNew.toRestoreHeightMode(),
             errorHeight = null,
             closeWithResult = null
         )

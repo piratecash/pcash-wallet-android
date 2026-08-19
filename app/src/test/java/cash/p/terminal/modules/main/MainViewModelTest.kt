@@ -150,7 +150,10 @@ class MainViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertEquals(false, viewModel.uiState.mainNavItems.first { it.mainNavItem == MainDestination.Transactions }.enabled)
+        assertEquals(
+            false,
+            viewModel.uiState.mainNavItems.first { it.mainNavItem == MainDestination.Transactions }.enabled
+        )
     }
 
     @Test

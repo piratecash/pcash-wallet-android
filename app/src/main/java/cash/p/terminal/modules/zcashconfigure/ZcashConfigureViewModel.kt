@@ -10,6 +10,13 @@ import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.network.zcash.domain.usecase.GetZcashHeightUseCase
 import cash.p.terminal.network.zcash.domain.usecase.ZcashHeightResult
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.isNewWallet
+import cash.p.terminal.ui_compose.components.isSelected
+import cash.p.terminal.ui_compose.components.toRestoreHeightMode
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -20,51 +27,37 @@ class ZcashConfigureViewModel(
     var uiState by mutableStateOf(
         ZCashConfigView(
             birthdayHeight = null,
-            restoreAsNew = true,
-            restoreAsOld = false,
-            doneButtonEnabled = true,
+            mode = null,
         )
     )
         private set
 
-    fun restoreAsNew() {
-        uiState = ZCashConfigView(
-            birthdayHeight = null,
-            restoreAsNew = true,
-            restoreAsOld = false,
-            doneButtonEnabled = true,
-        )
-    }
+    // The latest user action wins: any lookup still in flight is cancelled before a new one.
+    private var heightLookupJob: Job? = null
 
-    fun restoreAsOld() {
+    fun onModeSelect(mode: RestoreHeightMode) {
+        heightLookupJob?.cancel()
         uiState = ZCashConfigView(
             birthdayHeight = null,
-            restoreAsNew = false,
-            restoreAsOld = true,
-            doneButtonEnabled = true
+            mode = mode,
         )
     }
 
     fun setBirthdayHeight(height: String) {
-        uiState = ZCashConfigView(
+        heightLookupJob?.cancel()
+        uiState = uiState.copy(
             birthdayHeight = height,
-            restoreAsNew = false,
-            restoreAsOld = false,
-            doneButtonEnabled = height.isNotBlank(),
-            errorHeight = null
+            errorHeight = null,
+            loading = false
         )
     }
 
     fun setInitialConfig(config: TokenConfig?) {
         if (config == null) return
 
-        val isNew = config.restoreAsNew
-        val height = config.birthdayHeight
         uiState = uiState.copy(
-            birthdayHeight = height,
-            restoreAsNew = isNew,
-            restoreAsOld = !isNew,
-            doneButtonEnabled = isNew || !height.isNullOrBlank(),
+            birthdayHeight = config.birthdayHeight,
+            mode = config.restoreAsNew.toRestoreHeightMode(),
             errorHeight = null,
             closeWithResult = null,
             loading = false
@@ -72,7 +65,8 @@ class ZcashConfigureViewModel(
     }
 
     fun onDoneClick() {
-        viewModelScope.launch {
+        heightLookupJob?.cancel()
+        heightLookupJob = viewModelScope.launch {
             uiState = uiState.copy(loading = true)
 
             val birthdayHeight = uiState.birthdayHeight?.trim().takeUnless { it.isNullOrBlank() }
@@ -95,6 +89,7 @@ class ZcashConfigureViewModel(
                     }
                 }
             }
+            currentCoroutineContext().ensureActive()
             val heightCorrect = uiState.restoreAsNew || (heightDetected != null)
             val closeWithResult = if (heightCorrect) {
                 TokenConfig(heightDetected, uiState.restoreAsNew)
@@ -114,13 +109,17 @@ class ZcashConfigureViewModel(
     }
 
     fun onDatePicked(date: LocalDate) {
-        viewModelScope.launch {
+        heightLookupJob?.cancel()
+        heightLookupJob = viewModelScope.launch {
             uiState = uiState.copy(loading = true)
 
             val (height, error) = resolveHeightForDate(date)
+            // The use case swallows cancellation, so a cancelled lookup would still write here.
+            currentCoroutineContext().ensureActive()
             uiState = uiState.copy(
-                birthdayHeight = height ?: uiState.birthdayHeight,
-                doneButtonEnabled = height != null,
+                // On failure keep the picked date in the field, so Done retries the lookup
+                // instead of submitting the previous height.
+                birthdayHeight = height ?: date.toString(),
                 errorHeight = error,
                 loading = false
             )
@@ -149,22 +148,17 @@ class ZcashConfigureViewModel(
     }
 
     fun onClosed() {
-        uiState = ZCashConfigView(
-            birthdayHeight = uiState.birthdayHeight,
-            restoreAsNew = uiState.restoreAsNew,
-            restoreAsOld = uiState.restoreAsOld,
-            doneButtonEnabled = uiState.doneButtonEnabled,
-            closeWithResult = null,
-        )
+        uiState = uiState.copy(closeWithResult = null)
     }
 }
 
 data class ZCashConfigView(
     val birthdayHeight: String?,
-    val restoreAsNew: Boolean,
-    val restoreAsOld: Boolean,
-    val doneButtonEnabled: Boolean,
+    val mode: RestoreHeightMode?,
     val closeWithResult: TokenConfig? = null,
     val errorHeight: String? = null,
     val loading: Boolean = false
-)
+) {
+    val restoreAsNew: Boolean get() = mode.isNewWallet
+    val doneEnabled: Boolean get() = mode.isSelected
+}

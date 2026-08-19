@@ -14,7 +14,9 @@ class SendTokenSelectFragmentTest {
             )
         }
         val input = SendTokenSelectFragment.Input(null, null, PrefilledData.from(uri))
-        val sendInput = input.toSendInput(mockk<Wallet>(), "Dash"); assertEquals("Xaddress", sendInput.prefilledData?.address)
-        assertEquals("1.20", sendInput.prefilledData?.amount.toString()); assertEquals("memo", sendInput.prefilledData?.memo)
+        val sendInput = input.toSendInput(mockk<Wallet>(), "Dash")
+        assertEquals("Xaddress", sendInput.prefilledData?.address)
+        assertEquals("1.20", sendInput.prefilledData?.amount.toString())
+        assertEquals("memo", sendInput.prefilledData?.memo)
     }
 }

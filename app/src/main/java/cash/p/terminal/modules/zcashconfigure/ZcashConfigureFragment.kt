@@ -4,27 +4,13 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
 import androidx.activity.addCallback
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,27 +18,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
-import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
+import cash.p.terminal.modules.moneroconfigure.BirthdayHeightAppBar
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.RestoreHeightInput
 import cash.p.terminal.ui.compose.components.SelectDateBottomSheet
 import cash.p.terminal.ui.compose.components.restoreGenesisDateMillis
@@ -61,22 +41,16 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
-import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.CellMultilineLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.InfoText
-import cash.p.terminal.ui_compose.components.MenuItem
+import cash.p.terminal.ui_compose.components.RestoreHeightMode
+import cash.p.terminal.ui_compose.components.RestoreHeightScreen
 import cash.p.terminal.ui_compose.components.TextImportantWarning
-import cash.p.terminal.ui_compose.components.body_leah
-import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.imageUrl
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
@@ -146,10 +120,6 @@ fun ZcashConfigureScreen(
         onCloseWithResult.invoke(result)
     }
 
-    var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
-    }
-
     if (showSlowSyncWarning) {
         TransparentModalBottomSheet(
             sheetState = sheetState,
@@ -165,7 +135,7 @@ fun ZcashConfigureScreen(
                             showSlowSyncWarning = false
                         }
                     }
-                    viewModel.restoreAsOld()
+                    viewModel.onModeSelect(RestoreHeightMode.ExistingWallet)
                 },
                 onCloseClick = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -188,170 +158,47 @@ fun ZcashConfigureScreen(
         )
     }
 
-    Scaffold(
-        containerColor = ComposeAppTheme.colors.tyler,
-        topBar = { ZcashAppBar(onCloseClick = onCloseClick) }
-    ) {
-        Column(modifier = Modifier.padding(it)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .windowInsetsPadding(windowInsets)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                Spacer(Modifier.height(12.dp))
-                CellMultilineLawrenceSection(
-                    listOf(
-                        {
-                            OptionCell(
-                                title = stringResource(R.string.Restore_ZCash_NewWallet),
-                                subtitle = stringResource(R.string.Restore_ZCash_NewWallet_Description),
-                                checked = uiState.restoreAsNew,
-                                onClick = {
-                                    viewModel.restoreAsNew()
-                                    textState =
-                                        textState.copy(text = "", selection = TextRange(0))
-                                    focusManager.clearFocus()
-                                }
-                            )
-                        },
-                        {
-                            OptionCell(
-                                title = stringResource(R.string.Restore_ZCash_OldWallet),
-                                subtitle = stringResource(R.string.Restore_ZCash_OldWallet_Description),
-                                checked = uiState.restoreAsOld,
-                                onClick = {
-                                    showSlowSyncWarning = true
-                                    textState =
-                                        textState.copy(text = "", selection = TextRange(0))
-                                    focusManager.clearFocus()
-                                }
-                            )
-                        },
-                    )
-                )
-
-                if (!uiState.restoreAsNew) {
-                    Spacer(Modifier.height(24.dp))
-                    HeaderText(text = stringResource(R.string.restore_birthday_height_or_date))
-
-                    RestoreHeightInput(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        initial = uiState.birthdayHeight,
-                        hint = stringResource(R.string.restoreheight_hint),
-                        error = uiState.errorHeight,
-                        pasteEnabled = false,
-                        onValueChange = viewModel::setBirthdayHeight,
-                        onCalendarClick = { showDatePicker = true },
-                    )
-
-                    InfoText(
-                        text = stringResource(R.string.Restore_ZCash_BirthdayHeight_Hint),
-                    )
-                }
-
-                Spacer(Modifier.height(24.dp))
+    RestoreHeightScreen(
+        mode = uiState.mode,
+        onModeSelect = { mode ->
+            when (mode) {
+                RestoreHeightMode.NewWallet -> viewModel.onModeSelect(mode)
+                RestoreHeightMode.ExistingWallet -> showSlowSyncWarning = true
             }
-
-            ButtonsGroupWithShade {
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp),
-                    title = stringResource(
-                        if (uiState.loading) {
-                            R.string.Alert_Loading
-                        } else {
-                            R.string.Button_Done
-                        }
-                    ),
-                    onClick = { viewModel.onDoneClick() },
-                    enabled = !uiState.loading && uiState.doneButtonEnabled
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun OptionCell(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .weight(1f)
-        ) {
-            body_leah(
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(1.dp))
-            subhead2_grey(
-                text = subtitle,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .width(52.dp)
-                .fillMaxHeight(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (checked) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_checkmark_20),
-                    tint = ComposeAppTheme.colors.jacob,
-                    contentDescription = null,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ZcashAppBar(
-    onCloseClick: () -> Unit,
-) {
-    AppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                        .size(24.dp),
-                    painter = rememberAsyncImagePainterWithFallback(
-                        model = BlockchainType.Zcash.imageUrl,
-                        error = painterResource(R.drawable.ic_platform_placeholder_32)
-                    ),
-                    contentDescription = null
-                )
-                title3_leah(
-                    text = stringResource(R.string.Restore_ZCash),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            focusManager.clearFocus()
         },
-        menuItems = listOf(
-            MenuItem(
-                title = TranslatableString.ResString(R.string.Button_Close),
-                icon = R.drawable.ic_close_24,
-                onClick = onCloseClick
+        doneEnabled = uiState.doneEnabled,
+        onDoneClick = viewModel::onDoneClick,
+        topBar = {
+            BirthdayHeightAppBar(
+                title = stringResource(R.string.Restore_ZCash),
+                blockchainType = BlockchainType.Zcash,
+                onCloseClick = onCloseClick,
             )
-        )
+        },
+        loading = uiState.loading,
+        contentWindowInsets = windowInsets,
+        existingWalletContent = {
+            Spacer(Modifier.height(24.dp))
+            HeaderText(text = stringResource(R.string.restore_birthday_height_or_date))
+
+            RestoreHeightInput(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                initial = uiState.birthdayHeight,
+                hint = stringResource(R.string.restoreheight_hint),
+                error = uiState.errorHeight,
+                pasteEnabled = false,
+                onValueChange = viewModel::setBirthdayHeight,
+                onCalendarClick = { showDatePicker = true },
+            )
+
+            InfoText(
+                text = stringResource(R.string.Restore_ZCash_BirthdayHeight_Hint),
+            )
+        },
+        additionalContent = {
+            Spacer(Modifier.height(24.dp))
+        },
     )
 }
 
