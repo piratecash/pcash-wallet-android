@@ -5,21 +5,18 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.SystemClock
 import cash.p.terminal.core.App
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 /**
- * Pure gravity-sensor mechanism that emits a [flipEvents] tick when the user performs a
+ * Accelerometer-only mechanism that emits a [flipEvents] tick when the user performs a
  * face-down-then-up flip. It owns no lifecycle or feature state: [start]/[stop] are driven by
  * [BalanceHideOnFlipManager], so the listener is registered only while the feature is active.
  *
- * Gesture (ported from Tangem): the screen goes face-down (gravity z < [Z_FACE_DOWN]) and returns
- * up (z > [Z_RETURNED_UP]) within [FLIP_WINDOW_MS]. Requiring the return within a short window means
- * a phone resting face-down on a table does not toggle the balance when later picked up. Only
- * [Sensor.TYPE_GRAVITY] is used: the raw accelerometer would false-trigger on shakes.
+ * The Z axis is smoothed before requiring face-down and face-up values close to Earth's gravity.
+ * The complete gesture must fit within three seconds; there is no minimum dwell or cooldown.
  */
 class DeviceFlipDetector {
 
@@ -29,23 +26,23 @@ class DeviceFlipDetector {
     private val sensorManager: SensorManager? by lazy {
         App.instance.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
     }
-    private val gravitySensor: Sensor? by lazy {
-        sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
+    private val accelerometerSensor: Sensor? by lazy {
+        sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     }
 
     val isSupported: Boolean
-        get() = gravitySensor != null
+        get() = accelerometerSensor != null
 
     private var registered = false
     private val listener = FlipSensorListener()
 
     fun start() {
         if (registered) return
-        val sensor = gravitySensor ?: return
+        val sensor = accelerometerSensor ?: return
         registered = sensorManager?.registerListener(
             listener,
             sensor,
-            SensorManager.SENSOR_DELAY_NORMAL
+            SensorManager.SENSOR_DELAY_UI
         ) == true
     }
 
@@ -57,27 +54,16 @@ class DeviceFlipDetector {
     }
 
     private inner class FlipSensorListener : SensorEventListener {
-        private var faceDownAt = 0L
+        private val gestureRecognizer = FlipGestureRecognizer()
 
         fun reset() {
-            faceDownAt = 0L
+            gestureRecognizer.reset()
         }
 
         override fun onSensorChanged(event: SensorEvent) {
-            val z = event.values[2]
-            when {
-                z < Z_FACE_DOWN && faceDownAt == 0L -> {
-                    faceDownAt = SystemClock.elapsedRealtime()
-                }
-
-                z > Z_RETURNED_UP && faceDownAt != 0L -> {
-                    val now = SystemClock.elapsedRealtime()
-                    val completedInWindow = now - faceDownAt <= FLIP_WINDOW_MS
-                    faceDownAt = 0L
-                    if (completedInWindow) {
-                        _flipEvents.tryEmit(Unit)
-                    }
-                }
+            val elapsedMs = event.timestamp / NANOS_PER_MILLISECOND
+            if (gestureRecognizer.onSensorChanged(event.values[2], elapsedMs)) {
+                _flipEvents.tryEmit(Unit)
             }
         }
 
@@ -85,8 +71,58 @@ class DeviceFlipDetector {
     }
 
     private companion object {
-        const val Z_FACE_DOWN = -6f
-        const val Z_RETURNED_UP = -3f
+        const val NANOS_PER_MILLISECOND = 1_000_000L
+    }
+}
+
+internal class FlipGestureRecognizer {
+    private var filteredZ: Float? = null
+    private var faceDownAtMs: Long? = null
+
+    fun onSensorChanged(z: Float, elapsedMs: Long): Boolean {
+        val smoothedZ = smooth(z)
+        val startedAtMs = faceDownAtMs
+        val isFaceDown = isStableOrientation(z, smoothedZ, FACE_DOWN_Z)
+        val isFaceUp = isStableOrientation(z, smoothedZ, FACE_UP_Z)
+
+        return when {
+            isFaceDown && startedAtMs == null -> {
+                faceDownAtMs = elapsedMs
+                false
+            }
+
+            isFaceUp && startedAtMs != null -> {
+                faceDownAtMs = null
+                elapsedMs - startedAtMs <= FLIP_WINDOW_MS
+            }
+
+            else -> false
+        }
+    }
+
+    fun reset() {
+        filteredZ = null
+        faceDownAtMs = null
+    }
+
+    private fun smooth(z: Float): Float {
+        val smoothed = filteredZ?.let { previous ->
+            z + FILTER_PREVIOUS_WEIGHT * (previous - z)
+        } ?: z
+        filteredZ = smoothed
+        return smoothed
+    }
+
+    private fun isStableOrientation(
+        rawZ: Float,
+        smoothedZ: Float,
+        range: ClosedFloatingPointRange<Float>,
+    ) = rawZ in range && smoothedZ in range
+
+    private companion object {
+        val FACE_DOWN_Z = -10.5f..-8f
+        val FACE_UP_Z = 8f..10.5f
+        const val FILTER_PREVIOUS_WEIGHT = 0.5f
         const val FLIP_WINDOW_MS = 3000L
     }
 }

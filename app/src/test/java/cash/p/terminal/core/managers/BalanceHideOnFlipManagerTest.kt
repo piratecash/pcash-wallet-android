@@ -21,7 +21,7 @@ import org.junit.Test
 
 /**
  * Guards that the flip-to-hide feature stays inert behind the PIN/calculator lock screen: while
- * [IPinComponent.isLockedFlow] is true the gravity detector must not run and a flip must not toggle
+ * [IPinComponent.isLockedFlow] is true the accelerometer detector must not run and a flip must not toggle
  * the balance, so a lock-screen flip can neither vibrate a tell, surface the info sheet over the
  * disguise, nor expose an auto-hidden balance after unlock.
  */

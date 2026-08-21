@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Policy owner for the "hide balance on flip" feature. Drives [DeviceFlipDetector] from
- * foreground && enabled && !locked (so the gravity listener is registered only while the feature is
+ * foreground && enabled && !locked (so the accelerometer listener runs only while the feature is
  * usable and no PIN/calculator lock screen is up), routes each flip to the serialized
  * [BalanceHiddenManager.toggleBalanceHiddenOnFlip], and exposes a durable [pendingInfo] latch that
  * keeps the "balance hidden" info sheet pending until consumed even when the flip happened on a
