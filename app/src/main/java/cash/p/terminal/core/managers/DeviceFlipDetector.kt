@@ -58,7 +58,6 @@ class DeviceFlipDetector {
 
     private inner class FlipSensorListener : SensorEventListener {
         private var faceDownAt = 0L
-        private var lastFlipAt = 0L
 
         fun reset() {
             faceDownAt = 0L
@@ -74,10 +73,8 @@ class DeviceFlipDetector {
                 z > Z_RETURNED_UP && faceDownAt != 0L -> {
                     val now = SystemClock.elapsedRealtime()
                     val completedInWindow = now - faceDownAt <= FLIP_WINDOW_MS
-                    val pastThrottle = now - lastFlipAt >= FLIP_WINDOW_MS
                     faceDownAt = 0L
-                    if (completedInWindow && pastThrottle) {
-                        lastFlipAt = now
+                    if (completedInWindow) {
                         _flipEvents.tryEmit(Unit)
                     }
                 }
