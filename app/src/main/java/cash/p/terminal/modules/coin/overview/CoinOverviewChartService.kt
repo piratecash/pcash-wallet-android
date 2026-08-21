@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.coin.overview
 
-import android.util.Log
 import cash.p.terminal.modules.chart.ChartIndicatorManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.models.CoinPrice
@@ -15,9 +14,6 @@ import io.horizontalsystems.core.models.HsTimePeriod
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
-import retrofit2.HttpException
-import java.io.IOException
 import java.math.BigDecimal
 import cash.p.terminal.wallet.models.ChartPoint as MarketKitChartPoint
 
@@ -27,36 +23,24 @@ class CoinOverviewChartService(
     private val coinUid: String,
     private val chartIndicatorManager: ChartIndicatorManager,
 ) : AbstractChartService() {
+    private companion object {
+        const val ALL_HISTORY_START_TIMESTAMP = 0L
+    }
+
     override val hasVolumes = true
     override val initialChartInterval = HsTimePeriod.Day1
 
-    override var chartIntervals = listOf<HsTimePeriod?>()
+    override val chartIntervals = HsTimePeriod.values().toList() + null
     override val chartViewType = ChartViewType.Line
 
     private var updatesSubscriptionKey: String? = null
     private var updatesJob: Job? = null
 
-    private var chartStartTime: Long = 0
     private val cache = mutableMapOf<String, Pair<Long, List<MarketKitChartPoint>>>()
 
     private var indicatorsEnabled = chartIndicatorManager.isEnabled
 
     override suspend fun start() {
-        try {
-            chartStartTime = marketKit.chartStartTimeSingle(coinUid).await()
-        } catch (e: IOException) {
-            Log.e("CoinOverviewChartService", "start error: ", e)
-        } catch (e: HttpException) {
-            Log.e("CoinOverviewChartService", "start error: ", e)
-        }
-
-        val now = System.currentTimeMillis() / 1000L
-        val mostPeriodSeconds = now - chartStartTime
-
-        chartIntervals = HsTimePeriod.values().filter {
-            it.range <= mostPeriodSeconds
-        } + listOf<HsTimePeriod?>(null)
-
         coroutineScope.launch {
             chartIndicatorManager.isEnabledFlow.collect {
                 indicatorsEnabled = it
@@ -77,7 +61,7 @@ class CoinOverviewChartService(
     override suspend fun getAllItems(currency: Currency): ChartPointsWrapper {
         return getItemsByPeriodType(
             currency = currency,
-            periodType = HsPeriodType.ByStartTime(chartStartTime),
+            periodType = HsPeriodType.ByStartTime(ALL_HISTORY_START_TIMESTAMP),
             chartInterval = null
         )
     }

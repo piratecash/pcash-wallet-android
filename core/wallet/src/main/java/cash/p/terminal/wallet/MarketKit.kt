@@ -510,10 +510,6 @@ class MarketKit(
         return IntervalData(interval, fromTimestamp, visibleTimestamp)
     }
 
-    fun chartStartTimeSingle(coinUid: String): Single<Long> {
-        return hsProvider.coinPriceChartStartTime(coinGeckoUid(coinUid))
-    }
-
     fun topPlatformMarketCapStartTimeSingle(platform: String): Single<Long> {
         return hsProvider.topPlatformMarketCapStartTime(platform)
     }
