@@ -273,8 +273,6 @@ class MarketKitWrapper(
 
     // Chart Info
 
-    fun chartStartTimeSingle(coinUid: String) = marketKit.chartStartTimeSingle(coinUid)
-
     suspend fun chartPointsSingle(coinUid: String, currencyCode: String, periodType: HsPeriodType) =
         withContext(Dispatchers.IO) {
             marketKit.chartPointsSingle(coinUid, currencyCode, periodType)

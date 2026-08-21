@@ -220,10 +220,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
         }
     }
 
-    fun coinPriceChartStartTime(coinGeckoUid: String): Single<Long> {
-        return service.getCoinPriceChartStart(coinGeckoUid).map { it.timestamp }
-    }
-
     fun topPlatformMarketCapStartTime(platform: String): Single<Long> {
         return service.getTopPlatformMarketCapStart(platform).map { it.timestamp }
     }
@@ -582,11 +578,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
             @Query("currency") currencyCode: String,
             @Query("timestamp") timestamp: Long,
         ): Single<HistoricalCoinPriceResponse>
-
-        @GET("coins/{coinUid}/price_chart_start")
-        fun getCoinPriceChartStart(
-            @Path("coinUid") coinGeckoUid: String
-        ): Single<ChartStart>
 
         @GET("coins/{coinUid}")
         fun getMarketInfoOverview(
