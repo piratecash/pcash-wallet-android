@@ -55,22 +55,26 @@ import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.reown.walletkit.client.Wallet.Params.Pair
 import com.reown.walletkit.client.WalletKit
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import kotlin.Pair as KotlinPair
 
@@ -112,6 +116,7 @@ class BalanceViewModel(
         ResolvePayCoreNavigationUseCase::class.java
     )
     private val offlineModeManager: OfflineModeManager by inject(OfflineModeManager::class.java)
+    private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
     private var pendingSwapCount = 0
     private var singlePendingSwapId: String? = null
@@ -173,12 +178,6 @@ class BalanceViewModel(
         }
 
         viewModelScope.launch {
-            totalBalance.stateFlow.collect {
-                refreshViewItems(service.balanceItemsFlow.value)
-            }
-        }
-
-        viewModelScope.launch {
             balanceViewTypeManager.balanceViewTypeFlow.collect {
                 handleUpdatedBalanceViewType(it)
             }
@@ -203,11 +202,11 @@ class BalanceViewModel(
             }
         }
 
-        // To hide balance for Samsung devices with hide balance feature enabled
+        // Visibility changes must not wait for cancelable sync-driven row rebuilds.
         viewModelScope.launch {
-            balanceHiddenManager.anyWalletVisibilityChangedFlow.collect {
-                refreshViewItems(service.balanceItemsFlow.value)
-            }
+            balanceHiddenManager.anyWalletVisibilityChangedFlow
+                .drop(1)
+                .collect { refreshBalanceVisibility() }
         }
 
         // A paused chain stops emitting balance items, so nothing else would redraw its offline badge.
@@ -321,34 +320,54 @@ class BalanceViewModel(
     }
 
     private fun refreshViewItems(balanceItems: List<BalanceItem>?) {
-        refreshViewItemsJob?.cancel()
-        refreshViewItemsJob = viewModelScope.launch(Dispatchers.Default) {
-            if (balanceItems != null) {
-                viewState = ViewState.Success
-                balanceViewItems = balanceItems.map { balanceItem ->
-                    ensureActive()
-                    val isHidden = balanceHiddenManager.isWalletBalanceHidden(balanceItem.wallet.tokenQueryId)
-                    balanceViewItemFactory.viewItem2(
-                        item = balanceItem,
-                        currency = service.baseCurrency,
-                        roundingAmount = localStorage.isRoundingAmountMainPage,
-                        hideBalance = isHidden,
-                        watchAccount = service.isWatchAccount,
-                        isSwipeToDeleteEnabled = !isSingleWalletAccount(),
-                        balanceViewType = balanceViewType,
-                        networkAvailable = service.networkAvailable,
-                        showStackingUnpaid = true,
-                        displayDiffOptionType = displayDiffOptionType
-                    )
+        viewModelScope.launch {
+            refreshViewItemsJob?.cancel()
+            refreshViewItemsJob = launch {
+                val refreshedItems = withContext(dispatcherProvider.default) {
+                    balanceItems?.map { balanceItem ->
+                        ensureActive()
+                        createViewItem(balanceItem)
+                    }.orEmpty()
                 }
-            } else {
-                viewState = null
-                balanceViewItems = listOf()
-            }
 
-            ensureActive()
-            emitState()
+                viewState = if (balanceItems == null) null else ViewState.Success
+                balanceViewItems = refreshedItems
+                emitState()
+            }
         }
+    }
+
+    private fun createViewItem(balanceItem: BalanceItem): BalanceViewItem2 {
+        return balanceViewItemFactory.viewItem2(
+            item = balanceItem,
+            currency = service.baseCurrency,
+            roundingAmount = localStorage.isRoundingAmountMainPage,
+            hideBalance = balanceHiddenManager.isWalletBalanceHidden(balanceItem.wallet.tokenQueryId),
+            watchAccount = service.isWatchAccount,
+            isSwipeToDeleteEnabled = !isSingleWalletAccount(),
+            balanceViewType = balanceViewType,
+            networkAvailable = service.networkAvailable,
+            showStackingUnpaid = true,
+            displayDiffOptionType = displayDiffOptionType
+        )
+    }
+
+    private suspend fun refreshBalanceVisibility() {
+        refreshViewItemsJob?.cancelAndJoin()
+        balanceViewItems = balanceViewItems.map { viewItem ->
+            viewItem.withBalanceVisibility(
+                visible = !balanceHiddenManager.isWalletBalanceHidden(viewItem.wallet.tokenQueryId)
+            )
+        }
+        emitState()
+    }
+
+    private fun BalanceViewItem2.withBalanceVisibility(visible: Boolean): BalanceViewItem2 {
+        return copy(
+            primaryValue = primaryValue.copy(visible = visible),
+            secondaryValue = secondaryValue.copy(visible = visible),
+            stackingUnpaid = stackingUnpaid?.copy(visible = visible),
+        )
     }
 
     private fun detectPirateAndCosanta(balanceItems: List<BalanceItem>?) {

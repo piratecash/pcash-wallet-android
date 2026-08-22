@@ -122,7 +122,7 @@ internal class FlipGestureRecognizer {
     private companion object {
         val FACE_DOWN_Z = -10.5f..-8f
         val FACE_UP_Z = 8f..10.5f
-        const val FILTER_PREVIOUS_WEIGHT = 0.5f
+        const val FILTER_PREVIOUS_WEIGHT = 0.25f
         const val FLIP_WINDOW_MS = 3000L
     }
 }

@@ -1,6 +1,8 @@
 package cash.p.terminal.core.managers
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FlipGestureRecognizerTest {
@@ -22,6 +24,18 @@ class FlipGestureRecognizerTest {
             feed(recognizer, FACE_UP_Z, startMs = 900L)
 
         assertEquals(1, emissions)
+    }
+
+    @Test
+    fun onSensorChanged_faceUpAfterFaceDown_emitsOnSecondStableSample() {
+        val recognizer = initializedRecognizer()
+        feed(recognizer, FACE_DOWN_Z, startMs = 300L)
+
+        val firstSample = recognizer.onSensorChanged(FACE_UP_Z, elapsedMs = 900L)
+        val secondSample = recognizer.onSensorChanged(FACE_UP_Z, elapsedMs = 950L)
+
+        assertFalse(firstSample)
+        assertTrue(secondSample)
     }
 
     @Test
