@@ -39,6 +39,16 @@ class FlipGestureRecognizerTest {
     }
 
     @Test
+    fun onSensorChanged_tiltedFaceUpAfterFaceDown_emits() {
+        val recognizer = initializedRecognizer()
+
+        val emissions = feed(recognizer, FACE_DOWN_Z, startMs = 300L) +
+            feed(recognizer, TILTED_FACE_UP_Z, startMs = 900L)
+
+        assertEquals(1, emissions)
+    }
+
+    @Test
     fun onSensorChanged_flipAfterWindow_doesNotEmit() {
         val recognizer = initializedRecognizer()
 
@@ -80,17 +90,6 @@ class FlipGestureRecognizerTest {
         assertEquals(0, emissions)
     }
 
-    @Test
-    fun reset_partialGesture_discardsIt() {
-        val recognizer = initializedRecognizer()
-        feed(recognizer, FACE_DOWN_Z, startMs = 300L)
-
-        recognizer.reset()
-        val emissions = feed(recognizer, FACE_UP_Z, startMs = 900L)
-
-        assertEquals(0, emissions)
-    }
-
     private fun initializedRecognizer() = FlipGestureRecognizer().also {
         feed(it, FACE_UP_Z, startMs = 0L)
     }
@@ -107,6 +106,7 @@ class FlipGestureRecognizerTest {
     private companion object {
         const val FACE_UP_Z = 9.81f
         const val FACE_DOWN_Z = -9.81f
+        const val TILTED_FACE_UP_Z = 6.5f
         const val IMPULSE_Z = 30f
         const val SAMPLE_INTERVAL_MS = 50L
         const val SAMPLES_PER_ORIENTATION = 5

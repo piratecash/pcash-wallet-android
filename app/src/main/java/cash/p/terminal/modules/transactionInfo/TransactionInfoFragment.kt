@@ -58,6 +58,7 @@ import cash.p.terminal.modules.transactions.poison_status.AddressPoisoningInfoDi
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui.compose.components.WarningMessageCell
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.BalanceHideOnFlipHandling
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -95,6 +96,8 @@ class TransactionInfoFragment : BaseComposeFragment() {
             // closing anyway, so there is nothing to render.
             return
         }
+
+        BalanceHideOnFlipHandling()
 
         TransactionInfoScreen(
             state = TransactionInfoScreenState(

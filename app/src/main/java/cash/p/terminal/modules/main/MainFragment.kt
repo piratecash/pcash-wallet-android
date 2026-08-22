@@ -16,9 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BadgedBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +36,6 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
-import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
@@ -72,6 +69,7 @@ import cash.p.terminal.ui.compose.components.HsBottomNavigation
 import cash.p.terminal.ui.compose.components.HsBottomNavigationItem
 import cash.p.terminal.ui.extensions.WalletSwitchBottomSheet
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.BalanceHideOnFlipHandling
 import cash.p.terminal.ui_compose.ModalOverlayTracker
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -188,8 +186,10 @@ private fun MainScreen(
 
     var showWalletSheet by remember { mutableStateOf(false) }
     BalanceHideOnFlipHandling(
-        destination = uiState.mainNavItems[selectedPage].mainNavItem,
-        walletSelectionVisible = showWalletSheet,
+        allowed = !showWalletSheet && when (uiState.mainNavItems[selectedPage].mainNavItem) {
+            MainDestination.Balance, MainDestination.Transactions -> true
+            MainDestination.Market, MainDestination.Settings -> false
+        },
     )
     LaunchedEffect(intentLiveData, uiState.contentHidden) {
         if (!uiState.contentHidden) {
@@ -406,25 +406,6 @@ private fun MainScreen(
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         viewModel.onResume()
-    }
-}
-
-@Composable
-private fun BalanceHideOnFlipHandling(
-    destination: MainDestination,
-    walletSelectionVisible: Boolean,
-) {
-    val manager = koinInject<BalanceHideOnFlipManager>()
-    val allowed = !walletSelectionVisible && when (destination) {
-        MainDestination.Balance, MainDestination.Transactions -> true
-        MainDestination.Market, MainDestination.Settings -> false
-    }
-
-    SideEffect {
-        manager.setHandlingAllowed(allowed)
-    }
-    DisposableEffect(manager) {
-        onDispose { manager.setHandlingAllowed(true) }
     }
 }
 

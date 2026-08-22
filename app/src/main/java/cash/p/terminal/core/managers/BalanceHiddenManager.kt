@@ -36,9 +36,9 @@ class BalanceHiddenManager(
     override val balanceHiddenFlow = _balanceHiddenFlow.asStateFlow()
     private val scope = CoroutineScope(dispatcherProvider.default)
 
-    // Single-thread scope serializing every unmediated balance-visibility mutation
+    // Main-confined scope serializing every unmediated balance-visibility mutation
     // (background auto-hide + physical flip) through one confined thread.
-    private val mutationScope = CoroutineScope(dispatcherProvider.default.limitedParallelism(1))
+    private val mutationScope = CoroutineScope(dispatcherProvider.main)
 
     private val _flipHiddenResult = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
     val flipHiddenResult: SharedFlow<Boolean> = _flipHiddenResult.asSharedFlow()

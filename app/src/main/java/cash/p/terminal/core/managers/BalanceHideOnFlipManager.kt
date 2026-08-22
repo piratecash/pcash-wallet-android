@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Policy owner for the "hide balance on flip" feature. Drives [DeviceFlipDetector] from
- * foreground && enabled && !locked && handlingAllowed (so the accelerometer listener runs only
- * while the feature is usable on the current screen), routes each flip to the serialized
+ * foreground && enabled && !locked && an active screen owner. This keeps the accelerometer
+ * listener running only while the feature is usable on the current screen, routes each flip to the serialized
  * [BalanceHiddenManager.toggleBalanceHiddenOnFlip], and exposes a durable [pendingInfo] latch that
  * keeps the "balance hidden" info sheet pending until consumed even when the flip happened on a
  * non-Balance screen.
@@ -42,10 +42,10 @@ class BalanceHideOnFlipManager(
     private val _pendingInfo = MutableStateFlow(false)
     val pendingInfo: StateFlow<Boolean> = _pendingInfo.asStateFlow()
 
-    private val handlingAllowed = MutableStateFlow(true)
+    private val handlingOwners = MutableStateFlow<Set<Any>>(emptySet())
     private var flipEventsJob: Job? = null
 
-    private val scope = CoroutineScope(dispatcherProvider.default)
+    private val scope = CoroutineScope(dispatcherProvider.main)
 
     init {
         val enabled = localStorage.balanceHideOnFlipEnabled && isSupported
@@ -60,8 +60,10 @@ class BalanceHideOnFlipManager(
                 backgroundManager.stateFlow.map { it == BackgroundManagerState.EnterForeground },
                 _enabled,
                 pinComponent.isLockedFlow,
-                handlingAllowed,
-            ) { foreground, enabled, locked, allowed -> foreground && enabled && !locked && allowed }
+                handlingOwners,
+            ) { foreground, enabled, locked, owners ->
+                foreground && enabled && !locked && owners.isNotEmpty()
+            }
                 .distinctUntilChanged()
                 .collect { active ->
                     if (active) deviceFlipDetector.start() else deviceFlipDetector.stop()
@@ -83,10 +85,15 @@ class BalanceHideOnFlipManager(
         if (!newEnabled) _pendingInfo.value = false
     }
 
-    fun setHandlingAllowed(allowed: Boolean) {
-        if (handlingAllowed.value == allowed) return
-        handlingAllowed.value = allowed
-        updateFlipEventCollection()
+    fun setHandlingAllowed(owner: Any, allowed: Boolean) {
+        val currentOwners = handlingOwners.value
+        val updatedOwners = if (allowed) currentOwners + owner else currentOwners - owner
+        if (updatedOwners == currentOwners) return
+
+        handlingOwners.value = updatedOwners
+        if (currentOwners.isEmpty() != updatedOwners.isEmpty()) {
+            updateFlipEventCollection()
+        }
     }
 
     fun consumeInfo() {
@@ -100,10 +107,13 @@ class BalanceHideOnFlipManager(
 
     private fun updateFlipEventCollection() {
         flipEventsJob?.cancel()
-        flipEventsJob = if (handlingAllowed.value) {
+        flipEventsJob = if (handlingOwners.value.isNotEmpty()) {
             scope.launch(start = CoroutineStart.UNDISPATCHED) {
                 deviceFlipDetector.flipEvents.collect {
-                    if (_enabled.value && handlingAllowed.value && !pinComponent.isLockedFlow.value) {
+                    if (_enabled.value &&
+                        handlingOwners.value.isNotEmpty() &&
+                        !pinComponent.isLockedFlow.value
+                    ) {
                         balanceHiddenManager.toggleBalanceHiddenOnFlip()
                     }
                 }

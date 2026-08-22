@@ -80,7 +80,7 @@ class BalanceHideOnFlipManagerTest {
         val manager = createManagerWithStandardDispatcher(detector, balanceHiddenManager)
 
         flipEvents.emit(Unit)
-        manager.setHandlingAllowed(false)
+        manager.setHandlingAllowed(primaryOwner, false)
         advanceUntilIdle()
 
         verify { detector.stop() }
@@ -94,9 +94,9 @@ class BalanceHideOnFlipManagerTest {
             val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
             val (manager, _) = createManager(detector, balanceHiddenManager, MutableStateFlow(false))
 
-            manager.setHandlingAllowed(false)
+            manager.setHandlingAllowed(primaryOwner, false)
             advanceUntilIdle()
-            manager.setHandlingAllowed(true)
+            manager.setHandlingAllowed(primaryOwner, true)
             advanceUntilIdle()
             flipEvents.emit(Unit)
             advanceUntilIdle()
@@ -111,9 +111,9 @@ class BalanceHideOnFlipManagerTest {
         val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
         val manager = createManagerWithStandardDispatcher(detector, balanceHiddenManager)
 
-        manager.setHandlingAllowed(false)
+        manager.setHandlingAllowed(primaryOwner, false)
         flipEvents.emit(Unit)
-        manager.setHandlingAllowed(true)
+        manager.setHandlingAllowed(primaryOwner, true)
         advanceUntilIdle()
 
         verify(exactly = 0) { balanceHiddenManager.toggleBalanceHiddenOnFlip() }
@@ -139,6 +139,25 @@ class BalanceHideOnFlipManagerTest {
         assertFalse(manager.enabled.value)
         verify { localStorage.balanceHideOnFlipEnabled = false }
     }
+
+    @Test
+    fun setHandlingAllowed_ownerRemovedWhileAnotherActive_keepsProcessingFlips() =
+        runTest(UnconfinedTestDispatcher()) {
+            val detector = flipDetector()
+            val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
+            val (manager, _) = createManager(
+                detector,
+                balanceHiddenManager,
+                MutableStateFlow(false),
+            )
+            manager.setHandlingAllowed(secondaryOwner, true)
+
+            manager.setHandlingAllowed(primaryOwner, false)
+            flipEvents.emit(Unit)
+            advanceUntilIdle()
+
+            verify(exactly = 1) { balanceHiddenManager.toggleBalanceHiddenOnFlip() }
+        }
 
     private fun flipDetector(supported: Boolean = true): DeviceFlipDetector = mockk(relaxed = true) {
         every { flipEvents } returns this@BalanceHideOnFlipManagerTest.flipEvents
@@ -175,13 +194,20 @@ class BalanceHideOnFlipManagerTest {
         val pinComponent = mockk<IPinComponent> {
             every { isLockedFlow } returns lockedFlow
         }
-        return BalanceHideOnFlipManager(
+        val manager = BalanceHideOnFlipManager(
             deviceFlipDetector = detector,
             balanceHiddenManager = balanceHiddenManager,
             backgroundManager = backgroundManager,
             localStorage = localStorage,
             pinComponent = pinComponent,
             dispatcherProvider = TestDispatcherProvider(dispatcher, backgroundScope),
-        ) to localStorage
+        )
+        manager.setHandlingAllowed(primaryOwner, true)
+        return manager to localStorage
+    }
+
+    private companion object {
+        val primaryOwner = Any()
+        val secondaryOwner = Any()
     }
 }

@@ -28,6 +28,7 @@ import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.BalanceHideOnFlipHandling
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.wallet.isPirateCash
@@ -154,6 +155,7 @@ private fun TokenBalanceNavHost(
         startDestination = TokenBalanceRoute.Balance
     ) {
         composable<TokenBalanceRoute.Balance> {
+            BalanceHideOnFlipHandling()
             viewModel.refreshTransactionDisplaySettings()
             TokenBalanceScreen(
                 viewModel = viewModel,
