@@ -35,6 +35,11 @@ class PinComponent(
 ) : IPinComponent {
 
     init {
+        backgroundManager.onAppSessionEnded = {
+            if (isPinSet) {
+                lock()
+            }
+        }
         scope.launch {
             backgroundManager.stateFlow.collect { state ->
                 when (state) {
@@ -178,6 +183,14 @@ class PinComponent(
 
     override fun keepUnlocked() {
         appLockManager.keepUnlocked()
+    }
+
+    override fun cancelKeepUnlocked() {
+        appLockManager.cancelKeepUnlocked()
+    }
+
+    override fun consumeExternalActivityLaunch(): Boolean {
+        return appLockManager.consumeExternalActivityLaunch()
     }
 
     override fun getPinLevel(pin: String): Int? {

@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -202,7 +203,7 @@ private fun SwapResultEffects(
 }
 
 @Composable
-private fun SwapConfirmButtons(
+private fun ColumnScope.SwapConfirmButtons(
     uiState: SwapConfirmUiState,
     runtime: SwapConfirmRuntime,
     actions: SwapConfirmActions,
@@ -272,7 +273,7 @@ private fun ExpiredQuoteButton(onRefresh: () -> Unit) {
 }
 
 @Composable
-private fun MoneroSpendReadinessStatus(
+private fun ColumnScope.MoneroSpendReadinessStatus(
     spendReadiness: MoneroSpendReadiness,
     preparationInProgress: Boolean,
     preparationError: Int?,

@@ -35,12 +35,15 @@ class LockManager(
         get() = prefs.getBoolean(KEY_KEEP_UNLOCKED, false)
         set(value) = prefs.edit { putBoolean(KEY_KEEP_UNLOCKED, value) }
 
+    private var externalActivityLaunchPending = false
+
     fun didEnterBackground() {
         if (isLocked.value) return
         appLastVisitTime = System.currentTimeMillis()
     }
 
     fun willEnterForeground() {
+        externalActivityLaunchPending = false
         if (isLocked.value || !pinManager.isPinSet) return
 
         val lockTimeoutMillis = activeLockTimeoutMillis()
@@ -64,6 +67,7 @@ class LockManager(
     }
 
     fun onUnlock() {
+        cancelKeepUnlocked()
         setLocked(false)
     }
 
@@ -73,11 +77,27 @@ class LockManager(
 
     fun lock() {
         setLocked(true)
-        prefs.edit { remove(KEY_LAST_BACKGROUND_TIME) }
+        externalActivityLaunchPending = false
+        prefs.edit {
+            remove(KEY_LAST_BACKGROUND_TIME)
+            remove(KEY_KEEP_UNLOCKED)
+        }
     }
 
     fun keepUnlocked() {
         keepUnlocked = true
+        externalActivityLaunchPending = true
+    }
+
+    fun cancelKeepUnlocked() {
+        keepUnlocked = false
+        externalActivityLaunchPending = false
+    }
+
+    fun consumeExternalActivityLaunch(): Boolean {
+        val pending = externalActivityLaunchPending
+        externalActivityLaunchPending = false
+        return pending
     }
 
     companion object {

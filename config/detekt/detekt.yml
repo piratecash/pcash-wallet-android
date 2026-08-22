@@ -36,6 +36,9 @@ exceptions:
     active: false  # try/catch with Timber logging is our pattern
 
 naming:
+  ClassNaming:
+    active: true
+    classPattern: '([A-Z][a-zA-Z0-9]*|Migration_[0-9]+_[0-9]+)'
   FunctionNaming:
     active: true
     # Allow PascalCase for Composable functions

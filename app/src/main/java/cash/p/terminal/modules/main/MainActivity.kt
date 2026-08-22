@@ -50,6 +50,22 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.compose.viewmodel.koinViewModel
 
+internal enum class CalculatorPauseProtection {
+    None,
+    SecureSnapshot,
+    ShowCalculator,
+}
+
+internal fun calculatorPauseProtection(
+    calculatorMode: Boolean,
+    pinSet: Boolean,
+    externalActivityLaunching: Boolean,
+): CalculatorPauseProtection = when {
+    !calculatorMode || !pinSet -> CalculatorPauseProtection.None
+    externalActivityLaunching -> CalculatorPauseProtection.SecureSnapshot
+    else -> CalculatorPauseProtection.ShowCalculator
+}
+
 open class MainActivity : BaseActivity() {
 
     val viewModel: MainActivityViewModel by inject()
@@ -60,6 +76,7 @@ open class MainActivity : BaseActivity() {
     private val appUpdateChecker: AppUpdateChecker by inject()
     private var pinLockComposeView: ComposeView? = null
     private var showPinLockScreen by mutableStateOf(false)
+    private var externalActivitySnapshotSecured = false
 
     override fun onResume() {
         super.onResume()
@@ -67,6 +84,12 @@ open class MainActivity : BaseActivity() {
         // EnterForeground on a different coroutine and may not have run yet, so the
         // check below would otherwise race and briefly hide the calculator overlay.
         pinComponent.willEnterForeground()
+        if (externalActivitySnapshotSecured) {
+            externalActivitySnapshotSecured = false
+            if (!pinComponent.isLockedFlow.value) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        }
         if (showPinLockScreen && !pinComponent.isLockedFlow.value) {
             showPinLockScreen = false
             pinLockComposeView?.visibility = GONE
@@ -83,7 +106,7 @@ open class MainActivity : BaseActivity() {
 
     override fun onPause() {
         super.onPause()
-        showCalculatorLockScreenInRecents()
+        protectCalculatorScreenOnPause()
     }
 
     override fun onStop() {
@@ -300,16 +323,27 @@ open class MainActivity : BaseActivity() {
         return result
     }
 
-    private fun showCalculatorLockScreenInRecents() {
-        val composeView = pinLockComposeView ?: return
-        if (!localStorage.isCalculatorModeEnabled || !pinComponent.isPinSet) {
-            return
+    private fun protectCalculatorScreenOnPause() {
+        when (
+            calculatorPauseProtection(
+                calculatorMode = localStorage.isCalculatorModeEnabled,
+                pinSet = pinComponent.isPinSet,
+                externalActivityLaunching = pinComponent.consumeExternalActivityLaunch(),
+            )
+        ) {
+            CalculatorPauseProtection.None -> Unit
+            CalculatorPauseProtection.SecureSnapshot -> {
+                externalActivitySnapshotSecured = true
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+            CalculatorPauseProtection.ShowCalculator -> {
+                val composeView = pinLockComposeView ?: return
+                showPinLockScreen = true
+                composeView.visibility = VISIBLE
+                applyTaskDescription(calculatorMode = true)
+                applyLockWindowFlags(isLocked = true, calculatorMode = true)
+            }
         }
-
-        showPinLockScreen = true
-        composeView.visibility = VISIBLE
-        applyTaskDescription(calculatorMode = true)
-        applyLockWindowFlags(isLocked = true, calculatorMode = true)
     }
 
     private fun applyLockWindowFlags(isLocked: Boolean, calculatorMode: Boolean) {

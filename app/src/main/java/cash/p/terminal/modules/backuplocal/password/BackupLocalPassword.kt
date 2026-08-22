@@ -48,6 +48,7 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.launchExternalActivity
 
 @Composable
 fun LocalBackupPasswordScreen(
@@ -103,9 +104,10 @@ fun LocalBackupPasswordScreen(
     }
 
     if (uiState.backupData != null) {
-        App.pinComponent.keepUnlocked()
         try {
-            backupLauncher.launch(viewModel.backupFileName)
+            App.pinComponent.launchExternalActivity {
+                backupLauncher.launch(viewModel.backupFileName)
+            }
         } catch (_: ActivityNotFoundException) {
             HudHelper.showErrorMessage(view, R.string.error_no_file_manager)
             viewModel.backupCanceled()

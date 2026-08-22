@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.importwallet
 
+import android.content.ActivityNotFoundException
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
@@ -17,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -27,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
@@ -47,6 +50,8 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,6 +82,7 @@ private fun ImportWalletScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val viewModel = koinViewModel<ImportWalletViewModel>()
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
     val scannerTitle = stringResource(R.string.ManageAccounts_ImportWallet)
 
     // Handle one-shot navigation events from ViewModel
@@ -139,6 +145,15 @@ private fun ImportWalletScreen(
             viewModel.processBackupFile(context.contentResolver, uriNonNull, fileName)
         }
     }
+    val openBackupFilePicker = {
+        try {
+            pinComponent.launchExternalActivity {
+                restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+            }
+        } catch (_: ActivityNotFoundException) {
+            HudHelper.showErrorMessage(view, R.string.error_no_file_manager)
+        }
+    }
 
     AppModalBottomSheetLayout(
         sheetState = bottomSheetState,
@@ -152,7 +167,7 @@ private fun ImportWalletScreen(
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
                 onConfirm = {
-                    restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+                    openBackupFilePicker()
                     coroutineScope.launch { bottomSheetState.hide() }
                 },
                 onClose = {
@@ -194,9 +209,7 @@ private fun ImportWalletScreen(
                     title = stringResource(R.string.ImportWallet_BackupFile),
                     description = stringResource(R.string.ImportWallet_BackupFile_Description),
                     icon = R.drawable.ic_download_24,
-                    onClick = {
-                        restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
-                    }
+                    onClick = openBackupFilePicker,
                 )
                 VSpacer(12.dp)
                 ImportOption(

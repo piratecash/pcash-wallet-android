@@ -72,6 +72,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaultWithIcon
@@ -89,6 +90,8 @@ import cash.p.terminal.ui_compose.theme.YellowD
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -120,11 +123,17 @@ fun QRScannerScreen(
         )
     }
     val view = LocalView.current
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
 
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let(onGalleryImagePicked)
         }
+    val openGallery = {
+        pinComponent.launchExternalActivity {
+            galleryLauncher.launch(GALLERY_MIME_TYPE)
+        }
+    }
 
     if (showPermissionNeededDialog) {
         PermissionNeededDialog(
@@ -201,9 +210,7 @@ fun QRScannerScreen(
                             .padding(top = 8.dp),
                         title = stringResource(R.string.choose_from_photos),
                         enabled = !uiState.isDecodingFromImage,
-                        onClick = {
-                            galleryLauncher.launch(GALLERY_MIME_TYPE)
-                        }
+                        onClick = openGallery
                     )
                 } else {
                     ButtonPrimaryDefaultWithIcon(
@@ -215,9 +222,7 @@ fun QRScannerScreen(
                         title = stringResource(R.string.choose_from_photos),
                         enabled = !uiState.isDecodingFromImage,
                         onClick = {
-                            navController.premiumAction {
-                                galleryLauncher.launch(GALLERY_MIME_TYPE)
-                            }
+                            navController.premiumAction(openGallery)
                         }
                     )
                 }

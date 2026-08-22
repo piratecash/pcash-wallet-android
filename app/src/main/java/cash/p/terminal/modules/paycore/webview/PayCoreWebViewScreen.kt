@@ -39,9 +39,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 import timber.log.Timber
 import androidx.core.net.toUri
 
@@ -101,6 +104,7 @@ private fun PayCoreWebViewContent(
     var pendingWebPermissionRequest by remember { mutableStateOf<PermissionRequest?>(null) }
     var pendingFileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     var webView by remember { mutableStateOf<WebView?>(null) }
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -136,7 +140,15 @@ private fun PayCoreWebViewContent(
             onFileChooserRequest = { fileChooserCallback, mimeType ->
                 pendingFileChooserCallback?.onReceiveValue(null)
                 pendingFileChooserCallback = fileChooserCallback
-                fileChooserLauncher.launch(mimeType)
+                try {
+                    pinComponent.launchExternalActivity {
+                        fileChooserLauncher.launch(mimeType)
+                    }
+                } catch (error: RuntimeException) {
+                    pendingFileChooserCallback = null
+                    fileChooserCallback.onReceiveValue(null)
+                    Timber.e(error, "Unable to launch file chooser")
+                }
             },
             onProgressChanged = onProgressChange,
         ),

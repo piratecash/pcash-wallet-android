@@ -53,6 +53,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromBottom
@@ -104,9 +105,12 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
 import cash.p.terminal.ui_compose.components.HudHelper
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URL
 
 
@@ -243,6 +247,7 @@ private fun AssetContent(
     val asset = viewItem ?: return
     val context = LocalContext.current
     val view = LocalView.current
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
     var showActionSelectorDialog by remember { mutableStateOf(false) }
     val offlineGatedAction = rememberOfflineGatedAction(asset.wallet)
 
@@ -557,7 +562,7 @@ private fun AssetContent(
 
                                 val connection = URL(url).openConnection()
                                 connection.connect()
-                                connection.getInputStream().use { input ->
+                                val fileBytes = connection.getInputStream().use { input ->
                                     val disposition = try {
                                         connection.getHeaderField("Content-Disposition")
                                     } catch (e: Exception) {
@@ -575,7 +580,7 @@ private fun AssetContent(
                                     }
 
                                     extension = headerFileName?.split(".")?.lastOrNull()
-                                    nftFileByteArray = input.readBytes()
+                                    input.readBytes()
                                 }
 
                                 val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -586,9 +591,16 @@ private fun AssetContent(
                                         "$fileName${extension?.let { ".$it" } ?: ""}")
                                 }
 
-                                pickerLauncher.launch(intent)
+                                withContext(Dispatchers.Main) {
+                                    nftFileByteArray = fileBytes
+                                    pinComponent.launchExternalActivity {
+                                        pickerLauncher.launch(intent)
+                                    }
+                                }
                             } catch (e: Exception) {
-                                HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
+                                withContext(Dispatchers.Main) {
+                                    HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
+                                }
                             }
                         }
                     }
