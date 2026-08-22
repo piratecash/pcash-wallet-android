@@ -8,12 +8,15 @@ import io.horizontalsystems.core.IPinComponent
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -71,6 +74,52 @@ class BalanceHideOnFlipManagerTest {
     }
 
     @Test
+    fun handlingDisallowed_queuedFlip_doesNotToggleBalanceAndStopsDetector() = runTest {
+        val detector = flipDetector()
+        val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
+        val manager = createManagerWithStandardDispatcher(detector, balanceHiddenManager)
+
+        flipEvents.emit(Unit)
+        manager.setHandlingAllowed(false)
+        advanceUntilIdle()
+
+        verify { detector.stop() }
+        verify(exactly = 0) { balanceHiddenManager.toggleBalanceHiddenOnFlip() }
+    }
+
+    @Test
+    fun handlingAllowed_afterDisallowed_restartsDetectorAndProcessesFlip() =
+        runTest(UnconfinedTestDispatcher()) {
+            val detector = flipDetector()
+            val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
+            val (manager, _) = createManager(detector, balanceHiddenManager, MutableStateFlow(false))
+
+            manager.setHandlingAllowed(false)
+            advanceUntilIdle()
+            manager.setHandlingAllowed(true)
+            advanceUntilIdle()
+            flipEvents.emit(Unit)
+            advanceUntilIdle()
+
+            verify(exactly = 2) { detector.start() }
+            verify(exactly = 1) { balanceHiddenManager.toggleBalanceHiddenOnFlip() }
+        }
+
+    @Test
+    fun handlingAllowed_afterFlipWhileDisallowed_doesNotProcessStaleFlip() = runTest {
+        val detector = flipDetector()
+        val balanceHiddenManager = mockk<BalanceHiddenManager>(relaxed = true)
+        val manager = createManagerWithStandardDispatcher(detector, balanceHiddenManager)
+
+        manager.setHandlingAllowed(false)
+        flipEvents.emit(Unit)
+        manager.setHandlingAllowed(true)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { balanceHiddenManager.toggleBalanceHiddenOnFlip() }
+    }
+
+    @Test
     fun initialization_supportedDevice_keepsEnabledPreference() = runTest(UnconfinedTestDispatcher()) {
         val (manager, _) = createManager(flipDetector(), mockk(relaxed = true), MutableStateFlow(false))
 
@@ -96,10 +145,25 @@ class BalanceHideOnFlipManagerTest {
         every { isSupported } returns supported
     }
 
+    private fun TestScope.createManagerWithStandardDispatcher(
+        detector: DeviceFlipDetector,
+        balanceHiddenManager: BalanceHiddenManager,
+    ): BalanceHideOnFlipManager {
+        val (manager, _) = createManager(
+            detector,
+            balanceHiddenManager,
+            MutableStateFlow(false),
+            StandardTestDispatcher(testScheduler),
+        )
+        runCurrent()
+        return manager
+    }
+
     private fun TestScope.createManager(
         detector: DeviceFlipDetector,
         balanceHiddenManager: BalanceHiddenManager,
         lockedFlow: MutableStateFlow<Boolean>,
+        dispatcher: CoroutineDispatcher = UnconfinedTestDispatcher(testScheduler),
     ): Pair<BalanceHideOnFlipManager, ILocalStorage> {
         every { balanceHiddenManager.flipHiddenResult } returns MutableSharedFlow()
         val backgroundManager = mockk<BackgroundManager> {
@@ -111,7 +175,6 @@ class BalanceHideOnFlipManagerTest {
         val pinComponent = mockk<IPinComponent> {
             every { isLockedFlow } returns lockedFlow
         }
-        val dispatcher = UnconfinedTestDispatcher(testScheduler)
         return BalanceHideOnFlipManager(
             deviceFlipDetector = detector,
             balanceHiddenManager = balanceHiddenManager,

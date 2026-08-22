@@ -16,7 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BadgedBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +38,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
+import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
@@ -184,6 +187,10 @@ private fun MainScreen(
     }
 
     var showWalletSheet by remember { mutableStateOf(false) }
+    BalanceHideOnFlipHandling(
+        destination = uiState.mainNavItems[selectedPage].mainNavItem,
+        walletSelectionVisible = showWalletSheet,
+    )
     LaunchedEffect(intentLiveData, uiState.contentHidden) {
         if (!uiState.contentHidden) {
             val recordUid = intentLiveData?.getStringExtra(TransactionNotificationManager.EXTRA_RECORD_UID)
@@ -399,6 +406,25 @@ private fun MainScreen(
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         viewModel.onResume()
+    }
+}
+
+@Composable
+private fun BalanceHideOnFlipHandling(
+    destination: MainDestination,
+    walletSelectionVisible: Boolean,
+) {
+    val manager = koinInject<BalanceHideOnFlipManager>()
+    val allowed = !walletSelectionVisible && when (destination) {
+        MainDestination.Balance, MainDestination.Transactions -> true
+        MainDestination.Market, MainDestination.Settings -> false
+    }
+
+    SideEffect {
+        manager.setHandlingAllowed(allowed)
+    }
+    DisposableEffect(manager) {
+        onDispose { manager.setHandlingAllowed(true) }
     }
 }
 
