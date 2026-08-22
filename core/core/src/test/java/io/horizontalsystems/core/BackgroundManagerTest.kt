@@ -29,9 +29,13 @@ class BackgroundManagerTest {
         backgroundManager = BackgroundManager(application)
     }
 
-    private fun mockActivity(destroyed: Boolean = false): AppCompatActivity =
+    private fun mockActivity(
+        destroyed: Boolean = false,
+        changingConfigurations: Boolean = false
+    ): AppCompatActivity =
         mockk(relaxed = true) {
             every { isDestroyed } returns destroyed
+            every { isChangingConfigurations } returns changingConfigurations
         }
 
     private fun awaitState(expected: BackgroundManagerState) = runBlocking {
@@ -177,6 +181,48 @@ class BackgroundManagerTest {
             BackgroundManagerState.AllActivitiesDestroyed,
             awaitState(BackgroundManagerState.AllActivitiesDestroyed)
         )
+    }
+
+    @Test
+    fun onAppSessionEnded_lastActivityDestroyed_invokedSynchronously() {
+        var called = false
+        backgroundManager.onAppSessionEnded = { called = true }
+        val activity = mockActivity()
+        backgroundManager.onActivityCreated(activity, null)
+
+        backgroundManager.onActivityDestroyed(activity)
+
+        assertTrue(called)
+    }
+
+    @Test
+    fun onAppSessionEnded_configurationChange_doesNotInvoke() {
+        var called = false
+        backgroundManager.onAppSessionEnded = { called = true }
+        val activity = mockActivity(changingConfigurations = true)
+        backgroundManager.onActivityCreated(activity, null)
+
+        backgroundManager.onActivityDestroyed(activity)
+
+        assertFalse(called)
+        assertEquals(
+            BackgroundManagerState.AllActivitiesDestroyed,
+            awaitState(BackgroundManagerState.AllActivitiesDestroyed)
+        )
+    }
+
+    @Test
+    fun onAppSessionEnded_otherActivityAlive_doesNotInvoke() {
+        var called = false
+        backgroundManager.onAppSessionEnded = { called = true }
+        val first = mockActivity()
+        val second = mockActivity()
+        backgroundManager.onActivityCreated(first, null)
+        backgroundManager.onActivityCreated(second, null)
+
+        backgroundManager.onActivityDestroyed(first)
+
+        assertFalse(called)
     }
 
     @Test

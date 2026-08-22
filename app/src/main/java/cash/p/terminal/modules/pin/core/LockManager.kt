@@ -73,7 +73,10 @@ class LockManager(
 
     fun lock() {
         setLocked(true)
-        prefs.edit { remove(KEY_LAST_BACKGROUND_TIME) }
+        prefs.edit {
+            remove(KEY_LAST_BACKGROUND_TIME)
+            remove(KEY_KEEP_UNLOCKED)
+        }
     }
 
     fun keepUnlocked() {

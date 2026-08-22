@@ -146,6 +146,23 @@ class LockManagerForegroundContractTest {
         )
     }
 
+    @Test
+    fun lock_keepUnlockedWasSet_clearsGracePeriod() {
+        every { pinManager.isPinSet } returns true
+        every { localStorage.isCalculatorModeEnabled } returns false
+        every { localStorage.autoLockInterval } returns AutoLockInterval.IMMEDIATE
+        val lockManager = LockManager(pinManager, localStorage, context)
+        lockManager.onUnlock()
+        lockManager.keepUnlocked()
+
+        lockManager.lock()
+        lockManager.onUnlock()
+        lockManager.didEnterBackground()
+        lockManager.willEnterForeground()
+
+        assertTrue(lockManager.isLocked.value)
+    }
+
     companion object {
         private const val KEY_LAST_BACKGROUND_TIME = "last_background_time"
     }
