@@ -185,6 +185,14 @@ class PinComponent(
         appLockManager.keepUnlocked()
     }
 
+    override fun cancelKeepUnlocked() {
+        appLockManager.cancelKeepUnlocked()
+    }
+
+    override fun consumeExternalActivityLaunch(): Boolean {
+        return appLockManager.consumeExternalActivityLaunch()
+    }
+
     override fun getPinLevel(pin: String): Int? {
         return pinManager.getPinLevel(pin)
     }

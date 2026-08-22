@@ -57,6 +57,8 @@ interface IPinComponent {
     fun updateLastExitDateBeforeRestart()
     fun isUnique(pin: String, forDuress: Boolean): Boolean
     fun keepUnlocked()
+    fun cancelKeepUnlocked()
+    fun consumeExternalActivityLaunch(): Boolean
     fun getPinLevel(pin: String): Int?
     fun setHiddenWalletPin(pin: String): Int
 
@@ -74,6 +76,16 @@ interface IPinComponent {
     fun disableLogLoggingPinForDuress()
     fun disableLogLoggingPin()
     fun validateLogLoggingPin(pin: String): Boolean
+}
+
+inline fun IPinComponent.launchExternalActivity(launch: () -> Unit) {
+    keepUnlocked()
+    try {
+        launch()
+    } catch (error: RuntimeException) {
+        cancelKeepUnlocked()
+        throw error
+    }
 }
 
 interface ILockoutStorage {

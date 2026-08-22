@@ -13,6 +13,7 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -22,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
@@ -40,6 +42,8 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.body_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,6 +89,7 @@ private fun BackupManagerScreen(
     val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
@@ -107,6 +112,11 @@ private fun BackupManagerScreen(
             }
         }
     }
+    val openRestorePicker = {
+        pinComponent.launchExternalActivity {
+            restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+        }
+    }
 
     AppModalBottomSheetLayout(
         sheetState = bottomSheetState,
@@ -120,7 +130,7 @@ private fun BackupManagerScreen(
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
                 onConfirm = {
-                    restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+                    openRestorePicker()
                     coroutineScope.launch { bottomSheetState.hide() }
                 },
                 onClose = {
@@ -146,11 +156,8 @@ private fun BackupManagerScreen(
                     buildList {
                         add {
                             RowUniversal(
-                                onClick = {
-                                    restoreLauncher.launch(
-                                        arrayOf("application/json", "application/octet-stream", "*/*")
-                                    )
-                                }) {
+                                onClick = openRestorePicker
+                            ) {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     painter = painterResource(R.drawable.ic_download_20),

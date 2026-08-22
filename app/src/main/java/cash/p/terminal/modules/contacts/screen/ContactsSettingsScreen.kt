@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.modules.settings.security.ui.ManagePasscodeSection
 import cash.p.terminal.ui_compose.components.AppBar
@@ -39,6 +40,8 @@ import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.launchExternalActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +58,7 @@ fun ContactsSettingsScreen(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
+    val pinComponent = remember { getKoinInstance<IPinComponent>() }
     var showRestoreWarning by remember { mutableStateOf(false) }
     var showDisableConfirmation by remember { mutableStateOf(false) }
 
@@ -70,6 +74,11 @@ fun ContactsSettingsScreen(
                     HudHelper.showErrorMessage(view, e.message ?: e.javaClass.simpleName)
                 }
             }
+        }
+    }
+    val openRestorePicker = {
+        pinComponent.launchExternalActivity {
+            restoreLauncher.launch(arrayOf("application/json"))
         }
     }
 
@@ -98,7 +107,7 @@ fun ContactsSettingsScreen(
             if (hasContacts) {
                 showRestoreWarning = true
             } else {
-                restoreLauncher.launch(arrayOf("application/json"))
+                openRestorePicker()
             }
         },
         onBackupContacts = {
@@ -106,6 +115,7 @@ fun ContactsSettingsScreen(
             try {
                 backupLauncher.launch(backupFileName)
             } catch (_: ActivityNotFoundException) {
+                pinComponent.cancelKeepUnlocked()
                 HudHelper.showErrorMessage(view, R.string.error_no_file_manager)
             }
         },
@@ -127,7 +137,7 @@ fun ContactsSettingsScreen(
                 cancelText = stringResource(R.string.Button_Cancel),
                 onConfirm = {
                     showRestoreWarning = false
-                    restoreLauncher.launch(arrayOf("application/json"))
+                    openRestorePicker()
                 },
                 onClose = { showRestoreWarning = false }
             )

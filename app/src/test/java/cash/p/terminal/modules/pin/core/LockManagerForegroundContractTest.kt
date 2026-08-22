@@ -163,6 +163,53 @@ class LockManagerForegroundContractTest {
         assertTrue(lockManager.isLocked.value)
     }
 
+    @Test
+    fun keepUnlocked_called_marksOneExternalLaunchAndSuspendsAutoLock() {
+        every { pinManager.isPinSet } returns true
+        every { localStorage.isCalculatorModeEnabled } returns false
+        every { localStorage.autoLockInterval } returns AutoLockInterval.IMMEDIATE
+        val lockManager = LockManager(pinManager, localStorage, context)
+        lockManager.onUnlock()
+
+        lockManager.keepUnlocked()
+
+        assertTrue(lockManager.consumeExternalActivityLaunch())
+        assertFalse(lockManager.consumeExternalActivityLaunch())
+
+        lockManager.didEnterBackground()
+        lockManager.willEnterForeground()
+
+        assertFalse(lockManager.isLocked.value)
+    }
+
+    @Test
+    fun keepUnlocked_newManagerCreated_doesNotRestoreExternalLaunchMarker() {
+        every { pinManager.isPinSet } returns true
+        val lockManager = LockManager(pinManager, localStorage, context)
+        lockManager.keepUnlocked()
+
+        val recreatedLockManager = LockManager(pinManager, localStorage, context)
+
+        assertFalse(recreatedLockManager.consumeExternalActivityLaunch())
+    }
+
+    @Test
+    fun cancelKeepUnlocked_launchFailed_clearsMarkerAndGracePeriod() {
+        every { pinManager.isPinSet } returns true
+        every { localStorage.isCalculatorModeEnabled } returns false
+        every { localStorage.autoLockInterval } returns AutoLockInterval.IMMEDIATE
+        val lockManager = LockManager(pinManager, localStorage, context)
+        lockManager.onUnlock()
+        lockManager.keepUnlocked()
+
+        lockManager.cancelKeepUnlocked()
+
+        assertFalse(lockManager.consumeExternalActivityLaunch())
+        lockManager.didEnterBackground()
+        lockManager.willEnterForeground()
+        assertTrue(lockManager.isLocked.value)
+    }
+
     companion object {
         private const val KEY_LAST_BACKGROUND_TIME = "last_background_time"
     }
